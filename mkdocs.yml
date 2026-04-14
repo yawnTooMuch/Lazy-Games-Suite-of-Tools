@@ -2,6 +2,7 @@ site_name: Lazy Games Suite of Tools
 site_description: Documentation for the Lazy Games Suite of Tools distribution.
 theme:
   name: material
+  logo: assets/images/LazyGamesIcon.png
   palette:
     scheme: slate
     primary: dark yellow
