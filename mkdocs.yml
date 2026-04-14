@@ -1,24 +1,85 @@
-site_name: Diary Framework
-site_description: Documentation for the Diary MMORPG Persistence System
+site_name: Lazy Games Suite of Tools
+site_description: Documentation for the Lazy Games Suite of Tools distribution.
 theme:
   name: material
   palette:
-    # Forces a sleek dark mode by default
     scheme: slate
-    primary: deep purple
+    primary: dark yellow
     accent: cyan
   features:
-    - navigation.tabs # Creates top-level tabs
-    - navigation.sections # Groups items in the sidebar
-    - search.suggest # Better search functionality
+    - navigation.tabs 
+    - navigation.sections 
+    - search.suggest 
+    - navigation.instant
+    - content.code.copy
+
+# Enable special Markdown features
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
 
 # This defines your sidebar navigation
 nav:
   - Home: index.md
   - Systems:
-    - Diary: systems/diary.md
-    - DataStore: systems/datastore.md
-    - MemoryStore: systems/memorystore.md
+    - _:
+      - Diary Framework:
+        - Overview: systems/diary/index.md
+        - APIs: systems/diary/apis.md
+        - Examples: systems/diary/examples.md
+        - Best Practices: systems/diary/best_practices.md
+      - Bytewave Framework:
+        - Overview: systems/bytewave/index.md
+        - APIs: systems/bytewave/apis.md
+        - Examples: systems/bytewave/examples.md
+        - Best Practices: systems/bytewave/best_practices.md
+      - Navigator Framework:
+        - Overview: systems/navigator/index.md
+        - APIs: systems/navigator/apis.md
+        - Examples: systems/navigator/examples.md
+        - Best Practices: systems/navigator/best_practices.md
+      - FlowMotion Framework:
+        - Overview: systems/flowmotion/index.md
+        - APIs: systems/flowmotion/apis.md
+        - Examples: systems/flowmotion/examples.md
+        - Best Practices: systems/flowmotion/best_practices.md
+      - Soundora Framework:
+        - Overview: systems/soundora/index.md
+        - APIs: systems/soundora/apis.md
+        - Examples: systems/soundora/examples.md
+        - Best Practices: systems/soundora/best_practices.md
   - Utilities:
-    - Assignment: utilities/assignment.md
-    - DependentServices: utilities/dependentservices.md
+    - _:
+      - Assignment Library:
+        - Overview: utilities/assignment/index.md
+        - APIs: utilities/assignment/apis.md
+        - Examples: utilities/assignment/examples.md
+        - Best Practices: utilities/assignment/best_practices.md
+      - Reaper Library:
+        - Overview: utilities/reaper/index.md
+        - APIs: utilities/reaper/apis.md
+        - Examples: utilities/reaper/examples.md
+        - Best Practices: utilities/reaper/best_practices.md
+      - Relay Library:
+        - Overview: utilities/relay/index.md
+        - APIs: utilities/relay/apis.md
+        - Examples: utilities/relay/examples.md
+        - Best Practices: utilities/relay/best_practices.md
+      - Stamp Library:
+        - Overview: utilities/stamp/index.md
+        - APIs: utilities/stamp/apis.md
+        - Examples: utilities/stamp/examples.md
+        - Best Practices: utilities/stamp/best_practices.md
+  - Plugins:
+    - _:
+      - Coming Soon!: plugins/coming_soon.md
+
+# Make sure this is completely flush to the left!
+extra_css:
+  - stylesheets/extra.css
