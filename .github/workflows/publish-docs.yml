@@ -2,12 +2,12 @@ name: Publish Docs
 on:
   push:
     branches:
-      - main # Change this to 'master' if your default branch is named master
+      - main 
 permissions:
   contents: write
 jobs:
   deploy:
-    runs-name: Deploy MkDocs
+    name: Deploy MkDocs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
