@@ -63,7 +63,7 @@ nav:
         - APIs: utilities/assignment/apis.md
         - Examples: utilities/assignment/examples.md
         - Best Practices: utilities/assignment/best_practices.md
-      - Reaper Library:
+      - Reaper Framework:
         - Overview: utilities/reaper/index.md
         - APIs: utilities/reaper/apis.md
         - Examples: utilities/reaper/examples.md
