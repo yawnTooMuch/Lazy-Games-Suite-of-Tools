@@ -1,0 +1,1571 @@
+--[[
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Reaper - Surface Garbage Collector Framework					 						 						 000
+	000 Version: 1.0.0 Beta Release													  			 						 000
+	000 Platform: Roblox													  											 000
+	000 License: Apache 2.0												  	  					 						 000
+	000																		  					 						 000
+	000																		  					 						 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					 						 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			 						 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/reaper-memory-leak-is-no-longer-a-nightmare/4585654 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Reaper_ReadOnly 					 	 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/reaper/ 						 000
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Configuration Section
+----------------------------------------------------------
+
+local ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE: boolean = game:GetService("RunService"):IsStudio() -- Enables parameter validation in Studio only
+local GENERAL_CHECK_INTERVAL: number = 30                                                            -- Seconds between general registry sweeps
+local GENERAL_BATCH_SIZE: number = 500                                                               -- Max items to process per frame during a general registry sweep
+local PRIMARY_SWEEP_FRAME_INTERVAL: number = 5                                                       -- Run primary list sweep every N heartbeat frames
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Type Structures Section
+----------------------------------------------------------
+
+type Reapable = Instance | RBXScriptConnection | thread | (() -> ()) | { [any]: any }
+export type Classification = "Instance" | "Connection" | "Thread" | "Function" | "Table" | "Scope" | "Unknown"
+
+export type TrackObject = {
+	Item           : Reapable,
+	AssignID       : string?,
+	Frequency      : number?,
+	Classification : Classification,
+	_ClassID       : number,
+	_LastCheck     : number,
+	_Cleaned       : boolean,
+	_Evicted       : boolean,
+	_Children      : { [Reapable]: number }?,
+	_CustomMethod  : string?,
+	_ChildMethods  : { [Reapable]: string }?,
+	_BoundScopes   : { [string]: true }?,
+	_CurrentList   : { TrackObject },
+	_CurrentMap    : { [any]: number },
+	IsProtected    : boolean,
+	_DeathListener : RBXScriptConnection?,
+	Configure      : (self: TrackObject, AssignID: string, Frequency: number) -> TrackObject,
+	Chain          : (self: TrackObject, ChildItem: Reapable, CustomMethod: string?) -> TrackObject,
+	HandleScope    : (self: TrackObject, Scope: string | ScopeObject) -> TrackObject,
+	Destroy        : (self: TrackObject) -> (),
+}
+
+export type ScopeObject = TrackObject & {
+	Unchain     : (self: ScopeObject, ChildItem: Reapable) -> ScopeObject,
+	CleanChild  : (self: ScopeObject, ChildItem: Reapable) -> ScopeObject,
+	BindToTrack : (self: ScopeObject, Track: TrackObject) -> ScopeObject,
+	Connect     : (self: ScopeObject, Signal: any, Callback: any) -> RBXScriptConnection,
+	Spawn       : (self: ScopeObject, Callback: (...any) -> (), ...any) -> thread,
+	Defer       : (self: ScopeObject, Callback: (...any) -> (), ...any) -> any,
+	Delay       : (self: ScopeObject, TimeDelay: number, Callback: (...any) -> (), ...any) -> any,
+	Repeat      : (self: ScopeObject, Count: number, Interval: number?, Callback: (...any) -> (), ...any) -> any,
+}
+
+export type ConnectionObject = {
+	_cancelled  : boolean,
+	Disconnect  : (self: ConnectionObject) -> (),
+	IsConnected : (self: ConnectionObject) -> boolean,
+	BindTo      : (self: ConnectionObject, TieTarget: any) -> ConnectionObject,
+}
+
+export type ListenerSignal<T...> = {
+	Connect : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Once    : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Wait    : (self: ListenerSignal<T...>) -> T...,
+}
+
+export type ReaperSignals = {
+	OnTracked : ListenerSignal<(any, Classification, string?)>,
+	OnCleaned : ListenerSignal<(any, Classification)>,
+	OnRemoved : ListenerSignal<(any, Classification)>,
+}
+
+type Handle = {
+	_cancelled : boolean,
+	Break      : (self: Handle) -> (),
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Imported Services Section
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Internal States Section
+----------------------------------------------------------
+
+local Reaper = {}
+local Loaded: any = nil
+local RelayInjected: boolean = false
+
+local Scheduler = {
+	Spawn  = task.spawn,
+	Defer  = task.defer,
+	Delay  = task.delay,
+	Wait   = task.wait,
+	Cancel = task.cancel,
+	Repeat = function(_Count: number, _Interval: number?, _TaskFunction: (number, Handle, ...any) -> (), ...: any) end,
+}
+
+local PrimaryList: { TrackObject } = {}
+local GeneralList: { TrackObject } = {}
+local ManualList: { TrackObject } = {}
+
+local PrimaryMap: { [string]: number } = {}
+local GeneralMap: { [Reapable]: number } = {}
+local ManualMap: { [any]: number } = {}
+
+local GlobalItemRegistry: { [Reapable]: TrackObject } = {}
+local ObjectOwnershipMap: { [Reapable]: TrackObject } = {}
+
+local GeneralAccumulator: number = 0
+local FrameCounter: number = 0
+local GeneralSweepActive: boolean = false
+local GeneralSweepIndex: number = 1
+
+local CLASS_INSTANCE   = 1
+local CLASS_CONNECTION = 2
+local CLASS_THREAD     = 3
+local CLASS_FUNCTION   = 4
+local CLASS_TABLE      = 5
+local CLASS_SCOPE      = 6
+local CLASS_UNKNOWN    = 7
+
+local ClassifierGraph: { [string]: number } = {
+	["Instance"]            = CLASS_INSTANCE,
+	["RBXScriptConnection"] = CLASS_CONNECTION,
+	["thread"]              = CLASS_THREAD,
+	["function"]            = CLASS_FUNCTION,
+	["table"]               = CLASS_TABLE,
+}
+
+local ExplicitClassGraph: { [string]: number } = {
+	["Instance"]   = CLASS_INSTANCE,
+	["Connection"] = CLASS_CONNECTION,
+	["Thread"]     = CLASS_THREAD,
+	["Function"]   = CLASS_FUNCTION,
+	["Table"]      = CLASS_TABLE,
+	["Scope"]      = CLASS_SCOPE,
+	["Unknown"]    = CLASS_UNKNOWN,
+}
+
+local ClassIDToString: { [number]: string } = {
+	[CLASS_INSTANCE]   = "Instance",
+	[CLASS_CONNECTION] = "Connection",
+	[CLASS_THREAD]     = "Thread",
+	[CLASS_FUNCTION]   = "Function",
+	[CLASS_TABLE]      = "Table",
+	[CLASS_SCOPE]      = "Scope",
+	[CLASS_UNKNOWN]    = "Unknown",
+}
+
+local DeadCheckGraph: { [number]: (any) -> boolean } = {
+	[CLASS_INSTANCE] = function(Item: any)
+		return not (Item :: Instance):IsDescendantOf(game)
+	end,
+
+	[CLASS_CONNECTION] = function(Item: any)
+		return not (Item :: RBXScriptConnection).Connected
+	end,
+
+	[CLASS_THREAD] = function(Item: any)
+		return coroutine.status(Item :: thread) == "dead"
+	end,
+
+	[CLASS_FUNCTION] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_TABLE] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_SCOPE] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_UNKNOWN] = function(_Item: any)
+		return false
+	end,
+}
+
+local TeardownGraph: { [number]: (any) -> () } = {
+	[CLASS_INSTANCE] = function(Item: any)
+		(Item :: Instance):Destroy()
+	end,
+
+	[CLASS_CONNECTION] = function(Item: any)
+		(Item :: RBXScriptConnection):Disconnect()
+	end,
+
+	[CLASS_THREAD] = function(Item: any)
+		task.cancel(Item :: thread)
+	end,
+
+	[CLASS_FUNCTION] = function(Item: any)
+		(Item :: (() -> ()))()
+	end,
+
+	[CLASS_TABLE] = function(Item: any)
+		if type(Item.Destroy) == "function" then
+			Item:Destroy()
+			
+		elseif type(Item.Disconnect) == "function" then
+			Item:Disconnect()
+			
+		elseif type(Item._cancelled) == "boolean" then
+			Scheduler.Cancel(Item)
+		end
+	end,
+
+	[CLASS_SCOPE] = function(_Item: any)
+		return
+	end,
+
+	[CLASS_UNKNOWN] = function(_Item: any)
+		return
+	end,
+}
+
+Reaper.Signals = {} :: ReaperSignals
+Reaper.Classifications = {
+	Instance   = "Instance",
+	Connection = "Connection",
+	Thread     = "Thread",
+	Function   = "Function",
+	Table      = "Table",
+	Scope      = "Scope",
+	Unknown    = "Unknown",
+}
+
+-- Dummy signal initialization (scoped to prevent namespace pollution before Relay is injected)
+do
+	local DummyConnection: ConnectionObject = {
+		_cancelled  = true,
+		Disconnect  = function()
+		end,
+
+		IsConnected = function()
+			return false
+		end,
+
+		BindTo = function(Self)
+			return Self
+		end,
+	} :: any
+
+	-- Creates a no-op signal that warns when Relay has not been injected
+	local function createDummySignal(SignalName: string): any
+		return {
+			Connect = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. This connection will never fire.", SignalName))
+				end
+				
+				return DummyConnection
+			end,
+
+			Once = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. This connection will never fire.", SignalName))
+				end
+				
+				return DummyConnection
+			end,
+
+			Wait = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. Yielding forever.", SignalName))
+				end
+				
+				return coroutine.yield()
+			end,
+
+			GetConnectionCount = function()
+				return 0
+			end,
+
+			Fire = function()
+			end,
+		}
+	end
+
+	Reaper.Signals.OnTracked = createDummySignal("OnTracked")
+	Reaper.Signals.OnCleaned = createDummySignal("OnCleaned")
+	Reaper.Signals.OnRemoved = createDummySignal("OnRemoved")
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Local Function Section
+----------------------------------------------------------
+
+-- Returns the Classification string for any value based on its runtime type
+local function autoClassify(Item: any): (Classification, number)
+	if Item == nil then
+		error("[Reaper] autoClassify Error: Cannot classify a nil item.\n" .. debug.traceback(), 0)
+	end
+
+	local ClassID = ClassifierGraph[typeof(Item)] or CLASS_UNKNOWN
+
+	return ClassIDToString[ClassID] :: Classification, ClassID
+end
+
+-- Removes an entry from a list and its map in O(1) by swapping with the tail element
+local function popAndSwap(List: { TrackObject }, Map: { [any]: number }, Index: number, MapKey: any): ()
+	local LastIndex = #List
+
+	if Index ~= LastIndex then
+		local LastItem = List[LastIndex]
+
+		List[Index] = LastItem
+
+		local NewKey: any
+
+		if List == GeneralList then
+			NewKey = LastItem.Item
+		else
+			NewKey = LastItem.AssignID or LastItem.Item
+		end
+		
+		Map[NewKey] = Index
+	end
+
+	List[LastIndex] = nil
+	Map[MapKey]     = nil
+end
+
+-- Static teardown logic executed without closure captures
+local function safeTeardownLogic(Item: any, ClassID: number, CustomMethod: string?, Tracker: TrackObject?): ()
+	if Tracker and Tracker._DeathListener then
+		Tracker._DeathListener:Disconnect()
+		Tracker._DeathListener = nil
+	end
+
+	if CustomMethod then
+		if type(Item) == "table" and type(Item[CustomMethod]) == "function" then
+			Item[CustomMethod](Item)
+		else
+			warn(string.format("[Reaper] Teardown Warning: Custom method '%s' not found on object. Memory may leak.", CustomMethod))
+		end
+		
+		return
+	end
+
+	local TeardownAction = TeardownGraph[ClassID]
+
+	if TeardownAction then
+		TeardownAction(Item)
+	end
+end
+
+-- Executes the appropriate teardown action for an item and fires OnCleaned if connected
+local function executeTeardown(Item: any, ClassID: number, CustomMethod: string?, Tracker: TrackObject?): ()
+	if Item == nil then return end
+	local Success: boolean?, ErrorMessage: any = nil, nil
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		Success, ErrorMessage = pcall(safeTeardownLogic, Item, ClassID, CustomMethod, Tracker) :: boolean, string
+	else
+		safeTeardownLogic(Item, ClassID, CustomMethod, Tracker)
+	end
+
+	if RelayInjected and Reaper.Signals.OnCleaned then
+		if (Reaper.Signals.OnCleaned :: any):GetConnectionCount() > 0 then
+			(Reaper.Signals.OnCleaned :: any):Fire(Item, ClassIDToString[ClassID])
+		end
+
+	elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+		warn("[Reaper] OnCleaned Warning: 'Relay' library is needed to use this signal.")
+	end
+
+	if not Success then
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn(string.format("[Reaper] Teardown Error: Failed to teardown item on %s!\nError: %s\n%s", ClassIDToString[ClassID] or "Unknown", tostring(ErrorMessage), debug.traceback()))
+		end
+	end
+end
+
+-- Evaluates whether a tracked item is dead and runs teardown if so; returns true if cleaned
+local function checkAndClean(ReaperObject: TrackObject): boolean
+	local Item    = ReaperObject.Item
+	local ClassID = ReaperObject._ClassID
+	local IsDead  = DeadCheckGraph[ClassID](Item)
+
+	if IsDead then
+		ReaperObject._Cleaned = true
+		executeTeardown(Item, ClassID, ReaperObject._CustomMethod, ReaperObject)
+
+		if ReaperObject._Children then
+			for Child, ChildClassID in ReaperObject._Children do
+				ObjectOwnershipMap[Child] = nil
+
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					Reaper.Clean(ChildTracker)
+				else
+					local ChildMethod = ReaperObject._ChildMethods and ReaperObject._ChildMethods[Child]
+
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			ReaperObject._Children    = nil
+			ReaperObject._ChildMethods = nil
+		end
+
+		if ReaperObject._BoundScopes then
+			for ScopeID in ReaperObject._BoundScopes do
+				Reaper.Clean(ScopeID)
+			end
+
+			ReaperObject._BoundScopes = nil
+		end
+	end
+
+	return IsDead
+end
+
+-- Resolves any identifier form (string, item reference, or TrackObject) to its registry entry
+local function resolveIdentifier(Identifier: any): (TrackObject?, number?, { TrackObject }?, { [any]: number }?, any)
+	if type(Identifier) == "table" and Identifier.Item ~= nil and type(Identifier.Classification) == "string" then
+		Identifier = Identifier.AssignID or Identifier.Item
+	end
+
+	local Object: TrackObject?
+	local MapKey: any = Identifier
+
+	if type(Identifier) == "string" then
+		local Index = PrimaryMap[Identifier]
+
+		if Index then
+			Object = PrimaryList[Index]
+		else
+			Index = ManualMap[Identifier]
+
+			if Index then
+				Object = ManualList[Index]
+			end
+		end
+
+		if Object then
+			return Object, Index, Object._CurrentList, Object._CurrentMap, MapKey
+		end
+	else
+		Object = GlobalItemRegistry[Identifier]
+
+		if Object then
+			MapKey = Object.AssignID or Object.Item
+
+			local Index = Object._CurrentMap[MapKey]
+
+			return Object, Index, Object._CurrentList, Object._CurrentMap, MapKey
+		end
+	end
+	
+	return
+end
+
+-- Formats an identifier into a human-readable label for warning messages
+local function formatIdentifierLabel(Identifier: any): string
+	if type(Identifier) == "string" then
+		return Identifier
+
+	elseif type(Identifier) == "table" and type((Identifier :: any).AssignID) == "string" then
+		return (Identifier :: any).AssignID
+	end
+
+	return "Item<" .. tostring(Identifier) .. ">"
+end
+
+--[[
+	Assigns a unique string identifier and a dead-state check interval to this handle, making it reachable by name from any script. A Frequency of 0 places the handle in the manual tier with no background polling; any positive value places eligible item types in the frequency-polled tier and schedules checks at that interval in seconds. Configuration is a one-time operation; calling :Configure() on an already-configured handle throws in Studio.
+
+	Params:
+		AssignID: string  -- Unique identifier used for cross-script retrieval and teardown. Must not already be in use.
+		Frequency: number -- Dead-state check interval in seconds. 0 opts out of all background polling.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectConfigure(Self: TrackObject, AssignID: string, Frequency: number): TrackObject
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Configure Error: Cannot configure an object that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if Self.AssignID ~= nil then
+			error(string.format("[Reaper] Configure Error: Item is already configured as '%s'. Re-configuration is not permitted.\n", Self.AssignID) .. debug.traceback(), 0)
+		end
+
+		if type(AssignID) ~= "string" or #AssignID == 0 then
+			error("[Reaper] Configure Error: AssignID must be a non-empty string.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Frequency) ~= "number" or Frequency < 0 then
+			error("[Reaper] Configure Error: Frequency must be a positive number or 0 (Manual).\n" .. debug.traceback(), 0)
+		end
+
+		if PrimaryMap[AssignID] or ManualMap[AssignID] then
+			error(string.format("[Reaper] Configure Error: AssignID '%s' already in use!\n", AssignID) .. debug.traceback(), 0)
+		end
+	end
+
+	Self.AssignID = AssignID
+
+	if Self._CurrentList == ManualList then
+		Self.Frequency = 0
+		local CurrentIndex = ManualMap[Self.Item]
+
+		if CurrentIndex then
+			ManualMap[Self.Item] = nil
+			ManualMap[AssignID]  = CurrentIndex
+		end
+
+		return Self
+	end
+
+	Self.Frequency = Frequency
+
+	local GeneralIndex = GeneralMap[Self.Item]
+
+	if GeneralIndex then
+		popAndSwap(GeneralList, GeneralMap, GeneralIndex, Self.Item)
+	end
+
+	if Frequency == 0 then
+		table.insert(ManualList, Self)
+
+		ManualMap[AssignID]  = #ManualList
+		Self._CurrentList    = ManualList
+		Self._CurrentMap     = ManualMap
+	else
+		table.insert(PrimaryList, Self)
+
+		PrimaryMap[AssignID] = #PrimaryList
+		Self._CurrentList    = PrimaryList
+		Self._CurrentMap     = PrimaryMap
+	end
+
+	return Self
+end
+
+-- Safely and instantly evicts an item from whoever is currently managing it in O(1) time
+local function evictFromCurrentManager(Item: Reapable): ()
+	local GlobalTracker = GlobalItemRegistry[Item]
+
+	if GlobalTracker and GlobalTracker.Classification ~= "Scope" then
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn("[Reaper] Last Call Suppremacy: Item evicted from Global Registry to a new one of Reaper's internal manager.")
+		end
+
+		Reaper.Remove(Item)
+		
+		return
+	end
+
+	local CurrentParent = ObjectOwnershipMap[Item]
+
+	if CurrentParent then
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn(string.format("[Reaper] Last Call Suppremacy: Item stolen from Parent '%s' by a new one of Reaper's internal manager.", CurrentParent.AssignID or "Unknown"))
+		end
+
+		if CurrentParent._Children and CurrentParent._Children[Item] then
+			CurrentParent._Children[Item] = nil
+
+		elseif CurrentParent._BoundScopes then
+			for ScopeID, _ in CurrentParent._BoundScopes do
+				local Resolved = resolveIdentifier(ScopeID)
+
+				if Resolved and Resolved.Item == Item then
+					CurrentParent._BoundScopes[ScopeID] = nil
+					break
+				end
+			end
+		end
+
+		ObjectOwnershipMap[Item] = nil
+		return
+	end
+end
+
+--[[
+	Subordinates a raw item to this handle so it is destroyed alongside it when this handle is cleaned. The item's type is auto-detected and the correct teardown action is stored. If the item currently belongs to another owner, it is released from that owner before being registered here — Last Call Supremacy. Returns self for fluent chaining.
+	
+	Params:
+		ChildItem: Reapable   -- The raw item to subordinate. Must not be nil, the handle's own item, or a TrackObject/ScopeObject wrapper.
+		CustomMethod: string? -- (Optional) Explicit teardown method name to call on the child instead of the default.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectChain(Self: TrackObject, ChildItem: Reapable, CustomMethod: string?): TrackObject
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Chain Error: Cannot add items to a scope or object that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if ChildItem == nil then
+			error("[Reaper] Chain Error: Cannot chain a nil item.\n" .. debug.traceback(), 0)
+		end
+
+		if Self.Item == ChildItem then
+			error("[Reaper] Chain Error: Cannot chain an item to itself.\n" .. debug.traceback(), 0)
+		end
+
+		if Reaper.Is(ChildItem) then
+			if (ChildItem :: any).Classification == "Scope" then
+				error("[Reaper] Chain Error: You cannot :Chain() a ScopeObject. Use :HandleScope() or Scope:BindToTrack() instead.\n" .. debug.traceback(), 0)
+			else
+				error("[Reaper] Chain Error: You passed a TrackObject wrapper into :Chain(). You should chain the raw item itself, not its Tracker.\n" .. debug.traceback(), 0)
+			end
+		end
+	end
+
+	evictFromCurrentManager(ChildItem)
+
+	local Children = Self._Children
+
+	if not Children then
+		Children       = {} :: { [Reapable]: Classification }
+		Self._Children = Children
+	end
+
+	local _, ChildClassID = autoClassify(ChildItem)
+
+	Children[ChildItem] = ChildClassID
+
+	if CustomMethod then
+		local ChildMethods = Self._ChildMethods
+
+		if not ChildMethods then
+			ChildMethods       = {}
+			Self._ChildMethods = ChildMethods
+		end
+
+		ChildMethods[ChildItem] = CustomMethod
+	end
+
+	ObjectOwnershipMap[ChildItem] = Self
+
+	return Self
+end
+
+--[[
+	Immediately destroys this handle and everything it owns — equivalent to calling Reaper.Clean with this handle. All chained children are torn down and all bound Scopes are cleaned in the same cascade.
+	
+	Params:
+		nil
+		
+	Return:
+		nil
+]]
+local function trackObjectDestroy(Self: TrackObject): ()
+	Reaper.Clean(Self)
+end
+
+--[[
+	Removes a chained item from this Scope without destroying it. The item is de-registered from this Scope's ownership but is left fully intact.
+	
+	Params:
+		ChildItem: Reapable -- The physical item to remove from this Scope's child list.
+		
+	Returns:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeUnchain(Self: ScopeObject, ChildItem: Reapable): ScopeObject
+	if ChildItem == nil then
+		error("[Reaper] Unchain Error: Cannot unchain a nil item.\n" .. debug.traceback(), 0)
+	end
+
+	if Self._Cleaned then
+		error("[Reaper] Unchain Error: Cannot unchain from a scope that has been destroyed.\n" .. debug.traceback(), 0)
+	end
+
+	if Self._Children and Self._Children[ChildItem] then
+		ObjectOwnershipMap[ChildItem] = nil
+		Self._Children[ChildItem]     = nil
+
+		if next(Self._Children) == nil then
+			Self._Children = nil
+		end
+
+		if Self._ChildMethods and Self._ChildMethods[ChildItem] then
+			Self._ChildMethods[ChildItem] = nil
+
+			if next(Self._ChildMethods) == nil then
+				Self._ChildMethods = nil
+			end
+		end
+	end
+
+	return Self
+end
+
+--[[
+	Immediately destroys a specific item currently chained to this Scope, removing it from the Scope's child list. The Scope itself remains alive and continues owning any other chained items. If the item has its own independent tracking handle, that handle is also cleaned.
+	
+	Params:
+		ChildItem: Reapable -- The physical item to tear down and remove from this Scope.
+		
+	Returns:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeCleanChild(Self: ScopeObject, ChildItem: Reapable): ScopeObject
+	if ChildItem == nil then
+		error("[Reaper] CleanChild Error: Cannot clean a nil item.\n" .. debug.traceback(), 0)
+	end
+
+	if Self._Cleaned then
+		error("[Reaper] CleanChild Error: Cannot clean from a scope that has been destroyed.\n" .. debug.traceback(), 0)
+	end
+
+	if Self._Children and Self._Children[ChildItem] then
+		ObjectOwnershipMap[ChildItem] = nil
+
+		local ChildClassID        = Self._Children[ChildItem]
+		
+		Self._Children[ChildItem] = nil
+
+		if next(Self._Children) == nil then
+			Self._Children = nil
+		end
+
+		local ChildMethod = Self._ChildMethods and Self._ChildMethods[ChildItem]
+
+		if Self._ChildMethods and Self._ChildMethods[ChildItem] then
+			Self._ChildMethods[ChildItem] = nil
+
+			if next(Self._ChildMethods) == nil then
+				Self._ChildMethods = nil
+			end
+		end
+
+		local ChildTracker = GlobalItemRegistry[ChildItem]
+
+		if ChildTracker then
+			Reaper.Clean(ChildTracker)
+		else
+			executeTeardown(ChildItem, ChildClassID, ChildMethod, nil)
+		end
+	end
+
+	return Self
+end
+
+--[[
+	Connects a callback to a signal and automatically adds the resulting connection to this Scope's child list. When the Scope is cleaned, the connection is automatically disconnected. Accepts RBXScriptSignal instances or any table with a :Connect() method.
+	
+	Params:
+		Signal: any -- The event or signal to connect to. Must be an RBXScriptSignal or a table with a :Connect() function.
+		Callback: function -- The function to execute when the signal fires.
+		
+	Returns:
+		RBXScriptConnection -- The generated connection, also owned by this Scope.
+]]
+local function scopeConnect(Self: ScopeObject, Signal: any, Callback: any): RBXScriptConnection
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Connect Error: Cannot connect to a scope that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if Signal == nil then
+			error("[Reaper] Connect Error: signal cannot be nil.\n" .. debug.traceback(), 0)
+		end
+
+		if typeof(Signal) ~= "RBXScriptSignal" and not (type(Signal) == "table" and type(Signal.Connect) == "function") then
+			error("[Reaper] Connect Error: signal must be a connectable object (RBXScriptSignal or table with :Connect).\n" .. debug.traceback(), 0)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Connect Error: callback must be a function.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	local Connection = Signal:Connect(Callback)
+
+	Self:Chain(Connection)
+	
+	return Connection
+end
+
+--[[
+	Launches a coroutine and automatically adds it to this Scope's child list, cancelling it if the Scope is cleaned. The coroutine is registered to this Scope before it begins executing, so teardown is safe even if the Scope is cleaned from within the spawned function. Any arguments after Callback are forwarded to the coroutine on its first resume.
+	
+	Params:
+		Callback: function -- The function to run in the new coroutine.
+		...: any -- Variadic arguments forwarded to the callback on resume.
+		
+	Returns:
+		thread -- The spawned coroutine.
+]]
+local function scopeSpawn(Self: ScopeObject, Callback: any, ...: any): thread
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Spawn Error: Cannot spawn into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Spawn Error: callback must be a function.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	local Thread = coroutine.create(Callback)
+
+	Self:Chain(Thread)
+	Scheduler.Spawn(Thread, ...)
+	
+	return Thread
+end
+
+--[[
+	Schedules a callback to run at the end of the current frame and adds the scheduled task to this Scope's child list. If the Scope is cleaned before the deferred task executes, the task is cancelled and never runs.
+	
+	Params:
+		Callback: function -- The function to defer.
+		...: any -- Variadic arguments forwarded to the callback when it executes.
+		
+	Returns:
+		any -- The handle returned by the scheduler, usable for manual cancellation if needed.
+]]
+local function scopeDefer(Self: ScopeObject, Callback: any, ...: any): any
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Defer Error: Cannot defer into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Defer Error: callback must be a function.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	local DeferHandle = Scheduler.Defer(Callback, ...)
+
+	Self:Chain(DeferHandle)
+	
+	return DeferHandle
+end
+
+--[[
+	Schedules a callback to run after a set number of seconds and adds the task to this Scope's child list. If the Scope is cleaned before the delay elapses, the task is cancelled and never runs.
+	
+	Params:
+		TimeDelay: number -- Seconds to wait before executing the callback.
+		Callback: function -- The function to run after the delay.
+		...: any -- Variadic arguments forwarded to the callback when it executes.
+		
+	Returns:
+		any -- The handle returned by the scheduler, usable for manual cancellation if needed.
+]]
+local function scopeDelay(Self: ScopeObject, TimeDelay: number, Callback: any, ...: any): any
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Delay Error: Cannot delay into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if type(TimeDelay) ~= "number" then
+			error("[Reaper] Delay Error: timeDelay must be a number.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Delay Error: callback must be a function.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	local DelayHandle = Scheduler.Delay(TimeDelay, Callback, ...)
+
+	Self:Chain(DelayHandle)
+	
+	return DelayHandle
+end
+
+--[[
+	Schedules a callback to repeat a fixed number of times and adds the task to this Scope's child list. Each repetition is separated by Interval seconds. When the Scope is cleaned, any remaining repetitions are cancelled.
+	
+	Params:
+		Count: number -- Total number of times to execute the callback.
+		Interval: number? -- (Optional) Seconds between repetitions. Behaviour when omitted is defined by the injected Assignment scheduler.
+		Callback: function -- The function to repeat.
+		...: any -- Variadic arguments forwarded to the callback on each execution.
+		
+	Returns:
+		any -- The handle returned by the Assignment scheduler.
+]]
+local function scopeRepeat(Self: ScopeObject, Count: number, Interval: number?, Callback: any, ...: any): any
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Repeat Error: Cannot repeat into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Count) ~= "number" then
+			error("[Reaper] Repeat Error: Count must be a number.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Repeat Error: callback must be a function.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	local RepeatHandle = Scheduler.Repeat(Count, Interval, Callback, ...) :: any
+
+	Self:Chain(RepeatHandle)
+	
+	return RepeatHandle
+end
+
+--[[
+	Subordinates an entire Scope to this handle so it is cleaned when this handle is cleaned. When teardown cascades to the Scope, the Scope's full child teardown runs in turn. Accepts either the live ScopeObject or its string ScopeID. If the Scope is currently owned by another manager, it is released first - Last Call Suppremacy.
+	
+	Params:
+		Scope: string | ScopeObject -- The ScopeObject to subordinate, or its string ScopeID.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectHandleScope(Self: TrackObject, Scope: string | ScopeObject): TrackObject
+	local ScopeID: string
+	local ScopeItem: any
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] HandleScope Error: Cannot bind a scope to an object that has been cleaned or evicted.\n" .. debug.traceback(), 0)
+		end
+
+		if type(Scope) == "table" then
+			if Scope.Classification ~= "Scope" then
+				error(string.format("[Reaper] HandleScope Error: Expected a ScopeObject, but received a '%s'. Tracks cannot handle Tracks.", tostring(Scope.Classification or typeof(Scope))), 2)
+			end
+
+			if Scope.AssignID == Self.AssignID then
+				warn(string.format("[Reaper] HandleScope Warning: Attempted to bind Scope '%s' to itself. Ignored to prevent infinite recursion.", Scope.AssignID :: string))
+				return Self
+			end
+
+		elseif type(Scope) ~= "string" or #Scope == 0 then
+			error("[Reaper] HandleScope Error: Target must be a non-empty string or a valid ScopeObject.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	if type(Scope) == "table" then
+		ScopeID   = Scope.AssignID :: string
+		ScopeItem = Scope.Item
+	else
+		ScopeID = Scope
+		local Resolved = resolveIdentifier(Scope)
+
+		if Resolved then
+			ScopeItem = Resolved.Item
+		end
+	end
+
+	if ScopeItem then
+		evictFromCurrentManager(ScopeItem)
+	end
+
+	local BoundScopes = Self._BoundScopes
+
+	if not BoundScopes then
+		BoundScopes       = {}
+		Self._BoundScopes = BoundScopes
+	end
+
+	if not BoundScopes[ScopeID] then
+		BoundScopes[ScopeID] = true
+	end
+
+	if ScopeItem then
+		ObjectOwnershipMap[ScopeItem] = Self
+	end
+
+	return Self
+end
+
+--[[
+	Submits this Scope to a Track so it is cleaned when the Track is cleaned. Achieves the same result as calling Track:HandleScope(self) but reads as the Scope declaring its own lifetime contract, which is preferred when the Scope is the acting module. The target Track must be configured with a string identifier before a Scope can bind to it.
+	
+	Params:
+		Track: TrackObject -- The parent Track to bind this Scope to. Must not be a ScopeObject and must have a configured identifier.
+		
+	Return:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeBindToTrack(Self: ScopeObject, Track: TrackObject): ScopeObject
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error(string.format("[Reaper] BindToTrack Error: Cannot bind Scope '%s' because it has already been cleaned or evicted.", Self.AssignID or "UNKNOWN"), 2)
+		end
+
+		if type(Track) ~= "table" or Track.Classification == "Scope" then
+			error(string.format("[Reaper] BindToTrack Error: Expected a TrackObject anchor, but received a '%s'. Scopes must bind to active Tracks.", tostring(type(Track) == "table" and Track.Classification or typeof(Track))), 2)
+		end
+
+		if not Track.AssignID then
+			error("[Reaper] BindToTrack Error: The target TrackObject must be configured with an AssignID before a Scope can bind to it.", 2)
+		end
+	end
+
+	trackObjectHandleScope(Track, Self)
+
+	return Self
+end
+
+-- Runs the Primary and General registry sweeps on their respective cadences each frame
+local function onHeartbeat(DeltaTime: number): ()
+	FrameCounter       += 1
+	GeneralAccumulator += DeltaTime
+
+	if #PrimaryList > 0 and FrameCounter % PRIMARY_SWEEP_FRAME_INTERVAL == 0 then
+		local CurrentTime = os.clock()
+		local Index       = 1
+
+		while Index <= #PrimaryList do
+			local Object = PrimaryList[Index]
+
+			if Object.Frequency and (CurrentTime - Object._LastCheck >= Object.Frequency) then
+				Object._LastCheck = CurrentTime
+
+				if checkAndClean(Object) then
+					GlobalItemRegistry[Object.Item] = nil
+					popAndSwap(PrimaryList, PrimaryMap, Index, Object.AssignID)
+					continue
+				end
+			end
+
+			Index += 1
+		end
+	end
+
+	if not GeneralSweepActive then
+		if #GeneralList > 0 and GeneralAccumulator >= GENERAL_CHECK_INTERVAL then
+			GeneralAccumulator = 0
+			GeneralSweepActive = true
+			GeneralSweepIndex  = 1
+		end
+	end
+
+	if GeneralSweepActive then
+		local ProcessedThisFrame = 0
+
+		while GeneralSweepIndex <= #GeneralList and ProcessedThisFrame < GENERAL_BATCH_SIZE do
+			local Object = GeneralList[GeneralSweepIndex]
+
+			if checkAndClean(Object) then
+				GlobalItemRegistry[Object.Item] = nil
+				popAndSwap(GeneralList, GeneralMap, GeneralSweepIndex, Object.Item)
+			else
+				GeneralSweepIndex += 1
+			end
+
+			ProcessedThisFrame += 1
+		end
+
+		if GeneralSweepIndex > #GeneralList then
+			GeneralSweepActive = false
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Event Binding Section
+----------------------------------------------------------
+
+RunService.Heartbeat:Connect(onHeartbeat)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Returns true if a value is a live, uncleaned, un-evicted tracking handle — including both TrackObject and ScopeObject instances. Passing any other value — a raw Instance, a cleaned handle, a plain table, or nil — returns false.
+
+	Params:
+	    Value: any -- The value to inspect.
+
+	Returns:
+	    boolean -- true if Value is a live, valid TrackObject or ScopeObject; false otherwise.
+]]
+function Reaper.Is(Value: any): boolean
+	return type(Value) == "table"
+		and Value.Item ~= nil
+		and type(Value.Classification) == "string"
+		and type(Value.Configure) == "function"
+		and Value._Cleaned == false
+		and Value._Evicted == false
+end
+
+--[[
+	Returns true if a value is an uncleaned ScopeObject handle, regardless of its eviction state. Distinguishes a live ScopeObject from a plain TrackObject, a cleaned Scope, or any non-Reaper value. Unlike Reaper.Is(), this check does not require the handle to be un-evicted — an evicted Scope that has not been cleaned will still return true.
+
+	Params:
+	    Value: any -- The value to inspect.
+
+	Returns:
+	    boolean -- true if Value is a ScopeObject whose cleaned flag has not been set; false otherwise.
+]]
+function Reaper.IsCleanable(Value: any): boolean
+	return type(Value) == "table"
+		and Value.Item ~= nil
+		and Value.Classification == "Scope"
+		and type(Value.Configure) == "function"
+		and Value._Cleaned == false
+end
+
+--[[
+	Creates a named, managed container that accumulates items and tears them all down together when the Scope is cleaned. The returned ScopeObject is fully configured on creation and immediately reachable by its ID from any script via Reaper.Get() or Reaper.Clean().
+
+	Params:
+	    ScopeID: string -- Unique string identifier for this Scope. Used for cross-script retrieval and teardown. Must not already be in use.
+
+	Returns:
+	    ScopeObject -- The Scope handle.
+]]
+function Reaper.Scope(ScopeID: string): ScopeObject
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ScopeID) ~= "string" or ScopeID == "" then
+			error("[Reaper] Scope Error: scopeID must be a non-empty string.\n" .. debug.traceback(), 0)
+		end
+
+		if ManualMap[ScopeID] then
+			error(string.format("[Reaper] Scope Error: A scope or item with ID '%s' already exists!\n", ScopeID) .. debug.traceback(), 0)
+		end
+	end
+
+	local ScopeAnchor   = {}
+	local TrackedObject = Reaper.Track(ScopeAnchor, "Scope")
+
+	TrackedObject:Configure(ScopeID, 0)
+
+	local ScopeInstance       = TrackedObject :: ScopeObject
+
+	ScopeInstance.Unchain     = scopeUnchain
+	ScopeInstance.CleanChild  = scopeCleanChild
+	ScopeInstance.BindToTrack = scopeBindToTrack
+	ScopeInstance.Connect     = scopeConnect
+	ScopeInstance.Spawn       = scopeSpawn
+	ScopeInstance.Defer       = scopeDefer
+	ScopeInstance.Delay       = scopeDelay
+	ScopeInstance.Repeat      = scopeRepeat
+
+	return ScopeInstance
+end
+
+--[[
+	Registers a raw item into Reaper's memory system and returns a handle to manage its lifecycle. If the item is already registered, the existing handle is returned without creating a duplicate entry. The item's type is detected automatically unless ItemClassification is explicitly provided.
+
+	Params:
+	    Item:               Reapable        -- The Instance, RBXScriptConnection, thread, function, or table to register.
+	    ItemClassification: Classification? -- (Optional) Explicitly overrides auto-classification. Accepts "Instance", "Connection", "Thread", "Function", "Table", "Scope", or "Unknown".
+	    CustomMethod:       string?         -- (Optional) Name of the method to call on the item during teardown instead of the default (Destroy, Disconnect, or task.cancel).
+	    IsProtected:        boolean?        -- (Optional) If true, the item is released from the registry intact when its natural end-of-life is detected, allowing external poolers to reclaim it instead of destroying it.
+
+	Returns:
+	    TrackObject -- The tracking handle for the item. If the item was already registered, the existing handle is returned.
+]]
+function Reaper.Track(Item: Reapable, ItemClassification: Classification?, CustomMethod: string?, IsProtected: boolean?): TrackObject
+	if Reaper.Is(Item) then
+		return Item :: TrackObject
+	end
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Item == nil then
+			error("[Reaper] Track Error: Cannot track a nil item.\n" .. debug.traceback(), 0)
+		end
+	end
+
+	if GlobalItemRegistry[Item] then
+		return GlobalItemRegistry[Item]
+	end
+
+	local ResolvedClass: Classification
+	local ResolvedID: number
+
+	if ItemClassification then
+		ResolvedClass = ItemClassification
+		ResolvedID    = ExplicitClassGraph[ItemClassification] or CLASS_UNKNOWN
+	else
+		ResolvedClass, ResolvedID = autoClassify(Item)
+	end
+
+	local ReaperObject: TrackObject = {
+		Item           = Item,
+		AssignID       = nil :: string?,
+		Frequency      = nil :: number?,
+		Classification = ResolvedClass,
+		_ClassID       = ResolvedID,
+		_LastCheck     = os.clock(),
+		_Cleaned       = false,
+		_Evicted       = false,
+		_Children      = nil :: { [Reapable]: Classification }?,
+		_CustomMethod  = CustomMethod,
+		_ChildMethods  = nil :: { [Reapable]: string }?,
+		_BoundScopes   = nil :: { [string]: true }?,
+		_CurrentList   = nil :: any,
+		_CurrentMap    = nil :: any,
+		IsProtected    = (IsProtected == true),
+		_DeathListener = nil :: RBXScriptConnection?,
+		Configure      = trackObjectConfigure,
+		Chain          = trackObjectChain,
+		HandleScope    = trackObjectHandleScope,
+		Destroy        = trackObjectDestroy,
+	} :: TrackObject
+
+	GlobalItemRegistry[Item] = ReaperObject
+
+	if ResolvedClass == "Instance" then
+		local function Hook(): ()
+			if ReaperObject._Cleaned or ReaperObject._Evicted then return end
+
+			if not (Item :: Instance):IsDescendantOf(game) then
+				if ReaperObject.IsProtected then
+					Reaper.Remove(Item)
+				else
+					Reaper.Clean(Item)
+				end
+			end
+		end
+
+		ReaperObject._DeathListener = (Item :: Instance).AncestryChanged:Connect(Hook)
+		ReaperObject.Frequency      = 0
+
+		table.insert(ManualList, ReaperObject)
+
+		ManualMap[Item]           = #ManualList
+		ReaperObject._CurrentList = ManualList
+		ReaperObject._CurrentMap  = ManualMap
+
+	elseif type(Item) == "table" and type((Item :: any).Connect) == "function" and type((Item :: any).Signals) == "table" and (Item :: any).Signals.OnAbandoned then
+		ReaperObject.Frequency = 0
+
+		local function Hook(): ()
+			if ReaperObject.IsProtected then
+				Reaper.Remove(Item)
+			else
+				Reaper.Clean(Item)
+			end
+		end
+
+		(Item :: any).Signals.OnAbandoned:Connect(Hook)
+		table.insert(ManualList, ReaperObject)
+
+		ManualMap[Item]           = #ManualList
+		ReaperObject._CurrentList = ManualList
+		ReaperObject._CurrentMap  = ManualMap
+	else
+		if ResolvedClass == "Table" or ResolvedClass == "Function" or ResolvedClass == "Scope" or ResolvedClass == "Unknown" then
+			ReaperObject.Frequency = 0
+
+			table.insert(ManualList, ReaperObject)
+
+			ManualMap[Item]           = #ManualList
+			ReaperObject._CurrentList = ManualList
+			ReaperObject._CurrentMap  = ManualMap
+
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and ResolvedClass ~= "Scope" then
+				warn(string.format("[Reaper] Anti-Pattern Warning: Tracked a %s. It was routed to the ManualList because it has no native dead-state. You must chain it to a Scope or call Reaper.Clean() manually to prevent memory leaks.", ResolvedClass))
+			end
+		else
+			table.insert(GeneralList, ReaperObject)
+
+			GeneralMap[Item]          = #GeneralList
+			ReaperObject._CurrentList = GeneralList
+			ReaperObject._CurrentMap  = GeneralMap
+		end
+	end
+
+	if RelayInjected and Reaper.Signals.OnTracked then
+		if (Reaper.Signals.OnTracked :: any):GetConnectionCount() > 0 then
+			(Reaper.Signals.OnTracked :: any):Fire(Item, ResolvedClass, ReaperObject.AssignID)
+		end
+
+	elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+		warn("[Reaper] OnTracked Warning: 'Relay' library is needed to use this signal.")
+	end
+
+	return ReaperObject
+end
+
+--[[
+	Immediately destroys one or more tracked items and cascades teardown to everything they own. For each identifier, Reaper resolves it to its tracking handle, destroys the primary item, then recursively destroys all chained children and cleans all bound Scopes. The item is then removed from the registry.
+
+	Params:
+	    ...: any -- Variadic list of identifiers. Each can be a string AssignID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    nil
+]]
+function Reaper.Clean(...: any): ()
+	local Identifiers = { ... }
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if #Identifiers == 0 then
+			warn("[Reaper] Clean Warning: Called with no arguments.")
+			return
+		end
+	end
+
+	for _, Identifier in ipairs(Identifiers) do
+		if Identifier == nil and ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			error("[Reaper] Clean Error: Identifier cannot be nil.\n" .. debug.traceback(), 0)
+		end
+
+		local Object, Index, List, Map, MapKey = resolveIdentifier(Identifier)
+
+		if not Object or not Index or not List or not Map then
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				local Label = formatIdentifierLabel(Identifier)
+
+				warn(string.format("[Reaper] Clean Warning: No tracked item found for '%s'. It may be already cleaned, evicted, or never registered.", Label))
+			end
+			continue
+		end
+
+		Object._Cleaned = true
+		executeTeardown(Object.Item, Object._ClassID, Object._CustomMethod, Object)
+
+		if Object._Children then
+			for Child, ChildClassID in Object._Children do
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					Reaper.Clean(ChildTracker)
+				else
+					local ChildMethod = Object._ChildMethods and Object._ChildMethods[Child]
+
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			Object._Children     = nil
+			Object._ChildMethods = nil
+		end
+
+		if Object._BoundScopes then
+			for ScopeID in Object._BoundScopes do
+				Reaper.Clean(ScopeID)
+			end
+
+			Object._BoundScopes = nil
+		end
+
+		GlobalItemRegistry[Object.Item] = nil
+		ObjectOwnershipMap[Object.Item] = nil
+		popAndSwap(List, Map :: any, Index, MapKey)
+	end
+end
+
+--[[
+	Releases one or more items from Reaper's registry without destroying them, returning the raw items to the caller. The primary item itself is left intact and de-registered so it can be safely reclaimed by an external system (such as an Object Pool). Any event-based death listener attached to the primary item is disconnected. Any children chained to the item and any Scopes bound to it are destroyed, not released — only the root item is preserved.
+
+	Params:
+	    ...: any -- Variadic list of identifiers. Each can be a string AssignID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    { Reapable } -- An array of the raw primary items that were released, in the order they were processed.
+]]
+function Reaper.Remove(...: any): { Reapable }
+	local Identifiers  = { ... }
+	local RemovedItems = {}
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if #Identifiers == 0 then
+			warn("[Reaper] Remove Warning: Called with no arguments.")
+			return RemovedItems
+		end
+	end
+
+	for _, Identifier in ipairs(Identifiers) do
+		if Identifier == nil and ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			error("[Reaper] Remove Error: Identifier cannot be nil.\n" .. debug.traceback(), 0)
+		end
+
+		local Object, Index, List, Map, MapKey = resolveIdentifier(Identifier)
+
+		if not Object or not Index or not List or not Map then
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				local Label = formatIdentifierLabel(Identifier)
+
+				warn(string.format("[Reaper] Remove Warning: No tracked item found for '%s'. It may be already cleaned, evicted, or never registered.", Label))
+			end
+			continue
+		end
+
+		Object._Evicted = true
+
+		if Object._DeathListener then
+			Object._DeathListener:Disconnect()
+			Object._DeathListener = nil
+		end
+
+		if Object._Children then
+			for Child, ChildClassID in Object._Children do
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					Reaper.Clean(ChildTracker)
+				else
+					local ChildMethod = Object._ChildMethods and Object._ChildMethods[Child]
+
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			Object._Children     = nil
+			Object._ChildMethods = nil
+		end
+
+		if Object._BoundScopes then
+			for ScopeID in Object._BoundScopes do
+				Reaper.Clean(ScopeID)
+			end
+
+			Object._BoundScopes = nil
+		end
+
+		GlobalItemRegistry[Object.Item] = nil
+		ObjectOwnershipMap[Object.Item] = nil
+		popAndSwap(List, Map :: any, Index, MapKey)
+
+		if RelayInjected and Reaper.Signals.OnRemoved then
+			if (Reaper.Signals.OnRemoved :: any):GetConnectionCount() > 0 then
+				(Reaper.Signals.OnRemoved :: any):Fire(Object.Item, Object.Classification)
+			end
+
+		elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+			warn("[Reaper] OnRemoved Warning: 'Relay' library is needed to use this signal.")
+		end
+
+		table.insert(RemovedItems, Object.Item)
+	end
+
+	return RemovedItems
+end
+
+--[[
+	Returns the live tracking handle for an item or Scope registered under a given identifier, or nil if not found. String identifiers are resolved in constant time. Raw item references are also resolved in constant time via direct registry lookup. Returns nil if the identifier has never been registered, or if the object has already been cleaned or evicted.
+
+	Params:
+	    Identifier: any -- A string AssignID/ScopeID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    TrackObject? -- The live TrackObject or ScopeObject, or nil if not found.
+]]
+function Reaper.Get(Identifier: any): TrackObject?
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Identifier == nil then
+			error("[Reaper] Get Error: Identifier cannot be nil.\n" .. debug.traceback(), 0)
+		end
+
+		local Type = typeof(Identifier)
+
+		if Type == "boolean" or Type == "number" then
+			error(string.format("[Reaper] Get Error: Invalid identifier type '%s'. Expected a string ID, TrackObject, or raw item.\n", Type) .. debug.traceback(), 0)
+		end
+	end
+
+	local Object = resolveIdentifier(Identifier)
+
+	return Object
+end
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the Assignment and Relay libraries.
+
+	Params:
+	    ModuleName:        string -- The name of the ModuleScript file.
+	    ModuleTableObject: any    -- The required module table/object to inject.
+
+	Returns:
+	    nil
+]]
+function Reaper.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Reaper] Inject Error: 'moduleName' must be a non-empty string.")
+		end
+
+		if type(ModuleTableObject) ~= "table" then
+			error("[Reaper] Inject Error: 'moduleTableObject' must be a table.")
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn  = ModuleTableObject.Spawn  or task.spawn
+		Scheduler.Defer  = ModuleTableObject.Defer  or task.defer
+		Scheduler.Delay  = ModuleTableObject.Delay  or task.delay
+		Scheduler.Wait   = ModuleTableObject.Wait   or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+		Scheduler.Repeat = ModuleTableObject.Repeat
+
+	elseif ModuleName == "Relay" then
+		RelayInjected            = true
+		--[[
+			Fires immediately after an item is inserted into the registry. The callback receives the raw item, its resolved classification string, and its identifier if already configured — which is typically nil at the moment of tracking since :Configure() is usually called after Track().
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string, AssignID: string?).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnTracked = ModuleTableObject.Create("Reaper_OnTracked")
+		
+		--[[
+			Fires immediately after the physical teardown action has run on an item. The callback receives the raw item and its classification string. Fires for every item in a cascade, not just the root — including all chained children.
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnCleaned = ModuleTableObject.Create("Reaper_OnCleaned")
+		
+		--[[
+			Fires after an item has been released from the registry without being destroyed. The callback receives the raw item and its classification string. The item is still fully intact at the time this fires.
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnRemoved = ModuleTableObject.Create("Reaper_OnRemoved")
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+	Loaded = true
+end
+return Reaper
+-------------------------------------------------------------------------------------------------------------
