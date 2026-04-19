@@ -1,3 +1,19 @@
+--[[
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Assignment - Task Scheduler Library										  					   000
+	000 Version: 1.0.0 Beta	Release												  					   000
+	000 Platform: Roblox													  						   000
+	000 License: Apache 2.0												  	  						   000
+	000																		  						   000
+	000																		  						   000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  						   000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    				   000
+	000 Roblox Resource DevForum Page:																   000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Assignment_ReadOnly 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/assignment/   000
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
 --!strict
 --!native
 --!optimize 2
@@ -8,16 +24,14 @@
 -- Assignment Configuration Section
 ----------------------------------------------------------
 
-local Assignment_Configuration = {
-	MIN_DELAY        = 0,  -- Minimum allowed delay in seconds
-	JANITOR_INTERVAL = 30, -- How often the janitor cleans cancelled entries (seconds)
-	DEFER_BUDGET_MS  = 3,  -- Max milliseconds allowed for Defer processing per frame
-}
-
-local WHEEL_SIZE:     number = 4096  -- Total number of timing wheel slots
-local WHEEL_MASK:     number = 4095  -- Bitmask for wrapping slot index
-local SLOT_SIZE:      number = 0.005 -- Duration of each slot in seconds
-local MAX_ENTRY_POOL: number = 5000  -- Maximum recycled entry objects in pool
+local MIN_DELAY: number = 0         -- Minimum allowed delay in seconds
+local JANITOR_INTERVAL: number = 30 -- How often the janitor cleans cancelled entries (seconds)
+local DEFER_BUDGET_MS: number = 3   -- Max milliseconds allowed for Defer processing per frame
+local WHEEL_SIZE: number = 4096     -- Total number of timing wheel slots
+local WHEEL_MASK: number = 4095     -- Bitmask for wrapping slot index (WHEEL_SIZE - 1)
+local SLOT_SIZE: number = 0.005     -- Duration of each slot in seconds
+local MAX_ENTRY_POOL: number = 5000 -- Maximum recycled entry objects in pool
+local MAX_INLINE_ARGS: number = 4   -- Maximum arguments stored directly in entry fields; beyond this, OverflowArgs is used
 
 -------------------------------------------------------------------------------------------------------------
 --#########################################################################################################--
@@ -32,16 +46,16 @@ export type Handle = {
 }
 
 type WheelEntry = {
-	ResumeAt:  number?,
-	Thread:    thread?,
-	Function:  ((...any) -> ())?,
+	ResumeAt: number?,
+	Thread: thread?,
+	Function: ((...any) -> ())?,
 	Arg1: any,
 	Arg2: any,
 	Arg3: any,
 	Arg4: any,
 	OverflowArgs: { any }?,
-	ArgCount:  number,
-	Handle:    Handle?,
+	ArgCount: number,
+	Handle: Handle?,
 }
 
 -------------------------------------------------------------------------------------------------------------
@@ -60,31 +74,36 @@ local RunService = game:GetService("RunService")
 -- Assignment Internal States Section
 ----------------------------------------------------------
 
-local FreeThread:     thread?  = nil
-local IsShuttingDown: boolean  = false
+local Assignment = {}
 
-local EntryPool:     { any } = table.create(MAX_ENTRY_POOL)
-local EntryPoolSize: number  = 0
+local FreeThread: thread? = nil
+local IsShuttingDown: boolean = false
 
-local Wheel:       { { WheelEntry }? } = table.create(WHEEL_SIZE, nil)
-local WheelCounts: { number }          = table.create(WHEEL_SIZE, 0)
+local EntryPool: { any } = table.create(MAX_ENTRY_POOL)
+local EntryPoolSize: number = 0
 
-local WaitWheel:  { { any }? } = table.create(WHEEL_SIZE, nil)
-local WaitCounts: { number }   = table.create(WHEEL_SIZE, 0)
+local OverflowPool: { { any } } = {}
+local OverflowPoolSize: number = 0
+
+local Wheel: { { WheelEntry }? } = table.create(WHEEL_SIZE, nil)
+local WheelCounts: { number } = table.create(WHEEL_SIZE, 0)
+
+local WaitWheel: { { any }? } = table.create(WHEEL_SIZE, nil)
+local WaitCounts: { number } = table.create(WHEEL_SIZE, 0)
 
 local LastRawSlot: number = math.floor(os.clock() / SLOT_SIZE)
 
 local DeferBufferA: { WheelEntry } = {}
 local DeferBufferB: { WheelEntry } = {}
-local DeferReadBuffer:  { WheelEntry } = DeferBufferA
+local DeferReadBuffer: { WheelEntry } = DeferBufferA
 local DeferWriteBuffer: { WheelEntry } = DeferBufferB
-local DeferReadIndex:   number = 1
-local DeferReadCount:   number = 0
-local DeferWriteCount:  number = 0
+local DeferReadIndex: number = 1
+local DeferReadCount: number = 0
+local DeferWriteCount: number = 0
 
-local JanitorAccumulator: number              = 0
-local ThreadToHandle: { [thread]: Handle }    = setmetatable({}, { __mode = "k" })
-local IsolatedThreads: { [thread]: boolean }  = setmetatable({}, { __mode = "k" })
+local JanitorAccumulator: number = 0
+local ThreadToHandle: { [thread]: Handle } = setmetatable({}, { __mode = "k" })
+local IsolatedThreads: { [thread]: boolean } = setmetatable({}, { __mode = "k" })
 
 -------------------------------------------------------------------------------------------------------------
 --#########################################################################################################--
@@ -101,29 +120,61 @@ end
 -- Acquires a recycled entry from the pool, or creates a new one
 local function acquireEntry(): any
 	if EntryPoolSize > 0 then
-		local Entry              = EntryPool[EntryPoolSize]
+		local Entry = EntryPool[EntryPoolSize]
+		
 		EntryPool[EntryPoolSize] = nil
-		EntryPoolSize           -= 1
+		EntryPoolSize -= 1
+		
 		return Entry
 	end
+	
 	return {}
+end
+
+-- Acquires a recycled array table, or lazily creates a new one if the pool is empty
+local function acquireOverflow(): { any }
+	if OverflowPoolSize > 0 then
+		local Table = OverflowPool[OverflowPoolSize]
+		
+		OverflowPool[OverflowPoolSize] = nil
+		OverflowPoolSize -= 1
+		
+		return Table
+	end
+	
+	return {}
+end
+
+-- Clears an array table and returns it to the pool, capped by MAX_ENTRY_POOL
+local function releaseOverflow(Table: { any }): ()
+	table.clear(Table)
+	
+	if OverflowPoolSize < MAX_ENTRY_POOL then
+		OverflowPoolSize += 1
+		OverflowPool[OverflowPoolSize] = Table
+	end
 end
 
 -- Clears and returns an entry back to the pool
 local function releaseEntry(Entry: any): ()
-	Entry.ResumeAt     = nil
-	Entry.Thread       = nil
-	Entry.Function     = nil
-	Entry.Arg1         = nil
-	Entry.Arg2         = nil
-	Entry.Arg3         = nil
-	Entry.Arg4         = nil
+	Entry.ResumeAt = nil
+	Entry.Thread = nil
+	Entry.Function = nil
+	Entry.Arg1 = nil
+	Entry.Arg2 = nil
+	Entry.Arg3 = nil
+	Entry.Arg4 = nil
+
+	if Entry.OverflowArgs then
+		releaseOverflow(Entry.OverflowArgs)
+	end
+
 	Entry.OverflowArgs = nil
-	Entry.ArgCount     = 0
-	Entry.Handle       = nil
+	Entry.ArgCount = 0
+	Entry.Handle = nil
 
 	if EntryPoolSize < MAX_ENTRY_POOL then
-		EntryPoolSize           += 1
+		EntryPoolSize += 1
 		EntryPool[EntryPoolSize] = Entry
 	end
 end
@@ -148,9 +199,11 @@ local function spawnInPool(Function: (...any) -> (), ...: any): ()
 	end
 
 	local Thread = FreeThread :: thread
-	FreeThread   = nil
+	
+	FreeThread = nil
 
 	local Success, ErrorMessage = coroutine.resume(Thread, Function, ...)
+	
 	if not Success then
 		task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
 	end
@@ -158,65 +211,175 @@ end
 
 -- Inserts an entry into the correct timing wheel slot
 local function wheelInsert(Entry: WheelEntry): ()
-	local RawSlot = math.floor(Entry.ResumeAt / SLOT_SIZE)
-	local Slot    = bit32.band(RawSlot, WHEEL_MASK) + 1
+	local RawSlot = math.floor((Entry.ResumeAt :: number) / SLOT_SIZE)
 
-	local Bucket = Wheel[Slot]
+	if RawSlot <= LastRawSlot then
+		RawSlot = LastRawSlot + 1
+	end
+
+	local Slot = bit32.band(RawSlot, WHEEL_MASK) + 1
+	local Bucket: any = Wheel[Slot]
+
 	if not Bucket then
-		Bucket      = {}
+		Bucket = {}
 		Wheel[Slot] = Bucket
 	end
 
-	local Count       = WheelCounts[Slot] + 1
+	local Count = WheelCounts[Slot] + 1
+	
 	WheelCounts[Slot] = Count
-	Bucket[Count]     = Entry
+	Bucket[Count] = Entry
 end
 
-local PopulatorGraph = {
-	[0] = function(Entry: WheelEntry) end,
-	[1] = function(Entry: WheelEntry, Arg1: any) Entry.Arg1 = Arg1 end,
-	[2] = function(Entry: WheelEntry, Arg1: any, Arg2: any) Entry.Arg1, Entry.Arg2 = Arg1, Arg2 end,
-	[3] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any) Entry.Arg1, Entry.Arg2, Entry.Arg3 = Arg1, Arg2, Arg3 end,
-	[4] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any, Arg4: any) Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4 = Arg1, Arg2, Arg3, Arg4 end,
+-- Dispatch table for populating up to MAX_INLINE_ARGS argument fields directly onto an entry
+local PopulatorGraph: { [number]: (WheelEntry, ...any) -> () } = {
+	[0] = function(_Entry: WheelEntry)
+	end,
+	
+	[1] = function(Entry: WheelEntry, Arg1: any)
+		Entry.Arg1 = Arg1
+	end,
+	
+	[2] = function(Entry: WheelEntry, Arg1: any, Arg2: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+	end,
+	
+	[3] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+		Entry.Arg3 = Arg3
+	end,
+	
+	[4] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any, Arg4: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+		Entry.Arg3 = Arg3
+		Entry.Arg4 = Arg4
+	end,
 }
 
-local ThreadExecutorGraph = {
-	[0] = function(Entry: WheelEntry) return coroutine.resume(Entry.Thread :: thread) end,
-	[1] = function(Entry: WheelEntry) return coroutine.resume(Entry.Thread :: thread, Entry.Arg1) end,
-	[2] = function(Entry: WheelEntry) return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2) end,
-	[3] = function(Entry: WheelEntry) return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3) end,
-	[4] = function(Entry: WheelEntry) return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4) end,
+-- Dispatch table for resuming a thread entry with up to MAX_INLINE_ARGS stored arguments
+local ThreadExecutorGraph: { [number]: (WheelEntry) -> (boolean, string?) } = {
+	[0] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread)
+	end,
+	
+	[1] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1)
+	end,
+	
+	[2] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2)
+	end,
+	
+	[3] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+	
+	[4] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
 }
 
-local FunctionExecutorGraph = {
-	[0] = function(Entry: WheelEntry) spawnInPool(Entry.Function :: (...any) -> ()) end,
-	[1] = function(Entry: WheelEntry) spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1) end,
-	[2] = function(Entry: WheelEntry) spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2) end,
-	[3] = function(Entry: WheelEntry) spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3) end,
-	[4] = function(Entry: WheelEntry) spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4) end,
+-- Dispatch table for spawning a function entry with up to MAX_INLINE_ARGS stored arguments
+local FunctionExecutorGraph: { [number]: (WheelEntry) -> () } = {
+	[0] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> ())
+	end,
+	
+	[1] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1)
+	end,
+	
+	[2] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2)
+	end,
+	
+	[3] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+	
+	[4] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+ -- Dispatch table for task-deferring a function entry with up to MAX_INLINE_ARGS stored arguments
+local DeferMigratorGraph: { [number]: (any, WheelEntry) -> () } = {
+	[0] = function(Target: any, _Entry: WheelEntry)
+		task.defer(Target)
+	end,
+
+	[1] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1)
+	end,
+
+	[2] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+ -- Dispatch table for task-delaying a function entry with up to MAX_INLINE_ARGS stored arguments
+local DelayMigratorGraph: { [number]: (number, any, WheelEntry) -> () } = {
+	[0] = function(Remaining: number, Target: any, _Entry: WheelEntry)
+		task.delay(Remaining, Target)
+	end,
+
+	[1] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1)
+	end,
+
+	[2] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
 }
 
-local function populateArguments(Entry: WheelEntry, Count: number, ...: any)
+-- Populates entry argument fields via PopulatorGraph, falling back to OverflowArgs for counts above MAX_INLINE_ARGS
+local function populateArguments(Entry: WheelEntry, Count: number, ...: any): ()
 	Entry.ArgCount = Count
 	local Populator = PopulatorGraph[Count]
+
 	if Populator then
 		Populator(Entry, ...)
 	else
-		Entry.OverflowArgs = { ... }
+		local OverflowTable = acquireOverflow()
+		
+		for Index = 1, Count do
+			OverflowTable[Index] = select(Index, ...)
+		end
+		
+		Entry.OverflowArgs = OverflowTable
 	end
 end
 
-local function executeEntry(Entry: WheelEntry)
+-- Executes a wheel entry by resuming its thread or spawning its function with the stored arguments
+local function executeEntry(Entry: WheelEntry): ()
 	local Count = Entry.ArgCount
 
 	if Entry.Thread then
 		local Executor = ThreadExecutorGraph[Count]
-		local Success, ErrorMessage
+		local Success: boolean
+		local ErrorMessage: string?
 
 		if Executor then
 			Success, ErrorMessage = Executor(Entry)
 		else
-			Success, ErrorMessage = coroutine.resume(Entry.Thread :: thread, table.unpack(Entry.OverflowArgs :: {any}, 1, Count))
+			Success, ErrorMessage = coroutine.resume(Entry.Thread :: thread, table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
 		end
 
 		if not Success then
@@ -225,10 +388,11 @@ local function executeEntry(Entry: WheelEntry)
 
 	elseif Entry.Function then
 		local Executor = FunctionExecutorGraph[Count]
+		
 		if Executor then
 			Executor(Entry)
 		else
-			spawnInPool(Entry.Function :: (...any) -> (), table.unpack(Entry.OverflowArgs :: {any}, 1, Count))
+			spawnInPool(Entry.Function :: (...any) -> (), table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
 		end
 	end
 end
@@ -244,18 +408,18 @@ end
 RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 	if IsShuttingDown then return end
 
-	local Now            = os.clock()
+	local Now = os.clock()
 	local CurrentRawSlot = math.floor(Now / SLOT_SIZE)
-	local Delta          = CurrentRawSlot - LastRawSlot
+	local Delta = CurrentRawSlot - LastRawSlot
 
 	if DeferReadIndex > DeferReadCount then
 		if DeferWriteCount > 0 then
 			local TempBuffer = DeferReadBuffer
-			DeferReadBuffer  = DeferWriteBuffer
+			
+			DeferReadBuffer = DeferWriteBuffer
 			DeferWriteBuffer = TempBuffer
-
-			DeferReadCount  = DeferWriteCount
-			DeferReadIndex  = 1
+			DeferReadCount = DeferWriteCount
+			DeferReadIndex = 1
 			DeferWriteCount = 0
 		end
 	end
@@ -265,6 +429,7 @@ RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 
 		while DeferReadIndex <= DeferReadCount do
 			local Entry = DeferReadBuffer[DeferReadIndex]
+			
 			DeferReadBuffer[DeferReadIndex] = nil :: any
 			DeferReadIndex += 1
 
@@ -280,7 +445,7 @@ RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 			executeEntry(Entry)
 			releaseEntry(Entry)
 
-			if (os.clock() - StartTime) * 1000 > Assignment_Configuration.DEFER_BUDGET_MS then
+			if (os.clock() - StartTime) * 1000 > DEFER_BUDGET_MS then
 				break
 			end
 		end
@@ -292,29 +457,32 @@ RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 
 	for Index = 1, Advance do
 		local CurrentProcessRaw = LastRawSlot + Index
-		local Slot              = bit32.band(CurrentProcessRaw, WHEEL_MASK) + 1
-		local SlotHorizon       = (CurrentProcessRaw + 1) * SLOT_SIZE
-
+		local Slot = bit32.band(CurrentProcessRaw, WHEEL_MASK) + 1
+		local SlotHorizon = (CurrentProcessRaw + 1) * SLOT_SIZE
 		local WaitSlotCount = WaitCounts[Slot]
+		
 		if WaitSlotCount > 0 then
 			local WaitBucket = WaitWheel[Slot] :: { any }
 			local WriteIndex = 0
 
 			for InnerIndex = 1, WaitSlotCount, 3 do
-				local Thread    = WaitBucket[InnerIndex]     :: thread
-				local ResumeAt  = WaitBucket[InnerIndex + 1] :: number
+				local Thread = WaitBucket[InnerIndex] :: thread
+				local ResumeAt = WaitBucket[InnerIndex + 1] :: number
 				local StartTime = WaitBucket[InnerIndex + 2] :: number
-				WaitBucket[InnerIndex]     = nil
+				
+				WaitBucket[InnerIndex] = nil
 				WaitBucket[InnerIndex + 1] = nil
 				WaitBucket[InnerIndex + 2] = nil
 
 				if ResumeAt < SlotHorizon then
 					local Elapsed = Now - StartTime
+					
 					if Elapsed < 0 then
 						Elapsed = 0
 					end
 
 					local Success, ErrorMessage = coroutine.resume(Thread, Elapsed)
+					
 					if not Success then
 						task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
 					end
@@ -322,34 +490,39 @@ RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 					WaitBucket[WriteIndex + 1] = Thread
 					WaitBucket[WriteIndex + 2] = ResumeAt
 					WaitBucket[WriteIndex + 3] = StartTime
-					WriteIndex                += 3
+					WriteIndex += 3
 				end
 			end
 
 			local NewlyAdded = WaitCounts[Slot] - WaitSlotCount
+			
 			if NewlyAdded > 0 then
 				if WriteIndex ~= WaitSlotCount then
 					for ExtraIndex = 1, NewlyAdded do
-						WaitBucket[WriteIndex + ExtraIndex]     = WaitBucket[WaitSlotCount + ExtraIndex]
-						WaitBucket[WaitSlotCount + ExtraIndex]  = nil
+						WaitBucket[WriteIndex + ExtraIndex] = WaitBucket[WaitSlotCount + ExtraIndex]
+						WaitBucket[WaitSlotCount + ExtraIndex] = nil
 					end
 				end
+				
 				WriteIndex += NewlyAdded
 			end
 
 			WaitCounts[Slot] = WriteIndex
+			
 			if WriteIndex == 0 then
 				WaitWheel[Slot] = nil
 			end
 		end
 
 		local SlotCount = WheelCounts[Slot]
+		
 		if SlotCount > 0 then
-			local Bucket     = Wheel[Slot] :: { WheelEntry }
+			local Bucket = Wheel[Slot] :: { WheelEntry }
 			local WriteIndex = 0
 
 			for InnerIndex = 1, SlotCount do
-				local Entry        = Bucket[InnerIndex]
+				local Entry = Bucket[InnerIndex]
+				
 				Bucket[InnerIndex] = nil :: any
 
 				if Entry.Handle and Entry.Handle._cancelled then
@@ -365,23 +538,26 @@ RunService.Heartbeat:Connect(function(_DeltaTime: number): ()
 					executeEntry(Entry)
 					releaseEntry(Entry)
 				else
-					WriteIndex        += 1
-					Bucket[WriteIndex]  = Entry
+					WriteIndex += 1
+					Bucket[WriteIndex] = Entry
 				end
 			end
 
 			local NewlyAdded = WheelCounts[Slot] - SlotCount
+			
 			if NewlyAdded > 0 then
 				if WriteIndex ~= SlotCount then
 					for ExtraIndex = 1, NewlyAdded do
 						Bucket[WriteIndex + ExtraIndex] = Bucket[SlotCount + ExtraIndex]
-						Bucket[SlotCount + ExtraIndex]  = nil
+						Bucket[SlotCount + ExtraIndex] = nil
 					end
 				end
+				
 				WriteIndex += NewlyAdded
 			end
 
 			WheelCounts[Slot] = WriteIndex
+			
 			if WriteIndex == 0 then
 				Wheel[Slot] = nil
 			end
@@ -395,18 +571,21 @@ end)
 RunService.Heartbeat:Connect(function(DeltaTime: number): ()
 	if IsShuttingDown then return end
 	JanitorAccumulator += DeltaTime
-	if JanitorAccumulator < Assignment_Configuration.JANITOR_INTERVAL then return end
+	
+	if JanitorAccumulator < JANITOR_INTERVAL then return end
 	JanitorAccumulator = 0
 
 	for Index = 1, WHEEL_SIZE do
 		local Count = WheelCounts[Index]
+		
 		if Count == 0 then continue end
 
-		local Bucket     = Wheel[Index] :: { WheelEntry }
+		local Bucket = Wheel[Index] :: { WheelEntry }
 		local WriteIndex = 0
 
 		for InnerIndex = 1, Count do
-			local Entry        = Bucket[InnerIndex]
+			local Entry = Bucket[InnerIndex]
+			
 			Bucket[InnerIndex] = nil :: any
 
 			if Entry.Handle and Entry.Handle._cancelled then
@@ -414,11 +593,12 @@ RunService.Heartbeat:Connect(function(DeltaTime: number): ()
 				continue
 			end
 
-			WriteIndex        += 1
-			Bucket[WriteIndex]  = Entry
+			WriteIndex += 1
+			Bucket[WriteIndex] = Entry
 		end
 
 		WheelCounts[Index] = WriteIndex
+		
 		if WriteIndex == 0 then
 			Wheel[Index] = nil
 		end
@@ -438,21 +618,20 @@ end)
 -- Assignment Public APIs Section
 ----------------------------------------------------------
 
-local Assignment = {}
-
 --[[
-Immediately spawns a function or resumes a thread using the internal thread pool.
+	Runs a function or resumes a thread immediately.
 
-Params:
-    Function: ((...any) -> ()) | thread -- The function or thread to run
-    ...: any                            -- Arguments to pass
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume immediately.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    nil
+	Returns:
+	    void
 ]]
 function Assignment.Spawn(Function: ((...any) -> ()) | thread, ...: any): ()
 	if type(Function) == "thread" then
 		local Success, ErrorMessage = coroutine.resume(Function, ...)
+		
 		if not Success then
 			task.spawn(error, debug.traceback(Function, tostring(ErrorMessage)), 2)
 		end
@@ -462,14 +641,14 @@ function Assignment.Spawn(Function: ((...any) -> ()) | thread, ...: any): ()
 end
 
 --[[
-Spawns a function or thread in isolation using task.spawn, bypassing the internal scheduler.
+	Runs a function or thread immediately at full engine priority, completely independent of the shared worker.
 
-Params:
-    Function: ((...any) -> ()) | thread -- The function or thread to run
-    ...: any                            -- Arguments to pass
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume immediately.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    thread -- The spawned isolated thread
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
 ]]
 function Assignment.SpawnIsolated(Function: ((...any) -> ()) | thread, ...: any): thread
 	local IsolatedThread: thread
@@ -481,28 +660,32 @@ function Assignment.SpawnIsolated(Function: ((...any) -> ()) | thread, ...: any)
 	end
 
 	IsolatedThreads[IsolatedThread] = true
+	
 	return IsolatedThread
 end
 
 --[[
-Defers a function or thread to run on the next heartbeat tick.
+	Queues work to run on the next available frame.
 
-Params:
-    Function: ((...any) -> ()) | thread -- The function or thread to defer
-    ...: any                            -- Arguments to pass
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    Handle -- A cancellable handle for this deferred call
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to discard the work before it runs.
 ]]
 function Assignment.Defer(Function: ((...any) -> ()) | thread, ...: any): Handle
-	local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
-	local Entry             = acquireEntry()
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+	local Entry = acquireEntry()
 
 	Entry.Handle = NewHandle
 
 	if type(Function) == "thread" then
 		ThreadToHandle[Function :: thread] = NewHandle
-		Entry.Thread                       = Function :: thread
+		Entry.Thread = Function :: thread
 	else
 		Entry.Function = Function :: (...any) -> ()
 	end
@@ -516,14 +699,14 @@ function Assignment.Defer(Function: ((...any) -> ()) | thread, ...: any): Handle
 end
 
 --[[
-Defers a function or thread in isolation using task.defer, bypassing the internal scheduler.
+	Queues work to run on the next available frame at full engine priority.
 
-Params:
-    Function: ((...any) -> ()) | thread -- The function or thread to defer
-    ...: any                            -- Arguments to pass
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    thread -- The deferred isolated thread
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
 ]]
 function Assignment.DeferIsolated(Function: ((...any) -> ()) | thread, ...: any): thread
 	local IsolatedThread: thread
@@ -535,72 +718,84 @@ function Assignment.DeferIsolated(Function: ((...any) -> ()) | thread, ...: any)
 	end
 
 	IsolatedThreads[IsolatedThread] = true
+	
 	return IsolatedThread
 end
 
 --[[
-Schedules a function or thread to run after a delay.
+	Schedules work to run after a set number of seconds.
 
-Params:
-    Duration: number                    -- Delay in seconds
-    Function: ((...any) -> ()) | thread -- The function or thread to delay
-    ...: any                            -- Arguments to pass
+	Params:
+	    Duration: number                    -- Seconds to wait before running.
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    Handle -- A cancellable handle for this delayed call
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to discard the work before it runs.
 ]]
 function Assignment.Delay(Duration: number, Function: ((...any) -> ()) | thread, ...: any): Handle
-	local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
-	local Entry             = acquireEntry()
+	local SafeDuration = Duration or 0
 
-	Entry.ResumeAt = os.clock() + math.max(Duration, Assignment_Configuration.MIN_DELAY)
-	Entry.Handle   = NewHandle
+	if SafeDuration <= 0 then
+		return Assignment.Defer(Function, ...)
+	end
+
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+	local Entry = acquireEntry()
+
+	Entry.ResumeAt = os.clock() + math.max(SafeDuration, MIN_DELAY)
+	Entry.Handle = NewHandle
 
 	if type(Function) == "thread" then
 		ThreadToHandle[Function :: thread] = NewHandle
-		Entry.Thread                       = Function :: thread
+		Entry.Thread = Function :: thread
 	else
 		Entry.Function = Function :: (...any) -> ()
 	end
 
 	populateArguments(Entry, select("#", ...), ...)
-
 	wheelInsert(Entry)
+
 	return NewHandle
 end
 
 --[[
-Schedules a function or thread to run after a delay in isolation bypassing the internal scheduler.
+	Schedules work to run after a set number of seconds at full engine priority.
 
-Params:
-    Duration: number                    -- Delay in seconds
-    Function: ((...any) -> ()) | thread -- The function or thread to delay
-    ...: any                            -- Arguments to pass
+	Params:
+	    Duration: number                    -- Seconds to wait before running.
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
 
-Returns:
-    thread -- The delayed isolated thread
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
 ]]
 function Assignment.DelayIsolated(Duration: number, Function: ((...any) -> ()) | thread, ...: any): thread
+	local SafeDuration = math.max(Duration or 0, MIN_DELAY)
 	local IsolatedThread: thread
 
 	if type(Function) == "thread" then
-		IsolatedThread = task.delay(Duration, Function :: thread, ...)
+		IsolatedThread = task.delay(SafeDuration, Function :: thread, ...)
 	else
-		IsolatedThread = task.delay(Duration, Function :: (...any) -> (), ...)
+		IsolatedThread = task.delay(SafeDuration, Function :: (...any) -> (), ...)
 	end
 
 	IsolatedThreads[IsolatedThread] = true
+	
 	return IsolatedThread
 end
 
 --[[
-Suspends the current coroutine for a given duration and returns the elapsed time.
+	Pauses the current thread for approximately the requested duration and returns how long it actually waited. Passing zero, nil, or a negative value is valid: the thread pauses for the shortest possible time, resuming on the next frame.
 
-Params:
-    Duration: number? -- Seconds to wait (default 0)
+	Params:
+	    Duration: number? -- Seconds to pause.
 
-Returns:
-    number -- Actual elapsed time since the wait began
+	Returns:
+	    number -- The actual time elapsed since Wait was called, in seconds.
 ]]
 function Assignment.Wait(Duration: number?): number
 	local CurrentThread = coroutine.running()
@@ -609,15 +804,33 @@ function Assignment.Wait(Duration: number?): number
 		return task.wait(Duration or 0)
 	end
 
-	local StartTime  = os.clock()
-	local TargetTime = StartTime + math.max(Duration or 0, Assignment_Configuration.MIN_DELAY)
+	local SafeDuration = Duration or 0
+	local StartTime = os.clock()
 
+	if SafeDuration <= 0 then
+		local Entry = acquireEntry()
+		
+		Entry.Thread = CurrentThread
+		Entry.ArgCount = 0
+		DeferWriteCount += 1
+		DeferWriteBuffer[DeferWriteCount] = Entry
+		coroutine.yield()
+		
+		return math.max(0, os.clock() - StartTime)
+	end
+
+	local TargetTime = StartTime + math.max(SafeDuration, MIN_DELAY)
 	local RawSlot = math.floor(TargetTime / SLOT_SIZE)
-	local Slot    = bit32.band(RawSlot, WHEEL_MASK) + 1
 
-	local Bucket = WaitWheel[Slot]
+	if RawSlot <= LastRawSlot then
+		RawSlot = LastRawSlot + 1
+	end
+
+	local Slot = bit32.band(RawSlot, WHEEL_MASK) + 1
+	local Bucket: any = WaitWheel[Slot]
+
 	if not Bucket then
-		Bucket          = {}
+		Bucket = {}
 		WaitWheel[Slot] = Bucket
 	end
 
@@ -626,29 +839,31 @@ function Assignment.Wait(Duration: number?): number
 	Bucket[Count + 1] = CurrentThread
 	Bucket[Count + 2] = TargetTime
 	Bucket[Count + 3] = StartTime
-
 	WaitCounts[Slot] = Count + 3
 
 	return coroutine.yield() :: number
 end
 
 --[[
-Repeatedly calls a function at a fixed interval for a given number of iterations.
+	Calls a function repeatedly at a fixed interval for a set number of iterations, or indefinitely when Count is -1.
 
-Params:
-    Count:    number                         -- Number of repetitions (-1 for infinite)
-    Interval: number?                        -- Seconds between iterations
-    Function: (number, Handle, ...any) -> () -- Callback receiving iteration index and handle
-    ...: any                                 -- Extra arguments forwarded to the callback
+	Params:
+	    Count:    number                         -- Number of times to call Function. Pass -1 to loop forever.
+	    Interval: number?                        -- Seconds between calls.
+	    Function: (number, Handle, ...any) -> () -- Called each iteration with the iteration number and loop handle as the first two arguments.
+	    ...: any                                 -- Extra arguments forwarded to Function after the iteration number and handle.
 
-Returns:
-    Handle -- A cancellable handle for this repeat loop
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to stop the loop before or during execution.
 ]]
 function Assignment.Repeat(Count: number, Interval: number?, Function: (number, Handle, ...any) -> (), ...: any): Handle
-	local NewHandle: Handle  = { _cancelled = false, Break = breakHandle }
-	local ArgCount: number   = select("#", ...)
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+	local ArgCount: number = select("#", ...)
 	local Arguments: { any } = { ... }
-	local SafeInterval       = math.max(Interval or 0, Assignment_Configuration.MIN_DELAY)
+	local SafeInterval = math.max(Interval or 0, MIN_DELAY)
 
 	local function repeatLoop(): ()
 		local Iteration = 1
@@ -667,28 +882,27 @@ function Assignment.Repeat(Count: number, Interval: number?, Function: (number, 
 
 			Iteration += 1
 
-			if SafeInterval > 0 then
-				if IsShuttingDown then
-					task.wait(SafeInterval)
-				else
-					Assignment.Wait(SafeInterval)
-				end
+			if IsShuttingDown then
+				task.wait(SafeInterval)
+			else
+				Assignment.Wait(SafeInterval)
 			end
 		end
 	end
-	spawnInPool(repeatLoop :: (...any) -> ())
 
+	spawnInPool(repeatLoop :: (...any) -> ())
+	
 	return NewHandle
 end
 
 --[[
-Cancels a scheduled handle or a tracked thread.
+	Stops a scheduled task from running. Accepts either a Handle returned from a pooled call or a thread token returned from an isolated call.
 
-Params:
-    Target: Handle | thread -- The handle or thread to cancel
+	Params:
+	    Target: Handle | thread -- The handle or thread to cancel.
 
-Returns:
-    nil
+	Returns:
+	    void
 ]]
 function Assignment.Cancel(Target: Handle | thread): ()
 	if Target == nil then return end
@@ -697,12 +911,14 @@ function Assignment.Cancel(Target: Handle | thread): ()
 		if IsolatedThreads[Target :: thread] then
 			task.cancel(Target :: thread)
 			IsolatedThreads[Target :: thread] = nil
+			
 			return
 		end
 
 		local ExistingHandle = ThreadToHandle[Target :: thread]
+		
 		if ExistingHandle then
-			ExistingHandle._cancelled        = true
+			ExistingHandle._cancelled = true
 			ThreadToHandle[Target :: thread] = nil
 		end
 	else
@@ -721,74 +937,88 @@ if RunService:IsServer() then
 	-- Migrates all pending scheduled work to the native task library on shutdown
 	local function migrateToTaskLibrary(): ()
 		IsShuttingDown = true
-		local Now      = os.clock()
+		local Now = os.clock()
 
-		-- O(1) Migration Helpers
-		local function migrateDefer(Entry: WheelEntry)
+		-- Migrates a deferred entry to task.defer
+		local function migrateDefer(Entry: WheelEntry): ()
 			local Target = Entry.Thread or Entry.Function
+			
 			if not Target then return end
-			local Count = Entry.ArgCount
 
-			if Count == 0 then task.defer(Target :: any)
-			elseif Count == 1 then task.defer(Target :: any, Entry.Arg1)
-			elseif Count == 2 then task.defer(Target :: any, Entry.Arg1, Entry.Arg2)
-			elseif Count == 3 then task.defer(Target :: any, Entry.Arg1, Entry.Arg2, Entry.Arg3)
-			elseif Count == 4 then task.defer(Target :: any, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
-			else task.defer(Target :: any, table.unpack(Entry.OverflowArgs :: {any}, 1, Count))
+			local Count = Entry.ArgCount
+			local Migrator = DeferMigratorGraph[Count]
+
+			if Migrator then
+				Migrator(Target, Entry)
+			else
+				task.defer(Target :: any, table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
 			end
 		end
 
-		local function migrateDelay(Entry: WheelEntry, Remaining: number)
+		-- Migrates a delayed entry to task.delay with its remaining time
+		local function migrateDelay(Entry: WheelEntry, Remaining: number): ()
 			local Target = Entry.Thread or Entry.Function
+			
 			if not Target then return end
-			local Count = Entry.ArgCount
 
-			if Count == 0 then task.delay(Remaining, Target :: any)
-			elseif Count == 1 then task.delay(Remaining, Target :: any, Entry.Arg1)
-			elseif Count == 2 then task.delay(Remaining, Target :: any, Entry.Arg1, Entry.Arg2)
-			elseif Count == 3 then task.delay(Remaining, Target :: any, Entry.Arg1, Entry.Arg2, Entry.Arg3)
-			elseif Count == 4 then task.delay(Remaining, Target :: any, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
-			else task.delay(Remaining, Target :: any, table.unpack(Entry.OverflowArgs :: {any}, 1, Count))
+			local Count = Entry.ArgCount
+			local Migrator = DelayMigratorGraph[Count]
+
+			if Migrator then
+				Migrator(Remaining, Target, Entry)
+			else
+				task.delay(Remaining, Target :: any, table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
 			end
 		end
 
 		for Index = DeferReadIndex, DeferReadCount do
-			local Entry        = DeferReadBuffer[Index]
+			local Entry = DeferReadBuffer[Index]
+			
 			DeferReadBuffer[Index] = nil :: any
 
 			if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
 				migrateDefer(Entry)
 			end
 
-			if Entry then releaseEntry(Entry) end
+			if Entry then
+				releaseEntry(Entry)
+			end
 		end
+		
 		DeferReadCount = 0
 		DeferReadIndex = 1
 
 		for Index = 1, DeferWriteCount do
-			local Entry        = DeferWriteBuffer[Index]
+			local Entry = DeferWriteBuffer[Index]
+			
 			DeferWriteBuffer[Index] = nil :: any
 
 			if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
 				migrateDefer(Entry)
 			end
 
-			if Entry then releaseEntry(Entry) end
+			if Entry then
+				releaseEntry(Entry)
+			end
 		end
+		
 		DeferWriteCount = 0
 
 		for Index = 1, WHEEL_SIZE do
 			local Count = WheelCounts[Index]
+			
 			if Count == 0 then continue end
 
 			local Bucket = Wheel[Index] :: { WheelEntry }
 
 			for InnerIndex = 1, Count do
-				local Entry        = Bucket[InnerIndex]
+				local Entry: any = Bucket[InnerIndex]
+				
 				Bucket[InnerIndex] = nil :: any
 
 				if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
 					local Remaining = math.max(0, Entry.ResumeAt - Now)
+					
 					migrateDelay(Entry, Remaining)
 				end
 
@@ -797,32 +1027,34 @@ if RunService:IsServer() then
 				end
 			end
 
-			Wheel[Index]       = nil
+			Wheel[Index] = nil
 			WheelCounts[Index] = 0
 		end
 
-		-- 3. Flush Wait Wheel (Unchanged, uses flat arrays, no variadic args)
 		for Index = 1, WHEEL_SIZE do
 			local WaitSlotCount = WaitCounts[Index]
+			
 			if WaitSlotCount == 0 then continue end
 
 			local WaitBucket = WaitWheel[Index] :: { any }
 
 			for InnerIndex = 1, WaitSlotCount, 3 do
-				local Thread    = WaitBucket[InnerIndex]     :: thread
-				local ResumeAt  = WaitBucket[InnerIndex + 1] :: number
+				local Thread = WaitBucket[InnerIndex] :: thread
+				local ResumeAt = WaitBucket[InnerIndex + 1] :: number
 				local StartTime = WaitBucket[InnerIndex + 2] :: number
-				WaitBucket[InnerIndex]     = nil
+
+				WaitBucket[InnerIndex] = nil
 				WaitBucket[InnerIndex + 1] = nil
 				WaitBucket[InnerIndex + 2] = nil
 
 				if Thread then
-					local Remaining  = math.max(0, ResumeAt - Now)
+					local Remaining = math.max(0, ResumeAt - Now)
 					local CapturedAt = StartTime
 
 					task.delay(Remaining, function()
-						local Elapsed              = math.max(0, os.clock() - CapturedAt)
+						local Elapsed = math.max(0, os.clock() - CapturedAt)
 						local Success, ErrorMessage = coroutine.resume(Thread, Elapsed)
+						
 						if not Success then
 							task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
 						end
@@ -830,11 +1062,10 @@ if RunService:IsServer() then
 				end
 			end
 
-			WaitWheel[Index]  = nil
+			WaitWheel[Index] = nil
 			WaitCounts[Index] = 0
 		end
 
-		-- 4. Overwrite APIs to point directly to task library (Unchanged, already safe)
 		Assignment.Spawn = function(Function: ((...any) -> ()) | thread, ...: any): ()
 			task.spawn(Function :: any, ...)
 		end
@@ -844,8 +1075,13 @@ if RunService:IsServer() then
 		end
 
 		Assignment.Defer = function(Function: ((...any) -> ()) | thread, ...: any): Handle
-			local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
+			local NewHandle: Handle = {
+				_cancelled = false,
+				Break = breakHandle,
+			}
+			
 			task.defer(Function :: any, ...)
+			
 			return NewHandle
 		end
 
@@ -854,11 +1090,16 @@ if RunService:IsServer() then
 		end
 
 		Assignment.Delay = function(Duration: number, Function: ((...any) -> ()) | thread, ...: any): Handle
-			local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
+			local NewHandle: Handle = {
+				_cancelled = false,
+				Break = breakHandle,
+			}
+			
 			task.delay(Duration, Function :: any, ...)
+			
 			return NewHandle
 		end
-		
+
 		Assignment.DelayIsolated = function(Duration: number, Function: ((...any) -> ()) | thread, ...: any): thread
 			return task.delay(Duration, Function :: any, ...)
 		end
@@ -868,13 +1109,17 @@ if RunService:IsServer() then
 		end
 
 		Assignment.Repeat = function(Count: number, Interval: number?, Function: (number, Handle, ...any) -> (), ...: any): Handle
-			local NewHandle: Handle  = { _cancelled = false, Break = breakHandle }
-			local ArgCount: number   = select("#", ...)
+			local NewHandle: Handle = {
+				_cancelled = false,
+				Break = breakHandle,
+			}
+			local ArgCount: number = select("#", ...)
 			local Arguments: { any } = { ... }
-			local SafeInterval       = math.max(Interval or 0, Assignment_Configuration.MIN_DELAY)
+			local SafeInterval = math.max(Interval or 0, MIN_DELAY)
 
 			task.spawn(function()
 				local Iteration = 1
+				
 				while (Count < 0) or (Iteration <= Count) do
 					if NewHandle._cancelled then break end
 
@@ -897,6 +1142,7 @@ if RunService:IsServer() then
 
 		Assignment.Cancel = function(Target: Handle | thread): ()
 			if Target == nil then return end
+			
 			if type(Target) == "thread" then
 				task.cancel(Target :: thread)
 			else
@@ -906,11 +1152,14 @@ if RunService:IsServer() then
 	end
 
 	--[[
-	Manually triggers migration of all pending work to the native task library.
-	No-op if already shutting down.
+		Signals Assignment to hand all pending scheduled work to the engine's native scheduler, preserving each task's remaining time.
+		After migration, all Assignment functions continue to work as normal but route through the native scheduler.
 
-	Returns:
-	    nil
+		This is called automatically when the server closes and requires no code from you.
+		It is exposed as a manual call for controlled shutdown sequences.
+
+		Returns:
+		    void
 	]]
 	function Assignment.Migrate(): ()
 		if not IsShuttingDown then
