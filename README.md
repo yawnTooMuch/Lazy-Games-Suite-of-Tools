@@ -1,50 +1,32 @@
-# The Diary Framework: Architectural Overview
-Diary is a Cache-First, Session-Locked Hybrid Persistence Framework designed specifically for high-capacity (200+ player) Roblox MMORPGs. Its primary architectural goal is to completely decouple real-time gameplay logic from the latency and rate limits of Roblox's native DataStoreService.
+# The Lazy Games Suite of Tools
 
-To achieve this, Diary relies on a sophisticated hierarchy of active server memory, transient MemoryStore caching, and resilient background batching.
+The **Lazy Games Suite of Tools** is a professional-grade development ecosystem built to empower creators on the Roblox platform. It brings together a carefully curated mix of frameworks and libraries, forming a comprehensive collection that absorbs the underlying complexity of game architecture and frees developers to direct their energy toward what matters most: crafting meaningful, engaging player experiences.
 
-## The Core Philosophy: Read Instantly, Save Asynchronously
-In a traditional Roblox game, developers often yield the server to read or write data. In an MMO, yielding during combat or trading is unacceptable.
+## Ownership and Maintenance
 
-Diary solves this by enforcing a Read-Reference, Mutate, and Mark pattern:
+The entire ecosystem is exclusively owned and maintained by **Lazy Games**. We take full responsibility for the stability, reliability, and long-term evolution of every tool within the suite, ensuring that each component remains consistently optimized as the Roblox engine continues to grow and change. By owning the complete stack, we are able to deliver a seamless, integrated experience in which every layer is purpose-built to work in harmony with the others. Developers can build with confidence, knowing that the foundation beneath them is actively cared for.
 
-### 1. When a player joins, their complete data profile is hydrated into local server RAM (PlayerDataCache).
+---
 
-### 2. Gameplay systems (combat, inventory) read and modify this RAM directly with zero latency.
+## Our Core Pillars
 
-### 3. Systems call Diary.MarkDirty() to flag changes. Background workers autonomously bundle these changes and push them to the database, ensuring the main gameplay thread never stalls.
+To support clean, scalable architecture, the suite is organized into three fundamental categories, each serving a distinct role in the development process.
 
-## The Four Pillars of the Architecture
-The framework is divided into four highly specialized, decoupled modules:
+### Systems
+Systems form the foundational **engine room** of any experience. These resources are responsible for the core, high-level functions that govern how a game operates at a structural level, covering everything from complex data persistence and state management to networking protocols and communication frameworks. If a resource controls the vital mechanisms of your game, it belongs in this category. Systems are the layer that keeps everything running reliably in the background, so the rest of your project can be built on solid ground.
 
-### 1. Diary.lua (The Orchestrator)
-This is the central nervous system and the primary developer-facing API.
+### Utilities
+Utilities are specialized resources that **bridge the gap** between standard implementation and advanced software engineering. This category is dedicated to tools that refine and elevate the development approach, including custom memory management solutions, advanced task schedulers, and enhanced explorer tooling. Utilities are designed to resolve technical bottlenecks and provide developers with a degree of control and efficiency that goes well beyond what default engine behavior offers. When a problem calls for precision, utilities are where you turn.
 
-#### * Lifecycle Management: It safely handles player connections, disconnections, and server shutdowns, ensuring no data is dropped when the server closes.
+### Plugins
+The Plugins category is dedicated entirely to the **workflow within the Roblox Studio environment**. These are proprietary tools developed to enhance the creator's workspace, automate repetitive manual tasks, and provide intuitive visual interfaces for deeper backend systems. Plugins live directly inside your editor, transforming the way you build, debug, and manage your projects on a day-to-day basis. They are the bridge between powerful backend logic and an accessible, productive studio experience.
 
-#### * Template Reconciliation: It ensures player data always matches the latest game schemas, automatically injecting missing keys or scrubbing deprecated ones.
+---
 
-#### * Cross-Server Handshakes: It uses MessagingService to communicate with other servers during "crash-joins", demanding old servers release their locks before letting a player load in.
+## The "Lazy" Philosophy
 
-## 2. MemoryStore.lua (The Locksmith & Fast Cache)
-This module handles distributed locking and high-frequency, volatile data.
+At Lazy Games, we hold a simple but powerful belief: **true efficiency comes from working smarter**. To be "Lazy" in our sense of the word is to refuse to solve the same problem twice. It means building tools that make scalability inevitable, errors preventable, and good architecture the path of least resistance.
 
-#### * Session Leasing: To prevent data duplication or wiping, this module grants a strict "Lease" to a specific Server ID. A server cannot save player data unless it exclusively owns this lease.
+We do not build tools for the sake of complexity. We build them so that the complexity disappears, and what remains is a clear, creative space where developers can focus entirely on the worlds they are building.
 
-#### * Transient Storage: It acts as a fast cache for global MMO features, such as tracking "Online/Offline" status and saving HumanoidDescription data for "Ghost" bodies left behind after logouts.
-
-## 3. DataStore.lua (The Resilient Pipeline)
-This is the permanent storage engine, built to survive Roblox's strict API rate limits.
-
-#### * Smart Queueing: Instead of saving instantly, requests are routed into a SaveQueue. A background processor drains this queue in controlled batches of up to 10 operations, utilizing exponential backoff if a save fails.
-
-#### * Hybrid Saving: It intelligently chooses between SetAsync (for direct overwrites if the server owns the lease) and UpdateAsync (for merging data if there is a conflict).
-
-## 4. DependentServices.lua (The Optimizer)
-This module acts as the mathematical and memory-optimization engine.
-
-#### * Binary Serialization: It takes expensive 3D datatypes (Vector3, CFrame, ColorSequence) and compresses them into raw byte buffers, encoding them in Base64. This drastically reduces the size of the DataStore payload.
-
-#### * Delta Generation: Before saving, it compares the current data against a cached snapshot to generate a "Delta" map, ensuring the server only writes the exact variables that changed.
-
-#### * Memory Pooling: It heavily utilizes table pooling to recycle arrays and dictionaries, preventing the Luau Garbage Collector from freezing the server during massive serialization events.
+> **"Let the Suite handle the architecture. You build the world."**
