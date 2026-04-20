@@ -52,9 +52,6 @@ Stamp maintains an internal lookup table for attributes set through its own API,
 
 Both functions accept an optional value filter. Omitting the value returns every instance that possesses the attribute at all, regardless of its current value. Only instances with a live parent are returned; entries for destroyed instances are excluded automatically.
 
-!!! warning "Supported Attribute Types"
-    Stamp's attribute cache only supports the types that Roblox itself permits on instances: `string`, `number`, `boolean`, `UDim`, `UDim2`, `BrickColor`, `Color3`, `Vector2`, `Vector3`, `NumberRange`, `NumberSequence`, `ColorSequence`, `Rect`, and `Font`. Attempting to set or query an unsupported type will throw an error in Studio.
-
 ### Reactive Attribute Observation
 
 `StampStream:ObserveAttribute()` collapses three separate tasks — reading the current value, connecting a change listener, and cleaning up that listener — into a single call. The callback fires immediately with the attribute's current value, then fires again on every future change. The connection is automatically tied to the tagged instance's scope, so it is disconnected the moment the tag is removed, with no manual intervention required.
