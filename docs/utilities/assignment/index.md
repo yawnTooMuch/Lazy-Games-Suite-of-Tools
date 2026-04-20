@@ -3,7 +3,7 @@
 **Type:** Singleton Library  
 _A task scheduling library for Roblox that gives every scheduled call a cancellation handle, throttles heavy workloads automatically, and ensures pending work survives server shutdown._
 
-Distribution Link: `https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler/4585350`
+[Distribution:](https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler/4585350) `https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler/4585350`
 
 ---
 
