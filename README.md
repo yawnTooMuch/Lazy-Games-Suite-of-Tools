@@ -27,6 +27,14 @@ Stamp requires three other modules from the Lazy Games Suite to be injected befo
 
 ## Key Features
 
+### The Behavioural Component Pattern
+
+The central design philosophy of Stamp is to replace monolithic, per-entity scripts with small, reusable **behaviours** — one stream per concern, each completely independent. Think of a `StampStream` the way you would think of a UI component: you build it once and apply it to anything that needs it.
+
+A `Health` stream is defined once — with its `Tagged` logic, attribute initialization, and `ObserveAttribute` listeners — and then applied by tagging any entity that has health: a player character, an NPC, a barrel, a vehicle. The exact same logic runs for all of them, with no code duplication and no per-type cleanup code. When you need to change how health behaves, you change it in one stream and every entity type benefits immediately.
+
+Because `Stamp.Register("Health")` always returns the same live stream for the lifetime of that tag, any script in the codebase can acquire it by calling `Stamp.Register("Health")` directly — no import chain required. This means load order does not matter: whether the consuming script or the owning system script initializes first, both are reading from and writing to the same stream. Your codebase grows by adding new streams, not by expanding existing scripts.
+
 ### Object-Oriented Streams (`StampStream`)
 
 Rather than working with string tag names scattered across your codebase, `Stamp.Register("TagName")` returns a `StampStream` object. This object is the single authoritative controller for that tag: it owns the `AddTag`, `RemoveTag`, `GetAll`, and attribute methods. Calling `Register` a second time with the same tag name returns the same live stream rather than creating a duplicate, making it safe to require from multiple scripts.
