@@ -78,6 +78,11 @@ nav:
         - APIs: utilities/stamp/apis.md
         - Examples: utilities/stamp/examples.md
         - Best Practices: utilities/stamp/best_practices.md
+      - Twin Framework:
+        - Overview: utilities/twin/index.md
+        - APIs: utilities/twin/apis.md
+        - Examples: utilities/twin/examples.md
+        - Best Practices: utilities/twin/best_practices.md
   - Plugins:
     - _:
       - Coming Soon!: plugins/coming_soon.md
