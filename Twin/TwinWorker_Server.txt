@@ -1,0 +1,91 @@
+--!strict
+--!native
+--!optimize 2
+
+local WorkerActor = script:GetActor()
+if not WorkerActor then return end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Server Internal States Section
+----------------------------------------------------------
+
+local ReturnCallback     : BindableEvent = WorkerActor:WaitForChild("TwinEngine_Bridge_4G") :: BindableEvent
+local BulkReturnCallback : BindableEvent = WorkerActor:WaitForChild("TwinEngine_Bridge_5G") :: BindableEvent
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Server Local Function Section
+----------------------------------------------------------
+
+-- Handles a single-job message: requires the module, runs the function in parallel, fires the result back.
+local function runSingleJob(WorkerId: number, UniqueId: string, Module: ModuleScript, FunctionName: string, Payload: any, Generation: number)
+	local LoadSuccess, LoadedModule = pcall(require, Module)
+
+	if not LoadSuccess then
+		warn(("[Twin Split] require failed '%s':\n%s"):format(Module.Name, tostring(LoadedModule)))
+		ReturnCallback:Fire(WorkerId, UniqueId, nil, 0, Generation)
+		return
+	end
+
+	local StartTime = os.clock()
+
+	task.desynchronize()
+
+	local RunSuccess, Result = pcall(function()
+		return LoadedModule[FunctionName](Payload)
+	end)
+
+	task.synchronize()
+
+	local Elapsed = os.clock() - StartTime
+
+	if not RunSuccess then
+		warn(("[Twin Split] error '%s.%s':\n%s"):format(Module.Name, FunctionName, tostring(Result)))
+		Result = nil
+	end
+	ReturnCallback:Fire(WorkerId, UniqueId, Result, Elapsed, Generation)
+end
+
+-- Handles a bulk-job message: requires the module, processes the slice in parallel, fires results back.
+local function runBulkJob(_WorkerId: number, UniqueId: string, StartIndex: number, Length: number, Module: ModuleScript, FunctionName: string, Slice: { any }, SharedArgs: any?, Generation: number)
+	local LoadSuccess, LoadedModule = pcall(require, Module)
+
+	if not LoadSuccess then
+		warn(("[Twin BulkSplit] require failed '%s':\n%s"):format(Module.Name, tostring(LoadedModule)))
+		BulkReturnCallback:Fire(UniqueId, StartIndex, Length, nil, 0, Generation)
+		return
+	end
+
+	local StartTime = os.clock()
+
+	task.desynchronize()
+
+	local RunSuccess, Results = pcall(function()
+		return LoadedModule[FunctionName](Slice, SharedArgs)
+	end)
+
+	task.synchronize()
+
+	local Elapsed = os.clock() - StartTime
+
+	if not RunSuccess then
+		warn(("[Twin BulkSplit] error '%s.%s':\n%s"):format(Module.Name, FunctionName, tostring(Results)))
+		Results = nil
+	end
+	BulkReturnCallback:Fire(UniqueId, StartIndex, Length, Results, Elapsed, Generation)
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Server Event Binding Section
+----------------------------------------------------------
+
+WorkerActor:BindToMessage("RunSingleJob", runSingleJob)
+WorkerActor:BindToMessage("RunBulkJob", runBulkJob)

@@ -1,0 +1,1754 @@
+--[[
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Twin - Parallel Job Scheduler Framework					 						 				 000
+	000 Version: 1.0.0 Beta Release													  			 		 000
+	000 Platform: Roblox													  							 000
+	000 License: Apache 2.0												  	  					 		 000
+	000																		  					 		 000
+	000																		  					 		 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					 		 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			 		 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Twin_ReadOnly 		 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/twin/ 			 000
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Configuration Section
+----------------------------------------------------------
+
+local TwinConfiguration = {
+	ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE = game:GetService("RunService"):IsStudio(), -- enables parameter validation on every API call
+	SERVER_WORKER_COUNT = 3,                                                               -- number of workers to use on the server
+	CLIENT_WORKER_COUNT = 7,                                                               -- number of workers to use on the client
+	ENABLE_TYPO_POLICE = true,                                                             -- master switch for the function name typo checking system
+	DEFAULT_MAX_WAIT = 0.050,                                                              -- seconds before deadline dispatch
+	STARVATION_THRESHOLD = 10,                                                             -- heavy single-job skip count before starvation promotion
+	BG_STARVATION_THRESHOLD = 50,                                                          -- background bulk batch-skip count before forced dispatch
+	SPECULATIVE_THRESHOLD = 0.016,                                                         -- avgExecTime above this marks a worker as "slow" for speculative dispatch
+	EMA_ALPHA = 0.25,                                                                      -- exponential moving average smoothing factor for worker execution time
+	FRAME_BUDGET_SEC = 0.008,                                                              -- 8ms: main-thread dispatch gate per frame
+
+	NODE_POOL_SIZE = 256,                                                                  -- controls the maximum number of recycled "Nodes" used in Twin's internal linked-list queues
+	SINGLE_JOB_POOL_SIZE = 64,                                                             -- number of recycled SingleJob structs available for Twin.Split()
+	BULK_ENTRY_POOL_SIZE = 16,                                                             -- number of active Twin.BulkSplit() master requests allowed at once
+	BULK_BATCH_POOL_SIZE = 64,                                                             -- number of bulk entries split into smaller "Batches" to send to workers
+	RESULT_BUFFER_POOL_SIZE = 16,                                                          -- number of pre-allocated arrays ready to hold final BulkSplit results
+
+	MAX_BATCH_SIZE = 256,                                                                  -- absolute maximum number of items Twin will allocate into a single chunk to send to an Actor
+	MAX_RESULT_ITEMS = 1024,                                                               -- size allocation of the tables sitting inside RESULT_BUFFER_POOL_SIZE
+
+	TELEMETRY_ENABLED = game:GetService("RunService"):IsStudio(),                          -- master switch — false eliminates all sampling overhead; Twin.Report() returns nil
+	TELEMETRY_FLUSH_INTERVAL = 10,                                                         -- seconds between telemetry windows
+	TELEMETRY_MAX_DEFER_SEC = 30,                                                          -- max seconds flush coroutine waits for a quiet moment before force-flushing
+	TELEMETRY_RING_SIZE = 600,                                                             -- Heartbeat samples stored in the ring buffer (600 = 10s at 60fps)
+
+	POOL_WARN_RATIO = 0.50,                                                                -- below this → "Warm"
+	POOL_CRIT_RATIO = 0.20,                                                                -- below this → "Overloaded"
+
+	QUEUE_WARN_DEPTH = 10,                                                                 -- peak depth above this → "Warm"
+	QUEUE_CRIT_DEPTH = 25,                                                                 -- peak depth above this → "Overloaded"
+
+	WORKER_WARN_EXEC = 0.016,                                                              -- above this → "Warm"
+	WORKER_CRIT_EXEC = 0.030,                                                              -- above this → "Overloaded"
+
+	OVER_BUDGET_RATE_WARN = 0.05,                                                          -- fraction of frames over budget → "Warm"
+	OVER_BUDGET_RATE_CRIT = 0.20,                                                          -- fraction of frames over budget → "Overloaded"
+	ACTIVE_BULK_WARN = 1,                                                                  -- activeBulkCount above this → "Warm"
+	ACTIVE_BULK_CRIT = 3,                                                                  -- activeBulkCount above this → "Overloaded"
+
+	BG_SKIP_WARN = 20,                                                                     -- background jobs skips threshold before it is flagged "Warm" (Problematic)
+	BG_SKIP_CRITICAL = 50,                                                                 -- background jobs skips threshold before it is flagged "Overloaded" (Severe)
+	HEAVY_SKIP_WARN = 5,                                                                   -- heavy jobs skips threshold before it is flagged "Warm" (Problematic)
+	HEAVY_SKIP_CRITICAL = 8,                                                               -- heavy jobs skips threshold before it is flagged "Overloaded" (Severe)
+
+	WATCHDOG_ENABLED = true,                                                               -- master switch for the worker timeout system
+	WATCHDOG_TIMEOUT = 5.0,                                                                -- seconds before a worker is declared dead
+	WATCHDOG_INTERVAL = 1.0,                                                               -- seconds between scans
+	WATCHDOG_INTERVENTIONS_WARN = 1,                                                       -- interventions per window above this → "Warm"
+	WATCHDOG_INTERVENTIONS_CRITICAL = 3,                                                   -- interventions per window above this → "Overloaded"
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Type Structures Section
+----------------------------------------------------------
+
+-- Exported Types
+
+--- Handle returned by Split, BulkSplit, and Sequence.
+export type Handle = {
+	Disconnect: () -> ()
+}
+
+--- Callback for Twin.Split. Must not yield.
+export type SplitCallback = (Result: any) -> ()
+
+--- Callback for Twin.BulkSplit.
+--- IMPORTANT: Results is a pooled buffer recycled immediately after this
+--- callback returns. Do NOT store the table reference.
+export type BulkCallback = (Results: { any }) -> ()
+
+--- Options for Twin.Split.
+export type SplitOptions = {
+	____Weight: ("light" | "heavy")?
+}
+
+--- Dispatch priority for Twin.BulkSplit.
+export type BulkPriority = "critical" | "normal" | "background"
+
+--- Options for Twin.BulkSplit.
+export type BulkOptions = {
+	____BatchSize: number?,
+	____SharedArgs: any?,
+	____MaxWaitTime: number?,
+	____Priority: BulkPriority?
+}
+
+--- One step in a Twin.Sequence chain.
+export type ChainStep = {
+	____Module: ModuleScript?,
+	____FunctionName: string?,
+	____Payload: any?,
+	____Weight: ("light" | "heavy")?
+}
+
+--- Final callback for Twin.Sequence.
+export type SequenceCallback = (Results: { any }) -> ()
+
+export type TelemetryStatus = "Healthy" | "Warm" | "Overloaded"
+export type TelemetryGroupStatus = "Green" | "Yellow" | "Red"
+
+export type TelemetryPoolEntry = {
+	Value: number,
+	Capacity: number,
+	Status: TelemetryStatus,
+}
+
+export type TelemetryQueueEntry = {
+	Value: number,
+	Status: TelemetryStatus,
+}
+
+export type TelemetryWorkerExec = {
+	Value: number,
+	Status: TelemetryStatus,
+}
+
+export type TelemetryReport = {
+	Pools: {
+		Node: TelemetryPoolEntry,
+		SingleJob: TelemetryPoolEntry,
+		BulkEntry: TelemetryPoolEntry,
+		BulkBatch: TelemetryPoolEntry,
+		ResultBuffer: TelemetryPoolEntry,
+		Status: TelemetryGroupStatus,
+	},
+	Queues: {
+		Light: TelemetryQueueEntry,
+		Heavy: TelemetryQueueEntry,
+		BulkCritical: TelemetryQueueEntry,
+		BulkNormal: TelemetryQueueEntry,
+		BulkBackground: TelemetryQueueEntry,
+		Status: TelemetryGroupStatus,
+	},
+	Workers: {
+		Total: number,
+		Free: number,
+		Busy: number,
+		AvgExecTime: { [number]: TelemetryWorkerExec },
+		WatchdogInterventions: { Value: number, Status: TelemetryStatus },
+		Status: TelemetryGroupStatus,
+	},
+	FrameGovernor: {
+		BudgetMs: { Value: number, Status: TelemetryStatus },
+		OverBudgetRate: { Value: number, Status: TelemetryStatus },
+		ActiveBulkCount: { Value: number, Status: TelemetryStatus },
+		Status: TelemetryGroupStatus,
+	},
+	Starvation: {
+		BgSkipCount: { Value: number, Status: TelemetryStatus },
+		HeavySkipCount: { Value: number, Status: TelemetryStatus },
+		Status: TelemetryGroupStatus,
+	},
+	Overall: TelemetryGroupStatus,
+	WindowSec: number,
+	SampleCount: number,
+	Timestamp: number,
+}
+
+-- Internal Types
+
+type Pool<T> = {
+	Stack: { T },
+	Top: number
+}
+
+type ListNode = {
+	Data: any,
+	Next: ListNode?,
+}
+
+type Queue = {
+	Head: ListNode?,
+	Tail: ListNode?,
+	Size: number,
+}
+
+type WorkerData = {
+	Id: number,
+	Actor: Actor,
+	Busy: boolean,
+	AvgExecTime: number,
+	JobStartedAt: number,
+	IsBulk: boolean,
+	CurrentJobUid: string,
+	CurrentBatchIndex: number,
+	CurrentSingleJob: SingleJob?,
+	WorkerGeneration: number,
+}
+
+type SingleJob = {
+	UniqueId: string,
+	Module: ModuleScript,
+	FunctionName: string,
+	Payload: any,
+	Callback: SplitCallback,
+	Weight: "light" | "heavy",
+	Cancelled: boolean,
+}
+
+type BulkBatch = {
+	StartIndex: number,
+	Length: number,
+	Slice: { any },
+}
+
+type BulkEntry = {
+	UniqueId: string,
+	Module: ModuleScript,
+	FunctionName: string,
+	Buffer: { any },
+	Received: number,
+	Total: number,
+	Dispatched: number,
+	Callback: BulkCallback,
+	SharedArgs: any?,
+	ArrivedAt: number,
+	MaxWaitTime: number,
+	Batches: { BulkBatch },
+	Cancelled: boolean,
+	Priority: "critical" | "normal" | "background",
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Imported Services Section
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+local Players    = game:GetService("Players")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Internal States Section
+----------------------------------------------------------
+
+local Workers: { WorkerData } = {}
+local IsServer: boolean       = RunService:IsServer()
+
+local FreeStack: { number } = table.create(TwinConfiguration.CLIENT_WORKER_COUNT)
+local FreeTop: number       = 0
+
+local BulkQueueCritical: Queue
+local BulkQueueNormal: Queue
+local BulkQueueBackground: Queue
+
+local LightQueue: Queue
+local HeavyQueue: Queue
+
+local ActiveBulkCount: number     = 0
+local HeavySkipCount: number      = 0
+local BackgroundSkipCount: number = 0
+
+local SingleListeners: { [string]: SplitCallback } = {}
+local BulkRegistry: { [string]: BulkEntry }        = {}
+
+local SingleBridge: BindableEvent = Instance.new("BindableEvent")
+
+local FrameStart: number  = os.clock()
+local NextJobId: number   = 0
+
+local Scheduler = {
+	Spawn  = task.spawn,
+	Defer  = task.defer,
+	Delay  = task.delay,
+	Wait   = task.wait,
+	Cancel = task.cancel,
+}
+
+local NodePool: Pool<ListNode>
+local SingleJobPool: Pool<SingleJob>
+local BulkBatchPool: Pool<BulkBatch>
+local BulkEntryPool: Pool<BulkEntry>
+local ResultBufferPool: Pool<{ any }>
+
+local RING_SIZE: number                               = TwinConfiguration.TELEMETRY_RING_SIZE
+local TelemetryWorkerEMA: { [number]: { number } }    = {}
+local TelemetryFrameOverBudget: { boolean }           = table.create(RING_SIZE, false)
+local TelemetryActiveBulk: { number }                 = table.create(RING_SIZE, 0)
+local TelemetryFreeTop: { number }                    = table.create(RING_SIZE, 0)
+local TelemetryLightQueueSize: { number }             = table.create(RING_SIZE, 0)
+local TelemetryHeavyQueueSize: { number }             = table.create(RING_SIZE, 0)
+local TelemetryBulkCriticalSize: { number }           = table.create(RING_SIZE, 0)
+local TelemetryBulkNormalSize: { number }             = table.create(RING_SIZE, 0)
+local TelemetryBulkBackgroundSize: { number }         = table.create(RING_SIZE, 0)
+local TelemetryNodePoolTop: { number }                = table.create(RING_SIZE, 0)
+local TelemetrySingleJobPoolTop: { number }           = table.create(RING_SIZE, 0)
+local TelemetryBulkEntryPoolTop: { number }           = table.create(RING_SIZE, 0)
+local TelemetryBulkBatchPoolTop: { number }           = table.create(RING_SIZE, 0)
+local TelemetryResultBufferPoolTop: { number }        = table.create(RING_SIZE, 0)
+local TelemetryBackgroundSkip: { number }             = table.create(RING_SIZE, 0)
+local TelemetryHeavySkip: { number }                  = table.create(RING_SIZE, 0)
+local TelemetryWatchdogFires: { number }              = table.create(RING_SIZE, 0)
+
+local TelemetryRingHead: number    = 0
+local TelemetryRingCount: number   = 0
+local TelemetryWindowStart: number = os.clock()
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Local Function Section
+----------------------------------------------------------
+
+-- Ultra-fast parser with strict validation for DX prefixes.
+local function sanitizeParams(RawParams: { [string]: any }?): { [string]: any }
+	local CleanParams = {}
+
+	if not RawParams then
+		return CleanParams
+	end
+
+	for Key, Value in RawParams do
+		if type(Key) == "string" then
+			local LeadingUnderscores = string.match(Key, "^_+")
+
+			if LeadingUnderscores then
+				if #LeadingUnderscores == 4 then
+					local CleanKey        = string.sub(Key, 5)
+					
+					CleanParams[CleanKey] = Value
+				else
+					error("[Twin] Invalid parameter prefix: '" .. Key .. "'. Must use exactly 4 underscores (____) for autocomplete, or none at all.\n" .. debug.traceback())
+				end
+			else
+				CleanParams[Key] = Value
+			end
+		else
+			CleanParams[Key] = Value
+		end
+	end
+
+	return CleanParams
+end
+
+-- Creates a fixed-capacity stack-based pool using a factory function.
+local function makePool<T>(Capacity: number, Factory: () -> T): Pool<T>
+	local Stack: { T } = table.create(Capacity)
+
+	for SlotIndex = 1, Capacity do
+		Stack[SlotIndex] = Factory()
+	end
+
+	return {
+		Stack = Stack,
+		Top   = Capacity,
+	}
+end
+
+-- Acquires an object from the pool, or falls back to the factory if exhausted.
+local function poolAcquire<T>(TargetPool: Pool<T>, Factory: () -> T): T
+	if TargetPool.Top > 0 then
+		local Object = TargetPool.Stack[TargetPool.Top]
+
+		TargetPool.Stack[TargetPool.Top] = nil :: any
+		TargetPool.Top -= 1
+
+		return Object
+	end
+	
+	return Factory()
+end
+
+-- Returns an object to the pool.
+local function poolRelease<T>(TargetPool: Pool<T>, Object: T)
+	TargetPool.Top += 1
+	TargetPool.Stack[TargetPool.Top] = Object
+end
+
+-- Acquires a ListNode from the pool and sets its data.
+local function acquireNode(ItemData: any): ListNode
+	local NewNode = poolAcquire(NodePool, function(): ListNode
+		return {
+			Data = nil,
+			Next = nil,
+		}
+	end)
+
+	NewNode.Data = ItemData
+	NewNode.Next = nil
+
+	return NewNode
+end
+
+-- Returns a ListNode to the pool.
+local function releaseNode(Node: ListNode)
+	Node.Data = nil
+	Node.Next = nil
+	poolRelease(NodePool, Node)
+end
+
+-- Creates a blank SingleJob struct.
+local function makeSingleJob(): SingleJob
+	return {
+		UniqueId     = "",
+		Module       = nil :: any,
+		FunctionName = "",
+		Payload      = nil,
+		Callback     = nil :: any,
+		Weight       = "heavy",
+		Cancelled    = false,
+	}
+end
+
+-- Acquires and populates a SingleJob from the pool.
+local function acquireSingleJob(UniqueId: string, Module: ModuleScript, FunctionName: string, Payload: any, Callback: SplitCallback, Weight: "light" | "heavy"): SingleJob
+	local Job        = poolAcquire(SingleJobPool, makeSingleJob)
+
+	Job.UniqueId     = UniqueId
+	Job.Module       = Module
+	Job.FunctionName = FunctionName
+	Job.Payload      = Payload
+	Job.Callback     = Callback
+	Job.Weight       = Weight
+	Job.Cancelled    = false
+
+	return Job
+end
+
+-- Clears and returns a SingleJob to the pool.
+local function releaseSingleJob(Job: SingleJob)
+	Job.UniqueId     = ""
+	Job.Module       = nil :: any
+	Job.FunctionName = ""
+	Job.Payload      = nil
+	Job.Callback     = nil :: any
+	Job.Cancelled    = false
+
+	poolRelease(SingleJobPool, Job)
+end
+
+-- Creates a blank BulkBatch struct with a pre-sized slice table.
+local function makeBulkBatch(): BulkBatch
+	return {
+		StartIndex = 0,
+		Length     = 0,
+		Slice      = table.create(TwinConfiguration.MAX_BATCH_SIZE),
+	}
+end
+
+-- Acquires and populates a BulkBatch from the pool.
+local function acquireBulkBatch(StartIndex: number, Length: number): BulkBatch
+	local Batch      = poolAcquire(BulkBatchPool, makeBulkBatch)
+
+	Batch.StartIndex = StartIndex
+	Batch.Length     = Length
+
+	return Batch
+end
+
+-- Clears and returns a BulkBatch to the pool.
+local function releaseBulkBatch(Batch: BulkBatch)
+	Batch.StartIndex = 0
+	Batch.Length     = 0
+
+	table.clear(Batch.Slice)
+	poolRelease(BulkBatchPool, Batch)
+end
+
+-- Acquires a pre-sized result buffer from the pool.
+local function acquireResultBuffer(): { any }
+	return poolAcquire(ResultBufferPool, function(): { any }
+		return table.create(TwinConfiguration.MAX_RESULT_ITEMS)
+	end)
+end
+
+-- Clears and returns a result buffer to the pool.
+local function releaseResultBuffer(Buffer: { any })
+	table.clear(Buffer)
+	poolRelease(ResultBufferPool, Buffer)
+end
+
+-- Creates a blank BulkEntry struct.
+local function makeBulkEntry(): BulkEntry
+	return {
+		UniqueId     = "",
+		Module       = nil :: any,
+		FunctionName = "",
+		Buffer       = nil :: any,
+		Received     = 0,
+		Total        = 0,
+		Disppaiatched   = 0,
+		Callback     = nil :: any,
+		SharedArgs   = nil,
+		ArrivedAt    = 0,
+		MaxWaitTime  = 0,
+		Batches      = {},
+		Cancelled    = false,
+		Priority     = "normal",
+	} :: any
+end
+
+-- Acquires and populates a BulkEntry from the pool.
+local function acquireBulkEntry(UniqueId: string, Module: ModuleScript, FunctionName: string, Total: number, Callback: BulkCallback, SharedArgs: any?, MaxWaitTime: number, Priority: "critical" | "normal" | "background"): BulkEntry
+	local Entry        = poolAcquire(BulkEntryPool, makeBulkEntry)
+
+	Entry.UniqueId     = UniqueId
+	Entry.Module       = Module
+	Entry.FunctionName = FunctionName
+	Entry.Buffer       = acquireResultBuffer()
+	Entry.Received     = 0
+	Entry.Total        = Total
+	Entry.Dispatched   = 0
+	Entry.Callback     = Callback
+	Entry.SharedArgs   = SharedArgs
+	Entry.ArrivedAt    = os.clock()
+	Entry.MaxWaitTime  = MaxWaitTime
+	Entry.Cancelled    = false
+	Entry.Priority     = Priority
+
+	return Entry
+end
+
+-- Returns all batch objects to the pool and resets the BulkEntry.
+local function releaseBulkEntry(Entry: BulkEntry)
+	for BatchIndex = 1, Entry.Total do
+		local Batch = Entry.Batches[BatchIndex]
+
+		if Batch then
+			releaseBulkBatch(Batch)
+			Entry.Batches[BatchIndex] = nil
+		end
+	end
+
+	Entry.UniqueId     = ""
+	Entry.Module       = nil :: any
+	Entry.FunctionName = ""
+	Entry.Buffer       = nil :: any
+	Entry.Received     = 0
+	Entry.Total        = 0
+	Entry.Dispatched   = 0
+	Entry.Callback     = nil :: any
+	Entry.SharedArgs   = nil
+	Entry.ArrivedAt    = 0
+	Entry.MaxWaitTime  = 0
+	Entry.Cancelled    = false
+	Entry.Priority     = "normal"
+
+	poolRelease(BulkEntryPool, Entry)
+end
+
+-- Creates an empty queue.
+local function makeQueue(): Queue
+	return {
+		Head = nil,
+		Tail = nil,
+		Size = 0,
+	}
+end
+
+-- Enqueues data at the tail — O(1).
+local function enqueue(TargetQueue: Queue, ItemData: any)
+	local Node = acquireNode(ItemData)
+
+	if TargetQueue.Tail then
+		TargetQueue.Tail.Next = Node
+	else
+		TargetQueue.Head = Node
+	end
+
+	TargetQueue.Tail  = Node
+	TargetQueue.Size += 1
+end
+
+-- Enqueues data at the head — O(1). Used to re-insert a job that could not be dispatched.
+local function enqueueHead(TargetQueue: Queue, ItemData: any)
+	local Node       = acquireNode(ItemData)
+
+	Node.Next        = TargetQueue.Head
+	TargetQueue.Head = Node
+
+	if not TargetQueue.Tail then
+		TargetQueue.Tail = Node
+	end
+
+	TargetQueue.Size += 1
+end
+
+-- Dequeues the first non-cancelled SingleJob — O(1) amortised.
+local function dequeueSingle(TargetQueue: Queue): SingleJob?
+	while TargetQueue.Head do
+		local Node = TargetQueue.Head
+		local Job  = Node.Data :: SingleJob
+
+		TargetQueue.Head = Node.Next
+
+		if not TargetQueue.Head then
+			TargetQueue.Tail = nil
+		end
+
+		TargetQueue.Size -= 1
+		releaseNode(Node)
+
+		if not Job.Cancelled then
+			return Job
+		end
+
+		releaseSingleJob(Job)
+	end
+
+	return nil
+end
+
+-- Dequeues the first non-cancelled BulkEntry — O(1) amortised.
+local function dequeueBulk(TargetQueue: Queue): BulkEntry?
+	while TargetQueue.Head do
+		local Node  = TargetQueue.Head
+		local Entry = Node.Data :: BulkEntry
+
+		TargetQueue.Head = Node.Next
+
+		if not TargetQueue.Head then
+			TargetQueue.Tail = nil
+		end
+
+		TargetQueue.Size -= 1
+		releaseNode(Node)
+
+		if not Entry.Cancelled then
+			return Entry
+		end
+
+		releaseBulkEntry(Entry)
+	end
+
+	return nil
+end
+
+-- Peeks at the first non-cancelled BulkEntry without removing it — O(1) amortised.
+local function peekBulk(TargetQueue: Queue): BulkEntry?
+	local Node = TargetQueue.Head
+
+	while Node do
+		local Entry = Node.Data :: BulkEntry
+
+		if not Entry.Cancelled then
+			return Entry
+		end
+
+		Node = Node.Next
+	end
+
+	return nil
+end
+
+-- Pushes a worker ID onto the free stack — O(1).
+local function pushFree(Id: number)
+	FreeTop           += 1
+	FreeStack[FreeTop] = Id
+end
+
+-- Pops a worker ID from the free stack — O(1).
+local function popFree(): number?
+	if FreeTop == 0 then return nil end
+
+	local Id           = FreeStack[FreeTop]
+
+	FreeStack[FreeTop] = nil :: any
+	FreeTop           -= 1
+
+	return Id
+end
+
+-- Returns true once the main thread has spent >= FRAME_BUDGET_SEC this frame.
+local function overBudget(): boolean
+	return (os.clock() - FrameStart) >= TwinConfiguration.FRAME_BUDGET_SEC
+end
+
+-- Dispatches a single job to a worker via SendMessage.
+local function sendSingle(TargetWorker: WorkerData, Job: SingleJob)
+	TargetWorker.Busy              = true
+	TargetWorker.JobStartedAt      = os.clock()
+	TargetWorker.IsBulk            = false
+	TargetWorker.CurrentJobUid     = Job.UniqueId
+	TargetWorker.CurrentBatchIndex = 0
+	TargetWorker.CurrentSingleJob  = Job
+	SingleListeners[Job.UniqueId]  = Job.Callback
+	TargetWorker.Actor:SendMessage("RunSingleJob", TargetWorker.Id, Job.UniqueId, Job.Module, Job.FunctionName, Job.Payload, TargetWorker.WorkerGeneration)
+end
+
+-- Dispatches the next batch of a BulkEntry to a worker.
+local function sendBatch(TargetWorker: WorkerData, Entry: BulkEntry, Batch: BulkBatch)
+	TargetWorker.Busy              = true
+	TargetWorker.JobStartedAt      = os.clock()
+	TargetWorker.IsBulk            = true
+	TargetWorker.CurrentJobUid     = Entry.UniqueId
+	TargetWorker.CurrentBatchIndex = Entry.Dispatched + 1
+	TargetWorker.CurrentSingleJob  = nil
+	Entry.Dispatched              += 1
+	TargetWorker.Actor:SendMessage("RunBulkJob", TargetWorker.Id, Entry.UniqueId, Batch.StartIndex, Batch.Length, Entry.Module, Entry.FunctionName, Batch.Slice, Entry.SharedArgs, TargetWorker.WorkerGeneration)
+end
+
+-- Re-dispatches a specific batch index after watchdog recovery.
+local function reSendBatch(TargetWorker: WorkerData, Entry: BulkEntry, Batch: BulkBatch, BatchIndex: number)
+	TargetWorker.Busy              = true
+	TargetWorker.JobStartedAt      = os.clock()
+	TargetWorker.IsBulk            = true
+	TargetWorker.CurrentJobUid     = Entry.UniqueId
+	TargetWorker.CurrentBatchIndex = BatchIndex
+	TargetWorker.CurrentSingleJob  = nil
+	TargetWorker.Actor:SendMessage("RunBulkJob", TargetWorker.Id, Entry.UniqueId, Batch.StartIndex, Batch.Length, Entry.Module, Entry.FunctionName, Batch.Slice, Entry.SharedArgs, TargetWorker.WorkerGeneration)
+end
+
+-- Returns the highest-priority pending BulkEntry and its source queue, with starvation promotion for background jobs.
+local function peekNextBulk(): (BulkEntry?, Queue?)
+	local BackgroundEntry = peekBulk(BulkQueueBackground)
+
+	if BackgroundEntry and BackgroundSkipCount >= TwinConfiguration.BG_STARVATION_THRESHOLD then
+		BackgroundSkipCount = 0
+		
+		return BackgroundEntry, BulkQueueBackground
+	end
+
+	local CriticalEntry = peekBulk(BulkQueueCritical)
+
+	if CriticalEntry then
+		if BackgroundEntry then
+			BackgroundSkipCount += 1
+		end
+		
+		return CriticalEntry, BulkQueueCritical
+	end
+
+	local NormalEntry = peekBulk(BulkQueueNormal)
+
+	if NormalEntry then
+		if BackgroundEntry then
+			BackgroundSkipCount += 1
+		end
+		
+		return NormalEntry, BulkQueueNormal
+	end
+
+	if BackgroundEntry then
+		BackgroundSkipCount = 0
+		
+		return BackgroundEntry, BulkQueueBackground
+	end
+
+	return nil, nil
+end
+
+-- Single source of truth for dispatching jobs to free workers.
+-- Phase 1: bulk batches (unconditional, no budget gate).
+-- Phase 2: single jobs (gated by 8ms frame budget).
+local function tryDispatch()
+	while FreeTop > 0 do
+		local Entry, SourceQueue = peekNextBulk()
+
+		if not Entry or not SourceQueue then
+			break
+		end
+
+		local NextBatch = Entry.Batches[Entry.Dispatched + 1]
+
+		if not NextBatch then
+			dequeueBulk(SourceQueue)
+			continue
+		end
+
+		local WorkerId = popFree()
+
+		if not WorkerId then
+			break
+		end
+
+		sendBatch(Workers[WorkerId], Entry, NextBatch)
+	end
+
+	if FreeTop == 0 or overBudget() then return end
+
+	if ActiveBulkCount == 0 then
+		while FreeTop > 0 do
+			local Job = dequeueSingle(LightQueue) or dequeueSingle(HeavyQueue)
+
+			if not Job then
+				break
+			end
+
+			local WorkerId = popFree()
+
+			if not WorkerId then
+				enqueueHead(if Job.Weight == "light" then LightQueue else HeavyQueue, Job)
+				break
+			end
+
+			sendSingle(Workers[WorkerId], Job)
+		end
+	else
+		local HeadEntry        = peekBulk(BulkQueueCritical) or peekBulk(BulkQueueNormal) or peekBulk(BulkQueueBackground)
+		local DeadlineExceeded = HeadEntry ~= nil and (os.clock() - HeadEntry.ArrivedAt) >= HeadEntry.MaxWaitTime
+		local SlowWorkerBusy   = false
+
+		if not DeadlineExceeded then
+			for _, Worker in Workers do
+				if Worker.Busy and Worker.AvgExecTime >= TwinConfiguration.SPECULATIVE_THRESHOLD then
+					SlowWorkerBusy = true
+					break
+				end
+			end
+		end
+
+		local CanSpeculate = DeadlineExceeded or SlowWorkerBusy
+
+		if CanSpeculate and LightQueue.Size > 0 then
+			while FreeTop > 0 do
+				local Job = dequeueSingle(LightQueue)
+
+				if not Job then
+					break
+				end
+
+				local WorkerId = popFree()
+
+				if not WorkerId then
+					enqueueHead(LightQueue, Job)
+					break
+				end
+
+				sendSingle(Workers[WorkerId], Job)
+			end
+		end
+
+		if HeavyQueue.Size > 0 then
+			HeavySkipCount += 1
+
+			if HeavySkipCount >= TwinConfiguration.STARVATION_THRESHOLD then
+				HeavySkipCount = 0
+
+				local Node = HeavyQueue.Head
+
+				if Node then
+					HeavyQueue.Head = Node.Next
+
+					if not HeavyQueue.Head then
+						HeavyQueue.Tail = nil
+					end
+
+					HeavyQueue.Size -= 1
+					Node.Next        = LightQueue.Head
+					LightQueue.Head  = Node
+
+					if not LightQueue.Tail then
+						LightQueue.Tail = Node
+					end
+
+					LightQueue.Size += 1
+				end
+			end
+		end
+	end
+end
+
+-- Processes a completed single job: updates worker state, fires callback, and re-dispatches.
+local function onSingleReturn(WorkerId: number, UniqueId: string, Result: any, Elapsed: number, Generation: number)
+	local Worker: WorkerData? = Workers[WorkerId]
+	local CompletedJob: SingleJob? = nil
+
+	if Worker then
+		if Worker.WorkerGeneration == Generation then
+			CompletedJob            = Worker.CurrentSingleJob
+			Worker.Busy             = false
+			Worker.JobStartedAt     = 0
+			Worker.CurrentSingleJob = nil
+
+			local Alpha        = TwinConfiguration.EMA_ALPHA
+
+			Worker.AvgExecTime = Alpha * Elapsed + (1 - Alpha) * Worker.AvgExecTime
+			pushFree(WorkerId)
+		else
+			tryDispatch()
+			
+			return
+		end
+	end
+
+	local Callback = SingleListeners[UniqueId]
+
+	SingleListeners[UniqueId] = nil
+
+	if Callback then
+		local Success, ErrorMessage = pcall(Callback, Result)
+
+		if not Success then
+			warn(("[Twin] Split callback error (uid %s):\n%s"):format(UniqueId, tostring(ErrorMessage)))
+		end
+	end
+
+	if CompletedJob then
+		releaseSingleJob(CompletedJob)
+	end
+
+	tryDispatch()
+end
+
+-- Called every Heartbeat: resets frame clock, dispatches pending jobs, and samples telemetry.
+local function onHeartbeat()
+	FrameStart = os.clock()
+	tryDispatch()
+
+	if TwinConfiguration.TELEMETRY_ENABLED then
+		local WasOverBudget = overBudget()
+
+		TelemetryRingHead = (TelemetryRingHead % RING_SIZE) + 1
+
+		if TelemetryRingCount < RING_SIZE then
+			TelemetryRingCount += 1
+		end
+
+		local SlotIndex = TelemetryRingHead
+
+		TelemetryFrameOverBudget   [SlotIndex] = WasOverBudget
+		TelemetryActiveBulk        [SlotIndex] = ActiveBulkCount
+		TelemetryFreeTop           [SlotIndex] = FreeTop
+		TelemetryLightQueueSize    [SlotIndex] = LightQueue.Size
+		TelemetryHeavyQueueSize    [SlotIndex] = HeavyQueue.Size
+		TelemetryBulkCriticalSize  [SlotIndex] = BulkQueueCritical.Size
+		TelemetryBulkNormalSize    [SlotIndex] = BulkQueueNormal.Size
+		TelemetryBulkBackgroundSize[SlotIndex] = BulkQueueBackground.Size
+		TelemetryNodePoolTop       [SlotIndex] = NodePool.Top
+		TelemetrySingleJobPoolTop  [SlotIndex] = SingleJobPool.Top
+		TelemetryBulkEntryPoolTop  [SlotIndex] = BulkEntryPool.Top
+		TelemetryBulkBatchPoolTop  [SlotIndex] = BulkBatchPool.Top
+		TelemetryResultBufferPoolTop[SlotIndex] = ResultBufferPool.Top
+		TelemetryBackgroundSkip    [SlotIndex] = BackgroundSkipCount
+		TelemetryHeavySkip         [SlotIndex] = HeavySkipCount
+		TelemetryWatchdogFires     [SlotIndex] = 0
+
+		for WorkerIndex, Worker in Workers do
+			if TelemetryWorkerEMA[WorkerIndex] then
+				TelemetryWorkerEMA[WorkerIndex][SlotIndex] = Worker.AvgExecTime
+			end
+		end
+	end
+end
+
+-- Scans all busy workers and revives/recovers any that have exceeded WATCHDOG_TIMEOUT.
+local function watchdogScan()
+	local Now     = os.clock()
+	local Timeout = TwinConfiguration.WATCHDOG_TIMEOUT
+
+	for _, Worker in Workers do
+		if not Worker.Busy then
+			continue
+		end
+
+		if (Now - Worker.JobStartedAt) < Timeout then
+			continue
+		end
+
+		Worker.Busy              = false
+		Worker.JobStartedAt      = 0
+		Worker.WorkerGeneration += 1
+		pushFree(Worker.Id)
+
+		if TwinConfiguration.TELEMETRY_ENABLED and TelemetryRingHead > 0 then
+			TelemetryWatchdogFires[TelemetryRingHead] += 1
+		end
+
+		if Worker.IsBulk then
+			local UniqueId = Worker.CurrentJobUid
+			local Entry    = BulkRegistry[UniqueId]
+
+			if Entry and not Entry.Cancelled then
+				local BatchIndex = Worker.CurrentBatchIndex
+				local Batch      = Entry.Batches[BatchIndex]
+
+				if Batch then
+					local WorkerId = popFree()
+
+					if WorkerId then
+						reSendBatch(Workers[WorkerId], Entry, Batch, BatchIndex)
+					else
+						Entry.Batches[Entry.Dispatched] = Batch
+						Entry.Dispatched -= 1
+
+						local TargetQueue = if Entry.Priority == "critical" then BulkQueueCritical elseif Entry.Priority == "background" then BulkQueueBackground else BulkQueueNormal
+
+						enqueueHead(TargetQueue, Entry)
+					end									-- Continue here
+				end
+			end
+		else
+			local UniqueId = Worker.CurrentJobUid
+			local Job      = Worker.CurrentSingleJob
+
+			SingleListeners[UniqueId] = nil
+
+			if Job then
+				if not Job.Cancelled then
+					enqueueHead(if Job.Weight == "light" then LightQueue else HeavyQueue, Job)
+				else
+					releaseSingleJob(Job)
+				end
+			end
+
+			Worker.CurrentSingleJob = nil
+		end
+	end
+end
+
+-- Classifies a numeric value against warn/crit thresholds.
+local function itemStatus(Value: number, WarnThreshold: number, CritThreshold: number): TelemetryStatus
+	if Value > CritThreshold then
+		return "Overloaded"
+	end
+
+	if Value > WarnThreshold then
+		return "Warm"
+	end
+
+	return "Healthy"
+end
+
+-- Classifies pool health by free-slot ratio (low free = bad).
+local function poolStatus(FreeSlots: number, Capacity: number): TelemetryStatus
+	local Ratio = FreeSlots / Capacity
+
+	if Ratio < TwinConfiguration.POOL_CRIT_RATIO then
+		return "Overloaded"
+	end
+
+	if Ratio < TwinConfiguration.POOL_WARN_RATIO then
+		return "Warm"
+	end
+
+	return "Healthy"
+end
+
+-- Derives group color from the worst individual status in the group.
+local function groupStatus(Statuses: { TelemetryStatus }): TelemetryGroupStatus
+	local HasWarm = false
+
+	for _, Status in Statuses do
+		if Status == "Overloaded" then
+			return "Red"
+		end
+
+		if Status == "Warm" then
+			HasWarm = true
+		end
+	end
+
+	return if HasWarm then "Yellow" else "Green"
+end
+
+-- Derives overall color from the worst group color.
+local function overallStatus(Groups: { TelemetryGroupStatus }): TelemetryGroupStatus
+	local HasYellow = false
+
+	for _, Group in Groups do
+		if Group == "Red" then
+			return "Red"
+		end
+
+		if Group == "Yellow" then
+			HasYellow = true
+		end
+	end
+
+	return if HasYellow then "Yellow" else "Green"
+end
+
+-- Sums all live slots in the ring buffer.
+local function ringSum(Array: { number }): number
+	local Sum   = 0
+	local Count = TelemetryRingCount
+
+	for SlotIndex = 1, Count do
+		Sum += Array[SlotIndex]
+	end
+
+	return Sum
+end
+
+-- Returns the peak value across all live ring slots.
+local function ringPeak(Array: { number }): number
+	local Peak  = 0
+	local Count = TelemetryRingCount
+
+	for SlotIndex = 1, Count do
+		local Value = Array[SlotIndex]
+
+		if Value > Peak then
+			Peak = Value
+		end
+	end
+
+	return Peak
+end
+
+-- Returns the mean value across all live ring slots.
+local function ringMean(Array: { number }): number
+	local Count = TelemetryRingCount
+
+	if Count == 0 then
+		return 0
+	end
+
+	local Sum = 0
+
+	for SlotIndex = 1, Count do
+		Sum += Array[SlotIndex]
+	end
+
+	return Sum / Count
+end
+
+-- Returns the most recently written value in the ring.
+local function ringLatest(Array: { number }): number
+	if TelemetryRingCount == 0 then
+		return 0
+	end
+
+	return Array[TelemetryRingHead]
+end
+
+-- Returns the fraction of sampled frames that exceeded FRAME_BUDGET_SEC.
+local function ringOverBudgetRate(): number
+	if TelemetryRingCount == 0 then
+		return 0
+	end
+
+	local OverCount = 0
+
+	for SlotIndex = 1, TelemetryRingCount do
+		if TelemetryFrameOverBudget[SlotIndex] then
+			OverCount += 1
+		end
+	end
+
+	return OverCount / TelemetryRingCount
+end
+
+-- Validates that a function exists and is callable in a module before any job is enqueued.
+local function validateFunction(Module: ModuleScript, FunctionName: string, Caller: string)
+	if not TwinConfiguration.ENABLE_TYPO_POLICE then return end
+
+	local Success, LoadedModule = pcall(require, Module)
+
+	if not Success then
+		error(("[Twin] %s: require failed for '%s'.\n"):format(Caller, Module.Name) .. debug.traceback())
+	end
+
+	if not LoadedModule[FunctionName] then
+		error(("[Twin] %s: '%s' not found in '%s'.\n"):format(Caller, FunctionName, Module.Name) .. debug.traceback())
+	end
+
+	if type(LoadedModule[FunctionName]) ~= "function" then
+		error(("[Twin] %s: '%s' in '%s' is not a function.\n"):format(Caller, FunctionName, Module.Name) .. debug.traceback())
+	end
+end
+
+-- Returns a new monotonic unique ID string — never reuses within a session.
+local function nextUniqueId(): string
+	NextJobId += 1
+	
+	return tostring(NextJobId)
+end
+
+-- Runs the watchdog scan when enabled; called each interval tick.
+local function runWatchdogTick()
+	if TwinConfiguration.WATCHDOG_ENABLED then
+		watchdogScan()
+	end
+end
+
+-- Initializes the Actor-based worker pool, wires return channels, and populates Workers[].
+local function initPool()
+	local TemplateName = IsServer and "TwinWorker_Server" or "TwinWorker_Client"
+	local Template     = script.Parent:FindFirstChild(TemplateName) or script:FindFirstChild(TemplateName)
+
+	if not Template then
+		error(("[Twin] System Boot: '%s' not found!\n"):format(TemplateName) .. debug.traceback())
+	end
+
+	Template.Disabled = true
+
+	local EngineParent: Instance = IsServer and game:GetService("ServerScriptService") or Players.LocalPlayer:WaitForChild("PlayerScripts")
+	local WorkerFolder: any      = EngineParent:FindFirstChild("Twin_Engine")
+
+	if not WorkerFolder then
+		WorkerFolder        = Instance.new("Folder")
+		WorkerFolder.Name   = "Twin_Engine"
+		WorkerFolder.Parent = EngineParent
+	end
+
+	local WorkerCount = IsServer and TwinConfiguration.SERVER_WORKER_COUNT or TwinConfiguration.CLIENT_WORKER_COUNT
+
+	for WorkerIndex = 1, WorkerCount do
+		local WorkerActor = Instance.new("Actor")
+		
+		WorkerActor.Name  = "TwinWorker_" .. WorkerIndex
+
+		local ReturnCallbackEvent  = Instance.new("BindableEvent")
+		
+		ReturnCallbackEvent.Name   = "TwinEngine_Bridge_4G"
+		ReturnCallbackEvent.Parent = WorkerActor
+		ReturnCallbackEvent.Event:Connect(function(WorkerId: number, UniqueId: string, Result: any, Elapsed: number, Generation: number)
+			SingleBridge:Fire(WorkerId, UniqueId, Result, Elapsed, Generation)
+		end)
+
+		local BulkCallbackEvent  = Instance.new("BindableEvent")
+		
+		BulkCallbackEvent.Name   = "TwinEngine_Bridge_5G"
+		BulkCallbackEvent.Parent = WorkerActor
+
+		local CapturedId = WorkerIndex
+		
+		BulkCallbackEvent.Event:Connect(function(UniqueId: string, StartIndex: number, Length: number, Results: { any }?, Elapsed: number, Generation: number)
+			local Worker = Workers[CapturedId]
+
+			if Worker then
+				if Worker.WorkerGeneration == Generation then
+					Worker.Busy             = false
+					Worker.JobStartedAt     = 0
+					Worker.CurrentSingleJob = nil
+
+					local Alpha        = TwinConfiguration.EMA_ALPHA
+
+					Worker.AvgExecTime = Alpha * Elapsed + (1 - Alpha) * Worker.AvgExecTime
+					pushFree(CapturedId)
+				else
+					tryDispatch()
+					return
+				end
+			end
+
+			local Entry = BulkRegistry[UniqueId]
+
+			if not Entry or Entry.Cancelled then
+				tryDispatch()
+				return
+			end
+
+			if Results then
+				table.move(Results, 1, Length, StartIndex, Entry.Buffer)
+			end
+
+			Entry.Received += 1
+
+			if Entry.Received == Entry.Total then
+				BulkRegistry[UniqueId] = nil
+				ActiveBulkCount       -= 1
+
+				local Buffer   = Entry.Buffer
+				local Callback = Entry.Callback
+
+				releaseBulkEntry(Entry)
+				Callback(Buffer)
+				releaseResultBuffer(Buffer)
+			end
+
+			tryDispatch()
+		end)
+
+		local WorkerClone    = Template:Clone()
+		WorkerClone.Parent   = WorkerActor
+		WorkerActor.Parent   = WorkerFolder
+		WorkerClone.Disabled = false
+
+		Workers[WorkerIndex] = {
+			Id                = WorkerIndex,
+			Actor             = WorkerActor,
+			Busy              = false,
+			AvgExecTime       = 0,
+			JobStartedAt      = 0,
+			IsBulk            = false,
+			CurrentJobUid     = "",
+			CurrentBatchIndex = 0,
+			CurrentSingleJob  = nil,
+			WorkerGeneration  = 0,
+		}
+
+		pushFree(WorkerIndex)
+
+		if TwinConfiguration.TELEMETRY_ENABLED then
+			TelemetryWorkerEMA[WorkerIndex] = table.create(RING_SIZE, 0)
+		end
+	end
+
+	if Template then
+		Template:Destroy()
+	end
+end
+
+-- Pool, Queue, and Worker Initialization
+
+NodePool = makePool(TwinConfiguration.NODE_POOL_SIZE, function(): ListNode
+	return {
+		Data = nil,
+		Next = nil,
+	}
+end)
+
+SingleJobPool    = makePool(TwinConfiguration.SINGLE_JOB_POOL_SIZE,    makeSingleJob)
+BulkBatchPool    = makePool(TwinConfiguration.BULK_BATCH_POOL_SIZE,    makeBulkBatch)
+BulkEntryPool    = makePool(TwinConfiguration.BULK_ENTRY_POOL_SIZE,    makeBulkEntry)
+ResultBufferPool = makePool(TwinConfiguration.RESULT_BUFFER_POOL_SIZE, function(): { any }
+	return table.create(TwinConfiguration.MAX_RESULT_ITEMS)
+end)
+
+BulkQueueCritical   = makeQueue()
+BulkQueueNormal     = makeQueue()
+BulkQueueBackground = makeQueue()
+LightQueue          = makeQueue()
+HeavyQueue          = makeQueue()
+
+initPool()
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Background Worker Section
+----------------------------------------------------------
+
+Scheduler.Spawn(function()
+	while true do
+		runWatchdogTick()
+		Scheduler.Wait(TwinConfiguration.WATCHDOG_INTERVAL)
+	end
+end)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Event Binding Section
+----------------------------------------------------------
+
+SingleBridge.Event:Connect(onSingleReturn)
+RunService.Heartbeat:Connect(onHeartbeat)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Public APIs Section
+----------------------------------------------------------
+
+local Twin = {}
+
+--[[
+	Dispatches a single parallel job and delivers the result to a callback in the same frame the worker finishes. The job is sent to the best available worker. When the worker completes, the callback fires synchronously on the main thread with no additional frame delay.
+
+	Params:
+	    Module       : ModuleScript  -- The ModuleScript that contains the function to run.
+	    FunctionName : string        -- The name of the function to call on the module. Must be a function that accepts a single argument and returns a single value.
+	    Payload      : any           -- The value passed to the worker function as its only argument.
+	    Callback     : SplitCallback -- Called with the function's return value when the job completes. Must not yield.
+	    Options      : SplitOptions? -- (Optional) Table controlling dispatch weight.
+
+	Returns:
+	    Handle -- Call Disconnect() on this to cancel the job before it runs, or to discard the callback if the job is already in flight.
+]]
+function Twin.Split(Module: ModuleScript, FunctionName: string, Payload: any, Callback: SplitCallback, Options: SplitOptions?): Handle
+	if TwinConfiguration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if typeof(Module) ~= "Instance" then
+			error("[Twin] Split: Module must be a ModuleScript.\n" .. debug.traceback())
+		end
+		
+		if type(FunctionName) ~= "string" then
+			error("[Twin] Split: FunctionName must be a string.\n" .. debug.traceback())
+		end
+		
+		if type(Callback) ~= "function" then
+			error("[Twin] Split: Callback must be a function.\n" .. debug.traceback())
+		end
+		
+		validateFunction(Module, FunctionName, "Split")
+	end
+
+	local CleanOptions              = sanitizeParams(Options)
+	local Weight: "light" | "heavy" = CleanOptions.Weight or "heavy"
+	local UniqueId                  = nextUniqueId()
+	local Job                       = acquireSingleJob(UniqueId, Module, FunctionName, Payload, Callback, Weight)
+
+	enqueue(if Weight == "light" then LightQueue else HeavyQueue, Job)
+	tryDispatch()
+
+	return {
+		Disconnect = function()
+			Job.Cancelled             = true
+			SingleListeners[UniqueId] = nil
+		end,
+	}
+end
+
+--[[
+	Dispatches a list of items out across all workers in parallel and reassembles the results in original order. The items list is automatically divided into batches and distributed across every available worker. When every worker has reported back, the callback fires with a single result table where results is identical to items fully assembled back automatically.
+
+	Params:
+	    Module       : ModuleScript -- The ModuleScript containing the batch function to run on each slice.
+	    FunctionName : string       -- The name of the batch function. Its signature must be (slice: { any }, sharedArgs: any?) -> { any }, returning a result table the same length as the slice.
+	    Items        : { any }      -- The full list of inputs to distribute. The list is sliced and each slice is sent to a separate worker.
+	    Callback     : BulkCallback -- Called with the reassembled results table when all workers have finished.
+	    Options      : BulkOptions? -- (Optional) Table controlling batch size, shared arguments, deadline, and priority.
+
+	Returns:
+	    Handle -- Call Disconnect() on this to cancel all remaining batches. Batches already delivered to workers will finish, but the callback will never fire.
+]]
+function Twin.BulkSplit(Module: ModuleScript, FunctionName: string, Items: { any }, Callback: BulkCallback, Options: BulkOptions?): Handle
+	if TwinConfiguration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if typeof(Module) ~= "Instance" then
+			error("[Twin] BulkSplit: Module must be a ModuleScript.\n" .. debug.traceback())
+		end
+		
+		if type(FunctionName) ~= "string" then
+			error("[Twin] BulkSplit: FunctionName must be a string.\n" .. debug.traceback())
+		end
+		
+		if type(Callback) ~= "function" then
+			error("[Twin] BulkSplit: Callback must be a function.\n" .. debug.traceback())
+		end
+		
+		validateFunction(Module, FunctionName, "BulkSplit")
+	end
+
+	local ItemCount = #Items
+
+	if ItemCount == 0 then
+		Callback({})
+		return {
+			Disconnect = function() end,
+		}
+	end
+
+	local CleanOptions = sanitizeParams(Options)
+	local WorkerCount  = #Workers
+	local BatchSize    = CleanOptions.BatchSize   or math.ceil(ItemCount / WorkerCount)
+	local MaxWait      = CleanOptions.MaxWaitTime or TwinConfiguration.DEFAULT_MAX_WAIT
+	local SharedArgs   = CleanOptions.SharedArgs
+	local Priority     = CleanOptions.Priority    or "normal"
+	local TotalBatches = math.ceil(ItemCount / BatchSize)
+	local UniqueId     = nextUniqueId()
+
+	local Entry = acquireBulkEntry(
+		UniqueId, Module, FunctionName, TotalBatches,
+		Callback, SharedArgs, MaxWait, Priority
+	)
+
+	for BatchIndex = 1, TotalBatches do
+		local StartIndex = (BatchIndex - 1) * BatchSize + 1
+		local EndIndex   = math.min(StartIndex + BatchSize - 1, ItemCount)
+		local Length     = EndIndex - StartIndex + 1
+		local Batch      = acquireBulkBatch(StartIndex, Length)
+
+		table.move(Items, StartIndex, EndIndex, 1, Batch.Slice)
+		Entry.Batches[BatchIndex] = Batch
+	end
+
+	BulkRegistry[UniqueId] = Entry
+	ActiveBulkCount       += 1
+
+	local TargetQueue = if Priority == "critical" then BulkQueueCritical elseif Priority == "background" then BulkQueueBackground else BulkQueueNormal
+
+	enqueue(TargetQueue, Entry)
+	tryDispatch()
+
+	return {
+		Disconnect = function()
+			if not Entry.Cancelled then
+				Entry.Cancelled        = true
+				BulkRegistry[UniqueId] = nil
+				ActiveBulkCount       -= 1
+			end
+		end,
+	}
+end
+
+--[[
+	Runs an ordered chain of parallel jobs where each step receives the previous step's result. Steps are dispatched one at a time, in order. Step 2 only dispatches after Step 1's worker finishes; Step 3 only dispatches after Step 2, and so on. The final callback receives a table containing every step's result in order: results[1] is Step 1's result, results[2] is Step 2's, and so on.
+
+	Params:
+	    Steps    : { ChainStep }    -- An ordered array of step descriptors. Each step specifies the module, function name, payload, and optional weight.
+	    Callback : SequenceCallback -- Called with all step results in order when the last step completes.
+
+	Returns:
+	    Handle -- Call Disconnect() to cancel the chain at any point. The current in-flight step is cancelled, and no further steps are dispatched. The final callback never fires.
+]]
+function Twin.Sequence(Steps: { ChainStep }, Callback: SequenceCallback): Handle
+	if TwinConfiguration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Steps) ~= "table" or #Steps == 0 then
+			error("[Twin] Sequence: steps must be a non-empty array.\n" .. debug.traceback())
+		end
+		
+		if type(Callback) ~= "function" then
+			error("[Twin] Sequence: callback must be a function.\n" .. debug.traceback())
+		end
+	end
+
+	local StepCount: number       = #Steps
+	local Results: { any }        = table.create(StepCount)
+	local IsCancelled: boolean    = false
+	local CurrentHandle: Handle?  = nil
+	local ChainHandle: Handle     = {
+		Disconnect = function()
+			IsCancelled = true
+			
+			if CurrentHandle then
+				CurrentHandle.Disconnect()
+				CurrentHandle = nil
+			end
+		end,
+	}
+
+	local function runStep(StepIndex: number, PreviousResult: any)
+		if IsCancelled then return end
+
+		if StepIndex > StepCount then
+			Callback(Results)
+			return
+		end
+
+		local CleanStep = sanitizeParams(Steps[StepIndex])
+
+		if not CleanStep.Module or not CleanStep.FunctionName then
+			error(("[Twin] Sequence step %d is missing ____Module or ____FunctionName!\n"):format(StepIndex) .. debug.traceback())
+		end
+
+		local Payload: any
+
+		if type(CleanStep.Payload) == "function" then
+			local Success, DerivedPayload = pcall(CleanStep.Payload :: (any) -> any, PreviousResult)
+
+			if not Success then
+				warn(("[Twin] Sequence step %d payload function error:\n%s"):format(StepIndex, tostring(DerivedPayload)))
+				return
+			end
+
+			Payload = DerivedPayload
+		else
+			Payload = CleanStep.Payload
+		end
+
+		CurrentHandle = Twin.Split(CleanStep.Module, CleanStep.FunctionName, Payload, function(Result: any)
+				if IsCancelled then return end
+				
+				Results[StepIndex] = Result
+				CurrentHandle      = nil
+				runStep(StepIndex + 1, Result)
+		end, { 
+			____Weight = CleanStep.Weight or "heavy" 
+		})
+	end
+
+	runStep(1, nil)
+	
+	return ChainHandle
+end
+
+--[[
+	Returns a structured health snapshot of the scheduler's current state, or nil when telemetry is disabled. The snapshot is computed from a rolling window of sampled frames. Calling Report is safe at any frequency and does not reset the sample buffer.
+	
+	Params:
+		nil
+	
+	Returns:
+	    TelemetryReport? -- A full health report across pools, queues, workers, the frame governor, and starvation counters. nil if telemetry is disabled in configuration or if no frames have been sampled yet.
+]]
+function Twin.Report(): TelemetryReport?
+	if not TwinConfiguration.TELEMETRY_ENABLED then return nil end
+	if TelemetryRingCount == 0 then return nil end
+
+	local Now: number         = os.clock()
+	local WindowSec: number   = Now - TelemetryWindowStart
+	local WorkerCount: number = #Workers
+
+	local PoolNode      = ringLatest(TelemetryNodePoolTop)
+	local PoolSingleJob = ringLatest(TelemetrySingleJobPoolTop)
+	local PoolBulkEntry = ringLatest(TelemetryBulkEntryPoolTop)
+	local PoolBulkBatch = ringLatest(TelemetryBulkBatchPoolTop)
+	local PoolResultBuf = ringLatest(TelemetryResultBufferPoolTop)
+
+	local PoolNodeStatus      = poolStatus(PoolNode,      TwinConfiguration.NODE_POOL_SIZE)
+	local PoolSingleJobStatus = poolStatus(PoolSingleJob, TwinConfiguration.SINGLE_JOB_POOL_SIZE)
+	local PoolBulkEntryStatus = poolStatus(PoolBulkEntry, TwinConfiguration.BULK_ENTRY_POOL_SIZE)
+	local PoolBulkBatchStatus = poolStatus(PoolBulkBatch, TwinConfiguration.BULK_BATCH_POOL_SIZE)
+	local PoolResultBufStatus = poolStatus(PoolResultBuf, TwinConfiguration.RESULT_BUFFER_POOL_SIZE)
+
+	local Pools = {
+		Node         = { Value = PoolNode,      Capacity = TwinConfiguration.NODE_POOL_SIZE,              Status = PoolNodeStatus      },
+		SingleJob    = { Value = PoolSingleJob, Capacity = TwinConfiguration.SINGLE_JOB_POOL_SIZE,        Status = PoolSingleJobStatus },
+		BulkEntry    = { Value = PoolBulkEntry, Capacity = TwinConfiguration.BULK_ENTRY_POOL_SIZE,        Status = PoolBulkEntryStatus },
+		BulkBatch    = { Value = PoolBulkBatch, Capacity = TwinConfiguration.BULK_BATCH_POOL_SIZE,        Status = PoolBulkBatchStatus },
+		ResultBuffer = { Value = PoolResultBuf, Capacity = TwinConfiguration.RESULT_BUFFER_POOL_SIZE,     Status = PoolResultBufStatus },
+		Status       = groupStatus({ PoolNodeStatus, PoolSingleJobStatus, PoolBulkEntryStatus, PoolBulkBatchStatus, PoolResultBufStatus } :: any),
+	}
+
+	local QueueLightDepth      = ringPeak(TelemetryLightQueueSize)
+	local QueueHeavyDepth      = ringPeak(TelemetryHeavyQueueSize)
+	local QueueCriticalDepth   = ringPeak(TelemetryBulkCriticalSize)
+	local QueueNormalDepth     = ringPeak(TelemetryBulkNormalSize)
+	local QueueBackgroundDepth = ringPeak(TelemetryBulkBackgroundSize)
+
+	local QueueLightStatus      = itemStatus(QueueLightDepth,      TwinConfiguration.QUEUE_WARN_DEPTH, TwinConfiguration.QUEUE_CRIT_DEPTH)
+	local QueueHeavyStatus      = itemStatus(QueueHeavyDepth,      TwinConfiguration.QUEUE_WARN_DEPTH, TwinConfiguration.QUEUE_CRIT_DEPTH)
+	local QueueCriticalStatus   = itemStatus(QueueCriticalDepth,   TwinConfiguration.QUEUE_WARN_DEPTH, TwinConfiguration.QUEUE_CRIT_DEPTH)
+	local QueueNormalStatus     = itemStatus(QueueNormalDepth,     TwinConfiguration.QUEUE_WARN_DEPTH, TwinConfiguration.QUEUE_CRIT_DEPTH)
+	local QueueBackgroundStatus = itemStatus(QueueBackgroundDepth, TwinConfiguration.QUEUE_WARN_DEPTH, TwinConfiguration.QUEUE_CRIT_DEPTH)
+
+	local Queues = {
+		Light          = { Value = QueueLightDepth,      Status = QueueLightStatus      },
+		Heavy          = { Value = QueueHeavyDepth,      Status = QueueHeavyStatus      },
+		BulkCritical   = { Value = QueueCriticalDepth,   Status = QueueCriticalStatus   },
+		BulkNormal     = { Value = QueueNormalDepth,     Status = QueueNormalStatus     },
+		BulkBackground = { Value = QueueBackgroundDepth, Status = QueueBackgroundStatus },
+		Status         = groupStatus({ QueueLightStatus, QueueHeavyStatus, QueueCriticalStatus, QueueNormalStatus, QueueBackgroundStatus } :: any),
+	}
+
+	local LatestFree: number                               = ringLatest(TelemetryFreeTop)
+	local WorkerExecStatuses: { TelemetryStatus }          = {}
+	local AvgExecTime: { [number]: TelemetryWorkerExec }   = {}
+
+	for WorkerIndex = 1, WorkerCount do
+		local WorkerEma = if TelemetryWorkerEMA[WorkerIndex] then ringMean(TelemetryWorkerEMA[WorkerIndex]) else 0
+		local Status    = itemStatus(WorkerEma, TwinConfiguration.WORKER_WARN_EXEC, TwinConfiguration.WORKER_CRIT_EXEC)
+
+		AvgExecTime[WorkerIndex]        = { Value = WorkerEma, Status = Status } :: any
+		WorkerExecStatuses[WorkerIndex] = Status :: any
+	end
+
+	local WatchdogCount  = ringSum(TelemetryWatchdogFires)
+	local WatchdogStatus = itemStatus(WatchdogCount, TwinConfiguration.WATCHDOG_INTERVENTIONS_WARN, TwinConfiguration.WATCHDOG_INTERVENTIONS_CRITICAL)
+
+	table.insert(WorkerExecStatuses, WatchdogStatus)
+
+	local WorkerReport = {
+		Total                 = WorkerCount,
+		Free                  = LatestFree,
+		Busy                  = WorkerCount - LatestFree,
+		AvgExecTime           = AvgExecTime,
+		WatchdogInterventions = { Value = WatchdogCount, Status = WatchdogStatus },
+		Status                = groupStatus(WorkerExecStatuses),
+	}
+
+	local OverBudgetRate       = ringOverBudgetRate()
+	local PeakBulk             = ringPeak(TelemetryActiveBulk)
+	local BudgetMs             = TwinConfiguration.FRAME_BUDGET_SEC * 1000
+	local OverBudgetRateStatus = itemStatus(OverBudgetRate, TwinConfiguration.OVER_BUDGET_RATE_WARN, TwinConfiguration.OVER_BUDGET_RATE_CRIT)
+	local BulkStatus           = itemStatus(PeakBulk,       TwinConfiguration.ACTIVE_BULK_WARN,      TwinConfiguration.ACTIVE_BULK_CRIT)
+	local BudgetStatus: TelemetryStatus = "Healthy"
+
+	local FrameGovernorReport = {
+		BudgetMs        = { Value = BudgetMs,      Status = BudgetStatus         },
+		OverBudgetRate  = { Value = OverBudgetRate, Status = OverBudgetRateStatus },
+		ActiveBulkCount = { Value = PeakBulk,       Status = BulkStatus           },
+		Status          = groupStatus({ OverBudgetRateStatus, BulkStatus } :: any),
+	}
+
+	local BackgroundSkipPeak   = ringPeak(TelemetryBackgroundSkip)
+	local HeavySkipPeak        = ringPeak(TelemetryHeavySkip)
+
+	local BackgroundSkipStatus = itemStatus(BackgroundSkipPeak, TwinConfiguration.BG_SKIP_WARN,    TwinConfiguration.BG_SKIP_CRITICAL)
+	local HeavySkipStatus      = itemStatus(HeavySkipPeak,      TwinConfiguration.HEAVY_SKIP_WARN, TwinConfiguration.HEAVY_SKIP_CRITICAL)
+
+	local StarvationReport = {
+		BgSkipCount    = { Value = BackgroundSkipPeak, Status = BackgroundSkipStatus },
+		HeavySkipCount = { Value = HeavySkipPeak,      Status = HeavySkipStatus      },
+		Status         = groupStatus({ BackgroundSkipStatus, HeavySkipStatus } :: any),
+	}
+
+	local AllGroupStatuses = {
+		Pools.Status,
+		Queues.Status,
+		WorkerReport.Status,
+		FrameGovernorReport.Status,
+		StarvationReport.Status,
+	}
+
+	TelemetryWindowStart = Now
+
+	return {
+		Pools         = Pools,
+		Queues        = Queues,
+		Workers       = WorkerReport,
+		FrameGovernor = FrameGovernorReport,
+		Starvation    = StarvationReport,
+		Overall       = overallStatus(AllGroupStatuses),
+		WindowSec     = WindowSec,
+		SampleCount   = TelemetryRingCount,
+		Timestamp     = Now,
+	} :: any
+end
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment.
+	Currently supports the "Assignment" library.
+
+	Params:
+	    ModuleName        : string -- The name of the ModuleScript file.
+	    ModuleTableObject : any    -- The module table to inject.
+
+	Returns:
+	    nil
+]]
+function Twin.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if TwinConfiguration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Twin] Inject Error: 'moduleName' must be a non-empty string.\n" .. debug.traceback())
+		end
+		
+		if type(ModuleTableObject) ~= "table" then
+			error("[Twin] Inject Error: 'moduleTableObject' must be a table.\n" .. debug.traceback())
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn  = ModuleTableObject.Spawn  or task.spawn
+		Scheduler.Defer  = ModuleTableObject.Defer  or task.defer
+		Scheduler.Delay  = ModuleTableObject.Delay  or task.delay
+		Scheduler.Wait   = ModuleTableObject.Wait   or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+	end
+end
+
+----------------------------------------------------------
+return Twin
+----------------------------------------------------------
