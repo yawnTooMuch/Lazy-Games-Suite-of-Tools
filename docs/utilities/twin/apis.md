@@ -335,7 +335,7 @@ Optional options table for [`Twin.Split`](#twinsplit).
 
 | Field | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `____Weight` | `"light" \| "heavy"` | `"heavy"` | Controls whether this job waits for all bulk work to clear (`"heavy"`) or may run speculatively alongside active bulk jobs (`"light"`). |
+| `____Weight` | `"light" | "heavy"` | `"heavy"` | Controls whether this job waits for all bulk work to clear (`"heavy"`) or may run speculatively alongside active bulk jobs (`"light"`). |
 
 ---
 
@@ -395,7 +395,7 @@ One step in a [`Twin.Sequence`](#twinsequence) chain.
 | `____Module` | `ModuleScript?` | — | **Required.** The module containing the function to run for this step. |
 | `____FunctionName` | `string?` | — | **Required.** The name of the function on the module to call. |
 | `____Payload` | `any?` | `nil` | The value passed to the worker function. May be a plain value, or a function `(prevResult: any) -> any` that is called at dispatch time with the previous step's result. |
-| `____Weight` | `"light" \| "heavy"?` | `"heavy"` | Dispatch weight for this step. See the Weight description on [`SplitOptions`](#splitoptions). |
+| `____Weight` | `"light" | "heavy"?` | `"heavy"` | Dispatch weight for this step. See the Weight description on [`SplitOptions`](#splitoptions). |
 
 ---
 
