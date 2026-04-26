@@ -3,6 +3,8 @@
 **Type:** Framework  
 _A server-side data persistence framework for Roblox that handles player data loading, caching, automatic saving, and safe cleanup across the full session lifecycle._
 
+[Distribution:](https://devforum.roblox.com/t/diary-data-saving-framework/4595950/17) `https://devforum.roblox.com/t/diary-data-saving-framework/4595950/17`
+
 ---
 
 ## Overview
