@@ -3,8 +3,6 @@
 **Type:** Framework  
 _A server-side data persistence framework for Roblox that handles player data loading, caching, automatic saving, and safe cleanup across the full session lifecycle._
 
-[Distribution:](https://devforum.roblox.com/t/diary-data-saving-framework/4595950/2) `https://devforum.roblox.com/t/diary-data-saving-framework/4595950/2`
-
 ---
 
 ## Overview
@@ -45,9 +43,12 @@ When MessagingService is unavailable (Studio, private servers, or outages), the 
 
 ### Idle-Aware Auto-Save
 
-Rather than hammering storage at a fixed rate regardless of activity, Diary tracks the last time each player meaningfully interacted. Players who have been idle for a configurable period are saved less frequently and their MemoryStore entries are kept alive for longer, reducing unnecessary API consumption. Active players are saved at the standard interval. Both thresholds are configurable per data location via cache policies.
+Rather than hammering storage at a fixed rate regardless of activity, Diary tracks the last time each player meaningfully interacted. Players who have been idle for a configurable period have their MemoryStore entries refreshed less frequently and kept alive for longer, reducing unnecessary API consumption. Active players are written to MemoryStore at the standard interval. Both thresholds are configurable per data location via cache policies.
 
 Auto-saving only triggers when data has been explicitly marked as changed. Unmarked data is never written unnecessarily.
+
+!!! info "DataStore writes are event-driven, not interval-driven"
+    The background auto-save cycle exclusively targets **MemoryStore** — it keeps the fast cache layer current so any server that needs a player's data next can load it immediately without touching DataStore. DataStore is written only in response to discrete events: a player leaving the server, the server shutting down, or an explicit `Diary.SaveData` call from your code. This separation is intentional. MemoryStore is the live, low-latency cache; DataStore is the durable record of last resort, and it is written only when a meaningful boundary in the session lifecycle is crossed — such as a trade completing, a purchase being confirmed, or a session ending. If you need a DataStore write to happen at a specific moment in your game's logic (for example, after a Robux transaction), call `Diary.SaveData` explicitly at that point rather than relying on the auto-save cycle.
 
 ### Hybrid Write Strategy
 
