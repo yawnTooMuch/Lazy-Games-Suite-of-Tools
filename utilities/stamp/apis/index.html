@@ -1,0 +1,4110 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stamp-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-stamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Stamp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Stamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Function Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getinstanceswithattribute-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetInstancesWithAttribute (Global)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (Global)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utilitycompactstring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility.CompactString
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-stampstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: StampStream
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: StampStream">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#events-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addtag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddTag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addtagdeferred" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddTagDeferred
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removetag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveTag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removealltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveAllTags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetCount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setattributeall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetAttributeAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getinstanceswithattribute-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetInstancesWithAttribute (Local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observeattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ObserveAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (Local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#signalstagged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signals.Tagged
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signalsuntagged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signals.Untagged
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-stamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Stamp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Stamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Function Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getinstanceswithattribute-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetInstancesWithAttribute (Global)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (Global)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utilitycompactstring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility.CompactString
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-stampstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: StampStream
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: StampStream">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#events-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addtag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddTag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addtagdeferred" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddTagDeferred
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removetag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveTag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removealltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveAllTags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetCount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setattributeall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetAttributeAll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getinstanceswithattribute-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetInstancesWithAttribute (Local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observeattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ObserveAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (Local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#signalstagged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signals.Tagged
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signalsuntagged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signals.Untagged
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="stamp-api-reference">Stamp API Reference</h1>
+<p>This page documents every public function, method, type, and signal surface exposed by the <strong>Stamp</strong> library.</p>
+<hr />
+<h2 id="class-stamp">Class: Stamp</h2>
+<p>The top-level module. Used to inject dependencies, register streams, and perform cross-stream queries.</p>
+<h3 id="functions-summary">Functions Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#inject">Inject</a></strong> <code>(ModuleName: string, ModuleTableObject: any)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Provides a required Lazy Games Suite dependency to Stamp.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#register">Register</a></strong> <code>(TagName: string)</code></td>
+<td style="text-align: left;"><code>StampStream</code></td>
+<td style="text-align: left;">Returns the live stream for a tag, creating it if it does not yet exist.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getinstanceswithattribute-global">GetInstancesWithAttribute (Global)</a></strong> <code>(Key: string, ExpectedValue: any?)</code></td>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">Searches all registered streams for instances that possess the given attribute.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#destroy-global">Destroy (Global)</a></strong> <code>(TagName: string)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Destroys the registered stream for a tag and cleans up all of its tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#utilitycompactstring">Utility.CompactString</a></strong> <code>(InputString: string)</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Returns a copy of the string with all whitespace removed.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="function-details">Function Details</h3>
+<h4 id="inject">Inject</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="nv">ModuleName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">ModuleTableObject</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the <strong>Assignment</strong>, <strong>Relay</strong> and <strong>Reaper</strong> libraries/frameworks.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ModuleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ModuleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The required module table/object to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Reaper / Assignment / Relay</p>
+<p>All three dependencies must be injected before calling <code>Stamp.Register</code>. Attempting to register a tag with any dependency missing throws an immediate error.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p>In Roblox Studio, <code>ModuleName</code> must be a non-empty string and <code>ModuleTableObject</code> must be a table, or an error is thrown. Passing an unrecognised module name produces a warning but does not block injection.</p>
+</div>
+<hr />
+<h4 id="register">Register</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Register</span><span class="p">(</span><span class="nv">TagName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">StampStream</span>
+</span></code></pre></div>
+<p>Returns the active <code>StampStream</code> for the given tag. If no stream exists yet with a specific <code>TagName</code>, it creates a new one.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TagName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The <code>CollectionService</code> tag this stream will manage.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>StampStream</code></td>
+<td style="text-align: left;">The stream object for this tag.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Reaper / Assignment / Relay</p>
+<p>Throws immediately if any of the three required dependencies have not been injected.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>TagName</code> must be a non-empty string or an error is thrown. Tag names longer than 100 characters produce a warning.</p>
+</div>
+<hr />
+<h4 id="getinstanceswithattribute-global">GetInstancesWithAttribute (Global)</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Stamp</span><span class="p">.</span><span class="nf">GetInstancesWithAttribute</span><span class="p">(</span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">ExpectedValue</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">{</span><span class="nc">PVInstance</span><span class="p">}</span>
+</span></code></pre></div>
+<p>Searches across <strong>all</strong> registered streams for instances that possess the given attribute key. Only instances with a live parent are included; entries for destroyed instances are excluded automatically.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name to search for.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ExpectedValue</code></td>
+<td style="text-align: left;"><code>any?</code></td>
+<td style="text-align: left;">(Optional) When provided, only instances whose cached attribute value exactly matches this are returned. When omitted, all instances that possess the attribute — regardless of its value — are returned.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">An array of matching <code>PVInstance</code>s. Returns an empty array if nothing matches.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Key</code> must be a non-empty string with a maximum of 100 characters. If <code>ExpectedValue</code> is provided, its type must be one of Roblox's supported attribute types, or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="destroy-global">Destroy (Global)</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Destroy</span><span class="p">(</span><span class="nv">TagName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Destroys the registered stream for the named tag. Equivalent to calling <code>StampStream:Destroy()</code> directly. Has no effect if the stream has already been destroyed.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TagName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The tag name whose stream should be destroyed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>TagName</code> must be a non-empty string or an error is thrown. Calling <code>Destroy (Global)</code> on a tag that has no active stream produces a warning in Studio.</p>
+</div>
+<hr />
+<h4 id="utilitycompactstring">Utility.CompactString</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">Stamp</span><span class="p">.</span><span class="nv">Utility</span><span class="p">.</span><span class="nf">CompactString</span><span class="p">(</span><span class="nv">InputString</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">string</span>
+</span></code></pre></div>
+<p>Returns a copy of the input string with all spaces, tabs, and newline characters removed. Useful for normalising tag names derived from user input or concatenated strings.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>InputString</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The string to compact.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The input string with all whitespace removed, or <code>""</code> if the input was invalid.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="class-stampstream">Class: StampStream</h2>
+<p>An object representing a single managed tag, returned by <code>Stamp.Register()</code>. Acts as the central controller for all tagging, attribute, and lifecycle operations on that tag.</p>
+<h3 id="methods-summary">Methods Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#addtag">AddTag</a></strong> <code>(Entity: PVInstance, IsAtomic: boolean?)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Applies this stream's tag to the given entity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#addtagdeferred">AddTagDeferred</a></strong> <code>(ParentFolder: Instance, EntityName: string, IsRecursive: boolean?, TimeoutSeconds: number?)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Polls a parent folder until a named instance streams in, then tags it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#removetag">RemoveTag</a></strong> <code>(Entity: PVInstance)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Removes this stream's tag from the given entity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#removealltags">RemoveAllTags</a></strong> <code>()</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Removes this stream's tag from every instance currently carrying it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getall">GetAll</a></strong> <code>()</code></td>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">Returns an array of all instances currently tracked by this stream.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getcount">GetCount</a></strong> <code>()</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Returns the number of instances currently tracked by this stream.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#setattribute">SetAttribute</a></strong> <code>(Entity: PVInstance, Key: string, Value: any)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sets a tracked attribute on a specific entity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#setattributeall">SetAttributeAll</a></strong> <code>(Key: string, Value: any)</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sets a tracked attribute on every instance currently in this stream.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getattribute">GetAttribute</a></strong> <code>(Entity: PVInstance, Key: string)</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Returns the current value of an attribute on a specific entity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getinstanceswithattribute-local">GetInstancesWithAttribute (Local)</a></strong> <code>(Key: string, ExpectedValue: any?)</code></td>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">Searches within this stream only for instances that possess the given attribute.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#observeattribute">ObserveAttribute</a></strong> <code>(Entity: PVInstance, Key: string, Callback: (Value: any) -&gt; (), ScopeToBind: ReaperScope?)</code></td>
+<td style="text-align: left;"><code>RBXScriptConnection</code></td>
+<td style="text-align: left;">Fires a callback immediately with the current attribute value and again on every future change.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#destroy-local">Destroy (Local)</a></strong> <code>()</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Destroys this stream and cleans up all of its resources.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="events-summary">Events Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#signalstagged">Signals.Tagged</a></strong></td>
+<td style="text-align: left;">Fires when an instance receives this tag. Provides the instance and its dedicated garbage-collection scope.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#signalsuntagged">Signals.Untagged</a></strong></td>
+<td style="text-align: left;">Fires when an instance loses this tag or is destroyed.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="method-details">Method Details</h3>
+<h4 id="addtag">AddTag</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">,</span><span class="w"> </span><span class="nv">IsAtomic</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Applies this stream's tag to the given entity via <code>CollectionService</code>. This triggers <code>Signals.Tagged</code> for any callbacks connected to this stream.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The <code>Model</code> or <code>BasePart</code> to tag.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsAtomic</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">(Optional), server-only. When <code>true</code>, sets the entity's <code>ModelStreamingMode</code> to <code>Atomic</code> before tagging, ensuring its entire hierarchy streams as a unit. Only valid for <code>Model</code> instances.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Server-Only: IsAtomic</p>
+<p>The <code>IsAtomic</code> parameter is only honoured when called from the <strong>server</strong>. Passing <code>true</code> on the client prints a warning and the streaming mode is left unchanged. Additionally, <code>IsAtomic</code> only applies to <code>Model</code> instances — passing <code>true</code> for a <code>BasePart</code> prints a warning and has no other effect.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Entity</code> must be a <code>PVInstance</code> and <code>IsAtomic</code>, if provided, must be a <code>boolean</code>, or errors are thrown.</p>
+</div>
+<hr />
+<h4 id="addtagdeferred">AddTagDeferred</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">AddTagDeferred</span><span class="p">(</span><span class="nv">ParentFolder</span><span class="p">:</span><span class="w"> </span><span class="nc">Instance</span><span class="p">,</span><span class="w"> </span><span class="nv">EntityName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">IsRecursive</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">TimeoutSeconds</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Polls <code>ParentFolder</code> every 0.5 seconds until a child named <code>EntityName</code> appears, then tags it. Designed to handle Roblox <code>StreamingEnabled</code> on the client, where an instance may not exist locally at the moment your script runs. The polling stops as soon as the instance is found and tagged, if <code>ParentFolder</code> is removed from the game hierarchy, or when the timeout elapses.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ParentFolder</code></td>
+<td style="text-align: left;"><code>Instance</code></td>
+<td style="text-align: left;">The container to search within.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>EntityName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The exact name of the instance to wait for.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsRecursive</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">(Optional) When <code>true</code>, the search descends into all descendants of <code>ParentFolder</code>. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TimeoutSeconds</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">(Optional) The maximum number of seconds to keep polling before giving up. Defaults to <code>60</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Client-Only Context</p>
+<p>This method must only be called from a <code>LocalScript</code> or <code>ModuleScript</code> running on the client. Calling it from the server prints a warning and returns immediately without scheduling any work.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p>All parameters are type-validated. <code>TimeoutSeconds</code>, if provided, must be a positive number, or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="removetag">RemoveTag</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">RemoveTag</span><span class="p">(</span><span class="nv">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Removes this stream's tag from the given entity. Then fires <code>Signals.Untagged</code> immediately after removal.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance to untag.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Entity</code> must be a <code>PVInstance</code> or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="removealltags">RemoveAllTags</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">RemoveAllTags</span><span class="p">():</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Removes this stream's tag from every instance in the game that currently carries it. Each removal fires <code>Signals.Untagged</code> immediately.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<h4 id="getall">GetAll</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">GetAll</span><span class="p">():</span><span class="w"> </span><span class="p">{</span><span class="nc">PVInstance</span><span class="p">}</span>
+</span></code></pre></div>
+<p>Returns an array containing every instance currently tracked by this stream.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">All instances the stream is currently tracking. Returns an empty table if none are tracked.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="getcount">GetCount</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">GetCount</span><span class="p">():</span><span class="w"> </span><span class="nc">number</span>
+</span></code></pre></div>
+<p>Returns the number of instances currently tracked by this stream.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The current tracked instance count.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="setattribute">SetAttribute</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">,</span><span class="w"> </span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">Value</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Sets a named attribute on the given entity and registers the entity–key–value relationship in Stamp's query cache. Passing <code>nil</code> as the value removes the attribute from both the instance and the query cache.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance to set the attribute on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name. Maximum 100 characters.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value to assign. Pass <code>nil</code> to remove the attribute and clear it from the query cache.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Supported Attribute Types</p>
+<p><code>Value</code> must be one of the types Roblox permits on instances: <code>string</code>, <code>number</code>, <code>boolean</code>, <code>UDim</code>, <code>UDim2</code>, <code>BrickColor</code>, <code>Color3</code>, <code>Vector2</code>, <code>Vector3</code>, <code>NumberRange</code>, <code>NumberSequence</code>, <code>ColorSequence</code>, <code>Rect</code>, or <code>Font</code>. In Studio, passing any other type throws an error.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Entity</code> must be a <code>PVInstance</code>; <code>Key</code> must be a non-empty string of no more than 100 characters. Calling <code>SetAttribute</code> on an instance that has no parent produces a warning.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Automatic Cache Cleanup</p>
+<p>When you first set an attribute on an entity, Stamp silently registers a cleanup handler so that if the entity is ever destroyed, all of its cached attribute entries are removed automatically. You never need to call <code>SetAttribute(entity, key, nil)</code> for cleanup when an entity is being destroyed.</p>
+</div>
+<hr />
+<h4 id="setattributeall">SetAttributeAll</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">SetAttributeAll</span><span class="p">(</span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">Value</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Sets the named attribute to the given value on every instance currently tracked by this stream.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value to assign to all tracked instances. Pass <code>nil</code> to remove the attribute from all of them.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Supported Attribute Types</p>
+<p>The same type constraints as <code>SetAttribute</code> apply. In Studio, passing an unsupported type throws an error.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Key</code> must be a non-empty string of no more than 100 characters, or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="getattribute">GetAttribute</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">,</span><span class="w"> </span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">any</span>
+</span></code></pre></div>
+<p>Returns the current value of the named attribute on the given entity. If no cached value exists, the live value is read directly from the instance as a fallback.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance to read the attribute from.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The current attribute value, or <code>nil</code> if the attribute does not exist on this entity.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Entity</code> must be a <code>PVInstance</code> and <code>Key</code> must be a non-empty string of no more than 100 characters, or errors are thrown.</p>
+</div>
+<hr />
+<h4 id="getinstanceswithattribute-local">GetInstancesWithAttribute (Local)</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">GetInstancesWithAttribute</span><span class="p">(</span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">ExpectedValue</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">{</span><span class="nc">PVInstance</span><span class="p">}</span>
+</span></code></pre></div>
+<p>Searches within this stream for instances that possess the named attribute. Only instances currently tracked by this stream are considered; instances from other streams that carry the same attribute are excluded. Only instances with a live parent are included.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name to search for.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ExpectedValue</code></td>
+<td style="text-align: left;"><code>any?</code></td>
+<td style="text-align: left;">(Optional) When provided, only instances whose cached attribute value exactly matches this are returned.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>{PVInstance}</code></td>
+<td style="text-align: left;">An array of matching instances from this stream. Returns an empty table if nothing matches or the stream is empty.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Key</code> must be a non-empty string of no more than 100 characters. If <code>ExpectedValue</code> is provided, its type must be a supported attribute type, or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="observeattribute">ObserveAttribute</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">,</span><span class="w"> </span><span class="nv">Key</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Value</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">(),</span><span class="w"> </span><span class="nv">ScopeToBind</span><span class="p">:</span><span class="w"> </span><span class="nc">ReaperScope</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">RBXScriptConnection</span>
+</span></code></pre></div>
+<p>Subscribes to changes on the named attribute. The callback fires on the next available frame with the attribute's current value (if one exists and the entity is alive), then fires again each time the attribute changes in the future. Both the initial delivery and future deliveries only occur while the entity has a live parent.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance holding the attribute to observe.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The attribute name to observe.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(Value: any) -&gt; ()</code></td>
+<td style="text-align: left;">The function to call immediately with the current value, and again on every future change.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ScopeToBind</code></td>
+<td style="text-align: left;"><code>ReaperScope?</code></td>
+<td style="text-align: left;">(Optional) A custom scope to bind the connection to. When omitted, the scope is chosen automatically using the waterfall described below.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>RBXScriptConnection</code></td>
+<td style="text-align: left;">The raw event connection.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Scope Binding Waterfall</p>
+<p>The returned connection's lifetime is determined as follows, in priority order:</p>
+<ol>
+<li><strong>Custom scope provided</strong> — the connection is bound to <code>ScopeToBind</code> and is disconnected when that scope is destroyed.</li>
+<li><strong>Entity is tracked by this stream</strong> — the connection is bound to the entity's tag scope and is disconnected automatically when the entity loses its tag or is destroyed.</li>
+<li><strong>Entity has a parent but is not in this stream</strong> — the connection is bound to the entity's object lifetime and is disconnected when the entity is destroyed.</li>
+<li><strong>Entity has no parent</strong> — the connection is disconnected immediately, before returning.</li>
+</ol>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Asynchronous Initial Callback</p>
+<p>The initial callback does not fire synchronously inline. It is scheduled to run on the next available frame. Do not write code that depends on the initial callback having already executed by the time <code>ObserveAttribute</code> returns.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">RBXScriptConnection Handling</p>
+<p>The raw event connection is returned for the purpose if ever you need logic that terminates the connection early. If not necessarily needed, do not store the returned <code>RBXScriptConnection</code> object, let Stamp handle the cleanup cycle.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Entity</code> must be a <code>PVInstance</code>; <code>Key</code> must be a non-empty string of no more than 100 characters; <code>Callback</code> must be a function. Violations throw errors.</p>
+</div>
+<hr />
+<h4 id="destroy-local">Destroy (Local)</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">StampStream</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">():</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Initiate a cleanup event for this stream, destroying everything this stream associated with.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<h3 id="event-details">Event Details</h3>
+<div class="admonition tip">
+<p class="admonition-title">Design Philosophy: Automated Memory Management</p>
+<p>Stamp signals intentionally expose only <code>:Connect()</code> and return <code>void</code> from it — no connection object is given back. Methods like <code>:Wait()</code> and <code>:Once()</code> are not available. This is by design: because every tagged entity's lifetime is managed by a scope, the system disconnects all listeners the moment a tag is removed or an entity is destroyed. You never call <code>:Disconnect()</code> on a Stamp signal connection — the scope handles it.</p>
+</div>
+<hr />
+<h4 id="signalstagged">Signals.Tagged</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">StampStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">,</span><span class="w"> </span><span class="nc">Scope</span><span class="p">:</span><span class="w"> </span><span class="nc">ReaperScope</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span>
+</span></code></pre></div>
+<p>Fires each time an instance receives this stream's tag.</p>
+<p><strong>Available Methods:</strong></p>
+<ul>
+<li><code>:Connect(Callback)</code> — Binds a function to run whenever an entity receives this tag.</li>
+</ul>
+<p><strong>Callback Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance that was tagged.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Scope</code></td>
+<td style="text-align: left;"><code>ReaperScope</code></td>
+<td style="text-align: left;">A garbage-collection scope unique to this entity's current tag lifecycle. Bind all events, loops, and tasks to this scope to guarantee they are cleaned up when the tag is removed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Retroactive Subscription</p>
+<p>Connecting to <code>Signals.Tagged</code> after instances are already tagged does not miss them. Upon connection, the callback is immediately scheduled for every instance the stream is already tracking (provided each instance still has a live parent). This means your setup logic runs for both past and future entities with a single <code>Connect</code> call.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Callback</code> must be a function or an error is thrown.</p>
+</div>
+<hr />
+<h4 id="signalsuntagged">Signals.Untagged</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">StampStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Untagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Entity</span><span class="p">:</span><span class="w"> </span><span class="nc">PVInstance</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span>
+</span></code></pre></div>
+<p>Fires each time an instance loses this stream's tag, whether by an explicit <code>RemoveTag</code> call, by <code>RemoveAllTags</code>, or because the instance was destroyed.</p>
+<p><strong>Available Methods:</strong></p>
+<ul>
+<li><code>:Connect(Callback)</code> — Binds a function to run whenever an entity loses this tag.</li>
+</ul>
+<p><strong>Callback Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Entity</code></td>
+<td style="text-align: left;"><code>PVInstance</code></td>
+<td style="text-align: left;">The instance that lost the tag.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p><code>Callback</code> must be a function or an error is thrown.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3734 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../apis/">
+      
+      
+        <link rel="next" href="../best_practices/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Examples - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#reaper-examples" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Examples
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reaper-module-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper Module APIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reaper Module APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reaperinject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapertrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Track
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperscope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperclean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Clean
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperremove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperis-and-reaperiscleanable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Is and Reaper.IsCleanable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trackobject-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrackObject Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TrackObject Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Configure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :HandleScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scopeobject-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScopeObject Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ScopeObject Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bindtotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :BindToTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Unchain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanchild" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :CleanChild
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Connect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-lifecycle-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Lifecycle Signals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Global Lifecycle Signals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsontracked-oncleaned-onremoved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnTracked, OnCleaned, OnRemoved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reaper-module-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper Module APIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reaper Module APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reaperinject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapertrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Track
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperscope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperclean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Clean
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperremove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaperis-and-reaperiscleanable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Is and Reaper.IsCleanable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trackobject-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrackObject Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TrackObject Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Configure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :HandleScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scopeobject-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScopeObject Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ScopeObject Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bindtotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :BindToTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Unchain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanchild" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :CleanChild
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Connect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        :Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-lifecycle-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Lifecycle Signals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Global Lifecycle Signals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsontracked-oncleaned-onremoved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnTracked, OnCleaned, OnRemoved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="reaper-examples">Reaper Examples</h1>
+<p>This page demonstrates every public API in the Reaper framework through scenario-based examples with inline commentary.</p>
+<hr />
+<h2 id="reaper-module-apis">Reaper Module APIs</h2>
+<h3 id="reaperinject">Reaper.Inject</h3>
+<p>Injects optional dependencies into Reaper before using advanced features.</p>
+<p><strong>Scenario A — Injecting both Assignment and Relay at game startup</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Reaper</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">game</span><span class="p">.</span><span class="nv">ReplicatedStorage</span><span class="p">.</span><span class="nv">Reaper</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Assignment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">game</span><span class="p">.</span><span class="nv">ReplicatedStorage</span><span class="p">.</span><span class="nv">Assignment</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Relay</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">game</span><span class="p">.</span><span class="nv">ReplicatedStorage</span><span class="p">.</span><span class="nv">Relay</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1">-- Inject Assignment first so Scope:Repeat() becomes available</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="s2">&quot;Assignment&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">-- Inject Relay to activate the three global lifecycle signals</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="s2">&quot;Relay&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Relay</span><span class="p">)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1">-- From this point on, Reaper.Signals.OnTracked/OnCleaned/OnRemoved are live</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Running Reaper standalone without any dependencies</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Reaper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">game</span><span class="p">.</span><span class="nv">ReplicatedStorage</span><span class="p">.</span><span class="nv">Reaper</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">-- No Inject calls needed — Reaper tracks and cleans items immediately</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">-- Scope:Spawn(), :Defer(), :Delay(), :Connect() all work via native task.*</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">-- Scope:Repeat() is unavailable without Assignment</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1">-- Reaper.Signals are no-op stubs that warn in Studio if connected to</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="kd">local</span><span class="w"> </span><span class="nv">scope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;PlayerScope&quot;</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nv">scope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">workspace</span><span class="p">.</span><span class="nv">ChildAdded</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">child</span><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Added:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">child</span><span class="p">.</span><span class="nv">Name</span><span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reapertrack">Reaper.Track</h3>
+<p>Registers a raw item into Reaper's memory system and returns a handle to manage its lifecycle.</p>
+<p><strong>Scenario A — Tracking an Instance; death detected via the engine event, not polling</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">character</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">Character</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">-- Instances are always monitored via an AncestryChanged hook — not by polling.</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">-- The Frequency argument to :Configure() is ignored for Instances and forced to 0.</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1">-- Reaper calls :Destroy() automatically when the character leaves the game world.</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kd">local</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">character</span><span class="p">)</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Character_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Tracking a custom OOP object with a non-standard teardown method</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">weaponController</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">WeaponController</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">-- &quot;Dispose&quot; is called instead of the default :Destroy() on teardown</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">weaponController</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Table&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Dispose&quot;</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Weapon_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1">-- Frequency 0: no background polling — cleaned manually or via cascade</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Re-tracking an already-registered item returns the existing handle</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Instance</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">&quot;Part&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">workspace</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">trackA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">part</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">trackB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">part</span><span class="p">)</span><span class="w"> </span><span class="c1">-- item already registered</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nf">print</span><span class="p">(</span><span class="nv">trackA</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nv">trackB</span><span class="p">)</span><span class="w"> </span><span class="c1">-- true — same handle, no duplicate entry created</span>
+</span></code></pre></div>
+<p><strong>Scenario D — Protected tracking for an Object Pool</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">pooledPart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">objectPool</span><span class="p">:</span><span class="nc">Acquire</span><span class="p">()</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1">-- IsProtected = true: when this part leaves the workspace, Reaper releases it</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1">-- from the registry without destroying it, so the pool can safely reclaim it</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">pooledPart</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;PooledPart_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">pooledPart</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="s2">&quot;PoolID&quot;</span><span class="p">),</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario E — Frequency-based polling for a Connection</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">-- Connections and Threads placed in the background batch tier are eligible</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">-- to be promoted to the frequency-polled tier via a non-zero Configure value.</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1">-- Here, Reaper checks whether this connection is still active every 3 seconds.</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">someRemoteEvent</span><span class="p">.</span><span class="nv">OnServerEvent</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onRemoteEvent</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;RemoteConn_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1">-- If the connection has been disconnected externally, Reaper detects it</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1">-- within 3 seconds and removes it from the registry automatically</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reaperscope">Reaper.Scope</h3>
+<p>Creates a named, managed container that accumulates items and tears them all down together when the Scope is cleaned.</p>
+<p><strong>Scenario A — Scoping a player's active connection set</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">combatScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">-- All connections added here are disconnected when combatScope is cleaned</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nv">combatScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">player</span><span class="p">.</span><span class="nv">Character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">Died</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="nv">player</span><span class="p">.</span><span class="nv">Name</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;died in combat&quot;</span><span class="p">)</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nv">combatScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">player</span><span class="p">.</span><span class="nv">Character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">HealthChanged</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">health</span><span class="p">)</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nf">updateHealthUI</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">health</span><span class="p">)</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1">-- When combat ends:</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1">-- Both connections are disconnected in one call</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Nested Scope for a sub-state within a larger state</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">tradingScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Trading_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">-- Create a sub-scope for the item-selection phase</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">itemSelectScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;ItemSelect_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nv">itemSelectScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">tradeUI</span><span class="p">.</span><span class="nv">ItemSelected</span><span class="p">,</span><span class="w"> </span><span class="nv">onItemSelected</span><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1">-- Bind the sub-scope to the parent; when trading ends, item selection also ends</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="nv">itemSelectScope</span><span class="p">:</span><span class="nc">BindToTrack</span><span class="p">(</span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s2">&quot;Trading_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">))</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reaperclean">Reaper.Clean</h3>
+<p>Immediately destroys one or more tracked items and cascades teardown to everything they own.</p>
+<p><strong>Scenario A — Cleaning a single Scope by its ID</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">-- Somewhere at match start:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">matchScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Match_Round1&quot;</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">matchScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">game</span><span class="p">.</span><span class="nv">Players</span><span class="p">.</span><span class="nv">PlayerRemoving</span><span class="p">,</span><span class="w"> </span><span class="nv">onPlayerLeft</span><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nv">matchScope</span><span class="p">:</span><span class="nc">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="nf">runMatchTimer</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1">-- At match end:</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span><span class="s2">&quot;Match_Round1&quot;</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1">-- The PlayerRemoving connection is disconnected</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="c1">-- The matchTimer thread is cancelled</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1">-- matchScope is removed from the registry</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Cleaning multiple objects in a single call</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">-- Clean three scopes created for a player when they leave</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="s2">&quot;Combat_&quot;</span><span class="w">  </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="s2">&quot;UI_&quot;</span><span class="w">      </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="s2">&quot;Respawn_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1">-- All three are torn down sequentially in the same call</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Cleaning via a raw TrackObject reference</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">someInstance</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;SomeInstance&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">5</span><span class="p">)</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1">-- Later, clean via the handle directly (no ID lookup needed)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nv">track</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span><span class="w">  </span><span class="c1">-- identical to Reaper.Clean(track)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reaperremove">Reaper.Remove</h3>
+<p>Releases items from the registry without destroying them. Only the primary item is preserved; any chained children or bound Scopes are still destroyed.</p>
+<p><strong>Scenario A — Reclaiming a pooled instance before re-use</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">-- Release the root item from Reaper so neither system attempts to destroy it.</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1">-- Any children chained to this track would be destroyed in the same call.</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1">-- Chain nothing to a pooled item&#39;s track if you need children preserved too.</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">evicted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Remove</span><span class="p">(</span><span class="s2">&quot;PooledPart_42&quot;</span><span class="p">)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1">-- evicted[1] is the raw Part instance, fully intact</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nv">objectPool</span><span class="p">:</span><span class="nc">Release</span><span class="p">(</span><span class="nv">evicted</span><span class="p">[</span><span class="mf">1</span><span class="p">])</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Releasing multiple items and inspecting what was returned</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">removed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Remove</span><span class="p">(</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="s2">&quot;TempEffect_A&quot;</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="s2">&quot;TempEffect_B&quot;</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="s2">&quot;TempEffect_C&quot;</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">)</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">item</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nv">removed</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Released:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nf">tostring</span><span class="p">(</span><span class="nv">item</span><span class="p">))</span><span class="w"> </span><span class="c1">-- items are still alive; just de-registered</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="kr">end</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reaperget">Reaper.Get</h3>
+<p>Returns the live tracking handle for an item or Scope registered under a given identifier.</p>
+<p><strong>Scenario A — Fetching a Scope from another module to chain additional items</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">-- In UIManager.lua:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">uiScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;UI_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nv">uiScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">screenGui</span><span class="p">.</span><span class="nv">Activated</span><span class="p">,</span><span class="w"> </span><span class="nv">onUIActivated</span><span class="p">)</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1">-- In CombatManager.lua (separate script, no shared reference):</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="kd">local</span><span class="w"> </span><span class="nv">uiScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s2">&quot;UI_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="kr">if</span><span class="w"> </span><span class="nv">uiScope</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="c1">-- Chain a temporary combat HUD element to the existing UI scope</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="nv">uiScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">combatHUDFrame</span><span class="p">)</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="c1">-- When UIManager cleans &quot;UI_playerX&quot;, the combatHUDFrame is also destroyed</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Checking existence before operating on a Scope</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">tryCleanCombat</span><span class="p">(</span><span class="nv">userId</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">)</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">existing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">existing</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">        </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="kr">else</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">        </span><span class="nf">warn</span><span class="p">(</span><span class="s2">&quot;No active combat scope for user:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="kr">end</span>
+</span></code></pre></div>
+<hr />
+<h3 id="reaperis-and-reaperiscleanable">Reaper.Is and Reaper.IsCleanable</h3>
+<p>Guards for validating live Reaper handles before operating on them.</p>
+<p><strong>Scenario A — Reaper.Is: guarding a function that accepts TrackObjects, ScopeObjects, or raw items</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">safeChain</span><span class="p">(</span><span class="nv">target</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nv">child</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nv">target</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">        </span><span class="c1">-- target is a live TrackObject or ScopeObject; safe to call :Chain()</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">        </span><span class="nv">target</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">child</span><span class="p">)</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="kr">else</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">        </span><span class="c1">-- target is a raw item or already-cleaned handle; register it first</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">        </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">target</span><span class="p">):</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">child</span><span class="p">)</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Reaper.IsCleanable: checking a Scope before handing it to a system</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">bindScopeToPlayer</span><span class="p">(</span><span class="nv">scope</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nv">track</span><span class="p">:</span><span class="w"> </span><span class="nc">TrackObject</span><span class="p">)</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">not</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">IsCleanable</span><span class="p">(</span><span class="nv">scope</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">        </span><span class="nf">warn</span><span class="p">(</span><span class="s2">&quot;Attempted to bind an invalid or destroyed scope — skipped.&quot;</span><span class="p">)</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">        </span><span class="kr">return</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="c1">-- Safe to call BindToTrack only after the guard passes</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="p">(</span><span class="nv">scope</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="nc">ScopeObject</span><span class="p">):</span><span class="nc">BindToTrack</span><span class="p">(</span><span class="nv">track</span><span class="p">)</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Distinguishing a TrackObject from a ScopeObject</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s2">&quot;SomeID&quot;</span><span class="p">)</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="kr">if</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">IsCleanable</span><span class="p">(</span><span class="nv">handle</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="c1">-- handle is specifically a ScopeObject</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Got a scope:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="p">.</span><span class="nv">AssignID</span><span class="p">)</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="kr">elseif</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nv">handle</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="c1">-- handle is a TrackObject (not a Scope)</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Got a track:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="p">.</span><span class="nv">AssignID</span><span class="p">)</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="kr">else</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Not found or already cleaned&quot;</span><span class="p">)</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="kr">end</span>
+</span></code></pre></div>
+<hr />
+<h2 id="trackobject-methods">TrackObject Methods</h2>
+<h3 id="configure">:Configure</h3>
+<p>Assigns an identifier and polling frequency to a <code>TrackObject</code>. For Instances and manual-tier items, the Frequency argument is always forced to <code>0</code>; non-zero values are only meaningful for Connections and Threads.</p>
+<p><strong>Scenario A — Configuring a Connection with a dead-state check interval</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">-- Connections start in the background batch tier (30-second sweep).</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1">-- Configure promotes this one to the frequency-polled tier at 5-second intervals.</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">someEvent</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onEvent</span><span class="p">)</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">connTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="nv">connTrack</span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;EventConn_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">5</span><span class="p">)</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="c1">-- Reaper checks every 5 seconds whether this connection is still active</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Configuring a long-lived object with a relaxed interval</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">longLivedEvent</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onLongLivedEvent</span><span class="p">)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">mapTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1">-- This connection rarely goes dead; check every 60 seconds to minimise overhead</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="nv">mapTrack</span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;LongConn_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">60</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Configure with Frequency 0 for manual-only management</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">dataTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">playerDataTable</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Table&quot;</span><span class="p">)</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1">-- Tables have no native dead-state; opt out of polling entirely</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="nv">dataTrack</span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;PlayerData_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1">-- Must be cleaned explicitly: Reaper.Clean(&quot;PlayerData_playerX&quot;)</span>
+</span></code></pre></div>
+<p><strong>Scenario D — Configuring an Instance track (Frequency is always 0)</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">character</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">Character</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="c1">-- Frequency 0 is the only valid value for Instance tracks.</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1">-- AncestryChanged detection is already registered at Track() time;</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="c1">-- passing any other value here is silently treated as 0.</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="kd">local</span><span class="w"> </span><span class="nv">charTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">character</span><span class="p">)</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Char_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="chain">:Chain</h3>
+<p>Binds raw child items to a handle for cascade cleanup.</p>
+<p><strong>Scenario A — Chaining a connection and a thread to an Instance track</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">characterTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">character</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Char_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">healthConn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">HealthChanged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onHealthChanged</span><span class="p">)</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">animThread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">task</span><span class="p">.</span><span class="nf">spawn</span><span class="p">(</span><span class="nv">runAnimationLoop</span><span class="p">,</span><span class="w"> </span><span class="nv">character</span><span class="p">)</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1">-- Both are destroyed when the character Instance leaves the game world</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="nv">characterTrack</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">healthConn</span><span class="p">)</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="nv">characterTrack</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">animThread</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Chaining with a custom teardown method</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">customObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">MyFramework</span><span class="p">.</span><span class="nf">new</span><span class="p">()</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="c1">-- MyFramework uses :Dispose() instead of :Destroy()</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="nv">vehicleTrack</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">customObj</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Dispose&quot;</span><span class="p">)</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="c1">-- On cascade, Reaper calls customObj:Dispose() instead of the default</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Fluent chaining across multiple items</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">part</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;TrackedPart&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">    </span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">part</span><span class="p">.</span><span class="nv">Touched</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onTouched</span><span class="p">))</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">    </span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">part</span><span class="p">.</span><span class="nv">ChildAdded</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onChildAdded</span><span class="p">))</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">    </span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">task</span><span class="p">.</span><span class="nf">delay</span><span class="p">(</span><span class="mf">10</span><span class="p">,</span><span class="w"> </span><span class="nv">destroyEffect</span><span class="p">,</span><span class="w"> </span><span class="nv">part</span><span class="p">))</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="c1">-- All three children are torn down when the part leaves the game world</span>
+</span></code></pre></div>
+<hr />
+<h3 id="handlescope">:HandleScope</h3>
+<p>Subordinates an entire Scope to this handle.</p>
+<p><strong>Scenario A — Binding a behaviour Scope to a character Track</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">charTrack</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">character</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Char_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">combatScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="nv">combatScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">Died</span><span class="p">,</span><span class="w"> </span><span class="nv">onDied</span><span class="p">)</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="nv">combatScope</span><span class="p">:</span><span class="nc">Spawn</span><span class="p">(</span><span class="nv">combatLoop</span><span class="p">)</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="c1">-- When the character is destroyed, the combat scope is fully torn down too</span>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="nv">charTrack</span><span class="p">:</span><span class="nc">HandleScope</span><span class="p">(</span><span class="nv">combatScope</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Binding a Scope by string ID (cross-script pattern)</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1">-- CharacterManager creates the Track:</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">charTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">character</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Char_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="c1">-- CombatManager creates the Scope independently:</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">combatScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1">-- CharacterManager binds by ID without needing the live ScopeObject reference:</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="nv">charTrack</span><span class="p">:</span><span class="nc">HandleScope</span><span class="p">(</span><span class="s2">&quot;Combat_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="scopeobject-methods">ScopeObject Methods</h2>
+<h3 id="bindtotrack">:BindToTrack</h3>
+<p>Submits a Scope to be owned by a physical Track.</p>
+<p><strong>Scenario A — Standard bind from the Scope's perspective</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">playerTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">player</span><span class="p">):</span><span class="nc">Configure</span><span class="p">(</span><span class="s2">&quot;Player_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">uiScope</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;UI_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="nv">uiScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">screenGui</span><span class="p">.</span><span class="nv">Activated</span><span class="p">,</span><span class="w"> </span><span class="nv">onActivated</span><span class="p">)</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="c1">-- Bind this Scope to the player Track; cleaned when the player Track is cleaned</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="nv">uiScope</span><span class="p">:</span><span class="nc">BindToTrack</span><span class="p">(</span><span class="nv">playerTrack</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Binding after fully populating the Scope</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">inventoryScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Inventory_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">slot</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nv">inventoryFrame</span><span class="p">:</span><span class="nc">GetChildren</span><span class="p">()</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="w">    </span><span class="nv">inventoryScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">slot</span><span class="p">.</span><span class="nv">MouseButton1Click</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="w">        </span><span class="nf">onSlotClicked</span><span class="p">(</span><span class="nv">slot</span><span class="p">)</span>
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="kr">end</span>
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="c1">-- Bind last, after all connections are established</span>
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="kd">local</span><span class="w"> </span><span class="nv">playerTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s2">&quot;Player_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-29-11"><a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a><span class="kr">if</span><span class="w"> </span><span class="nv">playerTrack</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-29-12"><a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a><span class="w">    </span><span class="nv">inventoryScope</span><span class="p">:</span><span class="nc">BindToTrack</span><span class="p">(</span><span class="nv">playerTrack</span><span class="p">)</span>
+</span><span id="__span-29-13"><a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="kr">end</span>
+</span></code></pre></div>
+<hr />
+<h3 id="unchain">:Unchain</h3>
+<p>Removes a child from a Scope without destroying it.</p>
+<p><strong>Scenario A — Releasing a connection to transfer it to a new owner</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">scopeA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;ScopeA&quot;</span><span class="p">)</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">workspace</span><span class="p">.</span><span class="nv">ChildAdded</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onChildAdded</span><span class="p">)</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="nv">scopeA</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="c1">-- Transfer ownership: release from A and give to B</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="kd">local</span><span class="w"> </span><span class="nv">scopeB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;ScopeB&quot;</span><span class="p">)</span>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="nv">scopeA</span><span class="p">:</span><span class="nc">Unchain</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span><span class="w"> </span><span class="c1">-- conn is still alive, just no longer owned by scopeA</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="nv">scopeB</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">conn</span><span class="p">)</span><span class="w">   </span><span class="c1">-- scopeB is now the owner</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Removing a conditional child before cleanup</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">sessionScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Session_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">tempEffect</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">createParticleEffect</span><span class="p">()</span>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="nv">sessionScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">tempEffect</span><span class="p">)</span>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="c1">-- The effect was already manually destroyed; unchain to prevent double-teardown</span>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="nv">tempEffect</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="nv">sessionScope</span><span class="p">:</span><span class="nc">Unchain</span><span class="p">(</span><span class="nv">tempEffect</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="cleanchild">:CleanChild</h3>
+<p>Immediately destroys a specific child without waiting for the Scope to be cleaned.</p>
+<p><strong>Scenario A — Destroying a temporary effect early</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">roundScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Round_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">roundId</span><span class="p">)</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">countdown</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">createCountdownUI</span><span class="p">()</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="nv">roundScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">countdown</span><span class="p">)</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="c1">-- Round started; countdown UI is no longer needed</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="nv">roundScope</span><span class="p">:</span><span class="nc">CleanChild</span><span class="p">(</span><span class="nv">countdown</span><span class="p">)</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="c1">-- countdown is destroyed and removed from roundScope&#39;s child list</span>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="c1">-- roundScope itself is still alive and tracking other children</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Conditionally cleaning one of several chained connections</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">adminScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Admin_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">kickConn</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nv">kickButton</span><span class="p">.</span><span class="nv">Activated</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onKickClicked</span><span class="p">)</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">banConn</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">banButton</span><span class="p">.</span><span class="nv">Activated</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onBanClicked</span><span class="p">)</span>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="nv">adminScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">kickConn</span><span class="p">)</span>
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="nv">adminScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">banConn</span><span class="p">)</span>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a><span class="c1">-- Player lost admin; disable ban ability but keep kick</span>
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a><span class="nv">adminScope</span><span class="p">:</span><span class="nc">CleanChild</span><span class="p">(</span><span class="nv">banConn</span><span class="p">)</span><span class="w"> </span><span class="c1">-- banConn is disconnected and removed</span>
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="c1">-- kickConn is still alive and owned by adminScope</span>
+</span></code></pre></div>
+<hr />
+<h3 id="connect">:Connect</h3>
+<p>Connects a signal and automatically adds the connection to this Scope's child list.</p>
+<p><strong>Scenario A — Replacing manual connection management</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1">-- Before Reaper: manual tracking required</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">Died</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">onDied</span><span class="p">)</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a><span class="c1">-- (must remember to disconnect conn later...)</span>
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="c1">-- With Reaper Scope: automatic lifecycle</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="kd">local</span><span class="w"> </span><span class="nv">charScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;CharScope_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="nv">charScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">Died</span><span class="p">,</span><span class="w"> </span><span class="nv">onDied</span><span class="p">)</span>
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a><span class="c1">-- Disconnected automatically when charScope is cleaned</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Connecting a custom signal table</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">mySignal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Relay</span><span class="p">.</span><span class="nf">Create</span><span class="p">(</span><span class="s2">&quot;CustomEvent&quot;</span><span class="p">)</span><span class="w"> </span><span class="c1">-- a Relay signal object</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">eventScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;EventScope&quot;</span><span class="p">)</span>
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="nv">eventScope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">mySignal</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">data</span><span class="p">)</span>
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="w">    </span><span class="nf">processData</span><span class="p">(</span><span class="nv">data</span><span class="p">)</span>
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1">-- Works with any table that has a :Connect(callback) method</span>
+</span></code></pre></div>
+<hr />
+<h3 id="spawn">:Spawn</h3>
+<p>Spawns a coroutine and adds it to this Scope's child list. The coroutine is registered before it begins executing, so cleanup is safe regardless of timing.</p>
+<p><strong>Scenario A — Running a polling loop tied to a player session</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">sessionScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Session_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="nv">sessionScope</span><span class="p">:</span><span class="nc">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="w">        </span><span class="nv">task</span><span class="p">.</span><span class="nf">wait</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+</span><span id="__span-36-6"><a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="w">        </span><span class="nf">syncPlayerData</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-36-7"><a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-36-8"><a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-36-9"><a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a><span class="c1">-- When sessionScope is cleaned, the thread is cancelled</span>
+</span><span id="__span-36-10"><a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a><span class="c1">-- No dangling loop continues after the session ends</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Spawning with arguments</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">animScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Anim_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="nv">animScope</span><span class="p">:</span><span class="nc">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">character</span><span class="p">,</span><span class="w"> </span><span class="nv">speed</span><span class="p">)</span>
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="w">    </span><span class="nf">playRunAnimation</span><span class="p">(</span><span class="nv">character</span><span class="p">,</span><span class="w"> </span><span class="nv">speed</span><span class="p">)</span>
+</span><span id="__span-37-5"><a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">.</span><span class="nv">Character</span><span class="p">,</span><span class="w"> </span><span class="mf">16</span><span class="p">)</span>
+</span><span id="__span-37-6"><a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="c1">-- Arguments are forwarded to the coroutine on first resume</span>
+</span></code></pre></div>
+<hr />
+<h3 id="defer">:Defer</h3>
+<p>Defers a callback and adds the scheduled task to this Scope's child list.</p>
+<p><strong>Scenario A — Deferring a UI update to the end of the current frame</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">uiScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;UI_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>
+</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a><span class="nv">uiScope</span><span class="p">:</span><span class="nc">Defer</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-38-4"><a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="w">    </span><span class="c1">-- Runs after the current resume cycle completes</span>
+</span><span id="__span-38-5"><a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a><span class="w">    </span><span class="nf">refreshInventoryUI</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-38-6"><a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-38-7"><a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="c1">-- If uiScope is cleaned before this frame ends, the deferred task is cancelled</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Deferring initialisation that depends on other systems</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">initScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Init&quot;</span><span class="p">)</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>
+</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="nv">initScope</span><span class="p">:</span><span class="nc">Defer</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="w">    </span><span class="c1">-- All synchronous setup has run; safe to initialise dependent systems now</span>
+</span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="w">    </span><span class="nf">notifySystemsReady</span><span class="p">()</span>
+</span><span id="__span-39-6"><a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="delay">:Delay</h3>
+<p>Schedules a delayed task and adds it to this Scope's child list.</p>
+<p><strong>Scenario A — Auto-expiring a timed buff</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">buffScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;SpeedBuff_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="nf">applySpeedBuff</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="mf">1.5</span><span class="p">)</span>
+</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>
+</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="c1">-- Remove buff after 10 seconds; also cancel if buffScope is cleaned early</span>
+</span><span id="__span-40-6"><a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="nv">buffScope</span><span class="p">:</span><span class="nc">Delay</span><span class="p">(</span><span class="mf">10</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-40-7"><a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="w">    </span><span class="nf">removeSpeedBuff</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-40-8"><a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="w">    </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span><span class="s2">&quot;SpeedBuff_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-40-9"><a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Delayed despawn of a temporary effect</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">fxScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;HitFX_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">hitId</span><span class="p">)</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="nv">fxScope</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">effectPart</span><span class="p">)</span>
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+</span><span id="__span-41-4"><a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="c1">-- Despawn after 2 seconds regardless of game state</span>
+</span><span id="__span-41-5"><a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="nv">fxScope</span><span class="p">:</span><span class="nc">Delay</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-41-6"><a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">    </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(</span><span class="s2">&quot;HitFX_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">hitId</span><span class="p">)</span>
+</span><span id="__span-41-7"><a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="repeat">:Repeat</h3>
+<p>Creates a repeating scheduled task and adds it to this Scope's child list.</p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Assignment Library</p>
+<p><code>:Repeat()</code> requires the <strong>Assignment</strong> library to be injected. Without it, this method is a no-op.</p>
+</div>
+<p><strong>Scenario A — Periodic leaderboard sync during a match</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">matchScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;Match_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">matchId</span><span class="p">)</span>
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>
+</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="c1">-- Sync leaderboard every 5 seconds for the duration of the match</span>
+</span><span id="__span-42-4"><a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="nv">matchScope</span><span class="p">:</span><span class="nc">Repeat</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">iteration</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="p">)</span>
+</span><span id="__span-42-5"><a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">    </span><span class="nf">syncLeaderboard</span><span class="p">()</span>
+</span><span id="__span-42-6"><a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-42-7"><a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="c1">-- Automatically cancelled when matchScope is cleaned at match end</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Running a fixed-count animation burst</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">animScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;BurstAnim_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">userId</span><span class="p">)</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="c1">-- Flash the character 5 times with a 0.2s interval</span>
+</span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="nv">animScope</span><span class="p">:</span><span class="nc">Repeat</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="p">)</span>
+</span><span id="__span-43-5"><a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">    </span><span class="nv">character</span><span class="p">.</span><span class="nv">Humanoid</span><span class="p">.</span><span class="nv">RootPart</span><span class="p">.</span><span class="nv">Transparency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nv">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mf">0.5</span>
+</span><span id="__span-43-6"><a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="global-lifecycle-signals">Global Lifecycle Signals</h2>
+<h3 id="reapersignalsontracked-oncleaned-onremoved">Reaper.Signals.OnTracked, OnCleaned, OnRemoved</h3>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Relay Library</p>
+<p>These signals are no-op stubs until Relay is injected. Connect only after calling <code>Reaper.Inject("Relay", Relay)</code>.</p>
+</div>
+<p><strong>Scenario A — Logging all tracked items for debugging</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnTracked</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">item</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">,</span><span class="w"> </span><span class="nv">assignId</span><span class="p">)</span>
+</span><span id="__span-44-2"><a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="nb">string</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="s2">&quot;[Reaper] Tracked: %s | Class: %s | ID: %s&quot;</span><span class="p">,</span>
+</span><span id="__span-44-3"><a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="w">        </span><span class="nf">tostring</span><span class="p">(</span><span class="nv">item</span><span class="p">),</span><span class="w"> </span><span class="nv">classification</span><span class="p">,</span><span class="w"> </span><span class="nv">assignId</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">))</span>
+</span><span id="__span-44-4"><a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario B — Observing cleanups for analytics</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1">-- OnCleaned fires after the teardown action has run.</span>
+</span><span id="__span-45-2"><a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="c1">-- The item reference is available but may no longer be in a valid state.</span>
+</span><span id="__span-45-3"><a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">cleanCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
+</span><span id="__span-45-4"><a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>
+</span><span id="__span-45-5"><a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnCleaned</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">item</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">)</span>
+</span><span id="__span-45-6"><a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="w">    </span><span class="nv">cleanCount</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1</span>
+</span><span id="__span-45-7"><a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">classification</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Instance&quot;</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-45-8"><a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="w">        </span><span class="c1">-- Read only metadata that does not require the Instance to be alive</span>
+</span><span id="__span-45-9"><a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="nb">string</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="s2">&quot;[Reaper] Instance destroyed (total cleans: %d)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">cleanCount</span><span class="p">))</span>
+</span><span id="__span-45-10"><a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-45-11"><a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario C — Reacting to evictions from an Object Pool</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnRemoved</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">item</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">)</span>
+</span><span id="__span-46-2"><a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">classification</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Instance&quot;</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-46-3"><a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="w">        </span><span class="c1">-- An Instance was released (protected); return it to the pool</span>
+</span><span id="__span-46-4"><a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="w">        </span><span class="c1">-- It is still fully intact when OnRemoved fires</span>
+</span><span id="__span-46-5"><a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="w">        </span><span class="nv">objectPool</span><span class="p">:</span><span class="nc">Release</span><span class="p">(</span><span class="nv">item</span><span class="w"> </span><span class="p">::</span><span class="w"> </span><span class="nc">Instance</span><span class="p">)</span>
+</span><span id="__span-46-6"><a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-46-7"><a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario D — Using :Once() for a one-shot observation</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="c1">-- Wait for the very first item to be cleaned, then stop listening</span>
+</span><span id="__span-47-2"><a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnCleaned</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">item</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">)</span>
+</span><span id="__span-47-3"><a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="w">    </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;First item cleaned:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">)</span>
+</span><span id="__span-47-4"><a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="w">    </span><span class="c1">-- Connection is automatically disconnected after this fires once</span>
+</span><span id="__span-47-5"><a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Scenario E — Using :Wait() to yield until an eviction occurs</strong></p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="c1">-- Pause this coroutine until something is removed from the registry</span>
+</span><span id="__span-48-2"><a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">item</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnRemoved</span><span class="p">:</span><span class="nc">Wait</span><span class="p">()</span>
+</span><span id="__span-48-3"><a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Something was evicted:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">classification</span><span class="p">,</span><span class="w"> </span><span class="nf">tostring</span><span class="p">(</span><span class="nv">item</span><span class="p">))</span>
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

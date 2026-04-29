@@ -1,0 +1,6356 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../utilities/assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server-side-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server-Side Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server-Side Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bytewavepacket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWavePacket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inboundpacket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InboundPacket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendconfig-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendConfig (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpatialConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenconfig-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenConfig (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disconnectobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DisconnectObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-side-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client-Side Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client-Side Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#packet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requestconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RequestConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#statescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getstateconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetStateConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialsend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpatialSend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setgatewaywhitelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetGatewayWhitelist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setrequesthandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetRequestHandler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attachmiddleware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AttachMiddleware
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playeradded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlayerAdded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Client
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Client">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getservertime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetServerTime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-state-server-bytewavestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave State — Server (ByteWave.State)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave State — Server (ByteWave.State)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CreateState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getstate-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetState (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getactivestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActiveStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setspatialroot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetSpatialRoot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-methods-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject Methods (Server)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StateObject Methods (Server)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addfilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddFilter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removefilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveFilter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#append" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Append
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#patch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toggle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#increment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Increment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decrement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decrement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiply
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#divide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Divide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settemporary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetTemporary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-state-client-bytewavestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave State — Client (ByteWave.State)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave State — Client (ByteWave.State)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getstate-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetState (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oncreatedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnCreatedState
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-methods-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject Methods (Client)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StateObject Methods (Client)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-client-stateobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (client StateObject)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ondestroyedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnDestroyedState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-action-server-bytewaveaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Action — Server (ByteWave.Action)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Action — Server (ByteWave.Action)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-action-client-bytewaveaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Action — Client (ByteWave.Action)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Action — Client (ByteWave.Action)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (Action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server-side-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server-Side Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server-Side Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bytewavepacket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWavePacket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inboundpacket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InboundPacket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendconfig-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendConfig (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpatialConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenconfig-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenConfig (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disconnectobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DisconnectObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-side-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client-Side Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client-Side Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#packet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requestconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RequestConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="State Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#statescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getstateconfig-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetStateConfig (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatialsend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpatialSend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setgatewaywhitelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetGatewayWhitelist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setrequesthandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetRequestHandler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attachmiddleware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AttachMiddleware
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playeradded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlayerAdded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Client
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Client">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getservertime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetServerTime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-state-server-bytewavestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave State — Server (ByteWave.State)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave State — Server (ByteWave.State)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CreateState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getstate-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetState (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getactivestates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetActiveStates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setspatialroot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetSpatialRoot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-methods-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject Methods (Server)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StateObject Methods (Server)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addfilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddFilter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removefilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoveFilter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#append" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Append
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#patch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toggle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#increment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Increment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decrement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decrement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiply
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#divide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Divide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settemporary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetTemporary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (server)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-state-client-bytewavestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave State — Client (ByteWave.State)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave State — Client (ByteWave.State)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getstate-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetState (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oncreatedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnCreatedState
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateobject-methods-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StateObject Methods (Client)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StateObject Methods (Client)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listen-client-stateobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listen (client StateObject)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ondestroyedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnDestroyedState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy (client)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-action-server-bytewaveaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Action — Server (ByteWave.Action)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Action — Server (ByteWave.Action)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bytewave-action-client-bytewaveaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ByteWave Action — Client (ByteWave.Action)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ByteWave Action — Client (ByteWave.Action)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Send (Action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-reference">API Reference</h1>
+<p>ByteWave exposes a <strong>Server</strong> entry point (used in server scripts) and a <strong>Client</strong> entry point (used in LocalScripts). Both share the same Gateway/Path model. Each entry point also exposes two sub-modules: <code>ByteWave.State</code> and <code>ByteWave.Action</code>.</p>
+<hr />
+<h2 id="exported-types">Exported Types</h2>
+<h3 id="server-side-types">Server-Side Types</h3>
+<h4 id="bytewavepacket"><code>ByteWavePacket</code></h4>
+<p>Passed to middleware functions. Represents a fully-decoded inbound packet before any listeners receive it.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;">The player who sent the packet.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="inboundpacket"><code>InboundPacket</code></h4>
+<p>Passed to gateway listeners on the server. Identical to <code>ByteWavePacket</code> but without the <code>Gateway</code> field (the gateway is already known by the listener that registered for it).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;">The player who sent the packet.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="sendconfig-server"><code>SendConfig</code> <em>(server)</em></h4>
+<p>Options dictionary for <code>ByteWave.Send</code> on the server.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____TargetPlayer</code></td>
+<td style="text-align: left;"><code>Player?</code></td>
+<td style="text-align: left;"><code>nil</code></td>
+<td style="text-align: left;">Send to one player. <code>nil</code> broadcasts to all.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____IsReliable</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Channel to use. <code>True</code> for reliable, <code>False</code> for unreliable.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____InternString</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Compresses both Gateway and Path into 2 bytes integer representation.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="spatialconfig"><code>SpatialConfig</code></h4>
+<p>Options dictionary for <code>ByteWave.SpatialSend</code>. <code>____Radius</code> is required.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Radius</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;"><em>(required)</em></td>
+<td style="text-align: left;">Discovery radius in studs.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____Use3D</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Proximity model to use. <code>True</code> for sphere, <code>False</code> for cylinder.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____IsReliable</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Channel to use. <code>True</code> for reliable, <code>False</code> for unreliable.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____InternString</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Compresses both Gateway and Path into 2 bytes integer representation.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="listenconfig-server"><code>ListenConfig</code> <em>(server)</em></h4>
+<p>Options dictionary for <code>ByteWave.Listen</code> on the server.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____BindTo</code></td>
+<td style="text-align: left;"><code>Instance?</code></td>
+<td style="text-align: left;">When this Instance is destroyed, the listener is automatically removed.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="disconnectobject"><code>DisconnectObject</code></h4>
+<p>Returned by <code>Listen</code>. Call <code>Disconnect()</code> to unregister the callback.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Disconnect</code></td>
+<td style="text-align: left;"><code>() -&gt; ()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="client-side-types">Client-Side Types</h3>
+<h4 id="packet"><code>Packet</code></h4>
+<p>Passed to gateway listeners on the client.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="sendconfig-client"><code>SendConfig</code> <em>(client)</em></h4>
+<p>Options dictionary for <code>ByteWave.Send</code> on the client.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____IsReliable</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Channel to use. <code>True</code> for reliable, <code>False</code> for unreliable.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="listenconfig-client"><code>ListenConfig</code> <em>(client)</em></h4>
+<p>Options dictionary for <code>ByteWave.Listen</code> on the client.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____BindTo</code></td>
+<td style="text-align: left;"><code>Instance?</code></td>
+<td style="text-align: left;">When this Instance is destroyed, the listener is automatically removed.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="requestconfig"><code>RequestConfig</code></h4>
+<p>Options dictionary for <code>ByteWave.Request</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Timeout</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">Seconds to wait before the request is considered timed out. Must be positive number.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="state-types">State Types</h3>
+<h4 id="statescope"><code>StateScope</code></h4>
+<p><div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">StateScope</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;Global&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Private&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Filtered&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Spatial_Global&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Spatial_Private&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Spatial_Filtered&quot;</span>
+</span></code></pre></div>
+Determines which clients receive and observe a StateObject.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Value</th>
+<th style="text-align: left;">Who receives it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>"Global"</code></td>
+<td style="text-align: left;">All connected clients.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"Private"</code></td>
+<td style="text-align: left;">One named owner player.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"Filtered"</code></td>
+<td style="text-align: left;">An explicit allow-list of players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"Spatial_Global"</code></td>
+<td style="text-align: left;">All players within the anchor's radius.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"Spatial_Private"</code></td>
+<td style="text-align: left;">Only the owner player, and only when in range.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"Spatial_Filtered"</code></td>
+<td style="text-align: left;">Only allow-listed players, and only when in range.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="stateobject-server"><code>StateObject</code> <em>(server)</em></h4>
+<p>See the <strong>State Server — StateObject Methods</strong> section below.</p>
+<h4 id="stateobject-client"><code>StateObject</code> <em>(client)</em></h4>
+<p>See the <strong>State Client — StateObject Methods</strong> section below.</p>
+<h4 id="getstateconfig-client"><code>GetStateConfig</code> <em>(client)</em></h4>
+<p>Options dictionary for <code>ByteWave.State.GetState</code> on the client.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Timeout</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">Seconds to wait before returning <code>nil</code>. Must be positive number.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bytewave-server">ByteWave Server</h2>
+<p><strong>Module:</strong> <code>ByteWave_Server</code><br />
+Require this on the server. All public APIs are described below.</p>
+<h3 id="summary">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#send-server">Send</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Queues a packet for delivery to one player or all players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#listen-server">Listen</a></strong></td>
+<td style="text-align: left;"><code>DisconnectObject</code></td>
+<td style="text-align: left;">Registers a callback to receive all packets arriving on a named gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#spatialsend">SpatialSend</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Queues a packet for delivery to all players within a radius of an anchor point.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#setgatewaywhitelist">SetGatewayWhitelist</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Restricts a gateway to a specific list of UserIds.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#setrequesthandler">SetRequestHandler</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Registers a server-side handler for client RPC requests on a named gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#attachmiddleware">AttachMiddleware</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Attaches a custom function that intercepts every inbound packet before listeners receive it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#playeradded">PlayerAdded</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Registers a callback that fires when a player completes the connection handshake.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#inject-server">Inject</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Injects an external library from the Lazy Games Suite of Tools into the ByteWave suite.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="send-server"></a></p>
+<h4 id="send-server"><code>Send</code> <em>(server)</em></h4>
+<p>Queues a packet to be sent to a specific player or broadcast to all players on the next Heartbeat flush.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>SendConfig?</code></td>
+<td style="text-align: left;">(Optional) Controls target player, reliability, and string interning.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Remote Communication</p>
+<p>The packet is not sent immediately. It is accumulated in an outbound buffer and dispatched at the end of the current frame.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">String interning for named paths</p>
+<p>Pass <code>____InternString = true</code> when sending on a named gateway and path that are repeated across many frames. The name is registered once and reduced to two bytes for all subsequent sends.</p>
+</div>
+<hr />
+<p><a id="listen-server"></a></p>
+<h4 id="listen-server"><code>Listen</code> <em>(server)</em></h4>
+<p>Registers a callback to receive all packets arriving on the named gateway from any client.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(InboundPacket) -&gt; ()</code></td>
+<td style="text-align: left;">Called for each arriving packet.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>ListenConfig?</code></td>
+<td style="text-align: left;">(Optional) Provide <code>____BindTo</code> to auto-disconnect when an Instance is destroyed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>DisconnectObject</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Registering a listener on <code>"System"</code> is permitted but receives internal handshake and synchronization packets. These are not player data. The returned <code>DisconnectObject</code> for <code>"System"</code> is inert — the listener cannot be removed.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Lifetime management</p>
+<p>Pass <code>{ ____BindTo = someInstance }</code> to have the listener removed automatically when <code>someInstance</code> is destroyed, with no manual <code>Disconnect()</code> call needed.</p>
+</div>
+<hr />
+<p><a id="spatialsend"></a></p>
+<h4 id="spatialsend"><code>SpatialSend</code></h4>
+<p>Queues a packet for delivery to every player currently within the specified radius of an anchor point in the world.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Anchor</code></td>
+<td style="text-align: left;"><code>BasePart | Model | Attachment</code></td>
+<td style="text-align: left;">The world position to measure distance.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>SpatialConfig</code></td>
+<td style="text-align: left;">Required. Must include <code>____Radius</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Options is required</p>
+<p>Unlike <code>Send</code>, the <code>Options</code> argument is not optional. Calling <code>SpatialSend</code> without an <code>Options</code> table containing <code>____Radius</code> raises an error in Studio.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Cylinder vs Sphere</p>
+<p>By default, distance is measured on the horizontal plane (XZ), allowing ±50 studs of vertical tolerance. Set <code>____Use3D = true</code> for a true three-dimensional sphere where vertical distance counts fully.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Unreliable is the default</p>
+<p><code>SpatialSend</code> defaults to unreliable delivery (<code>____IsReliable = false</code>). If the spatial data is critical (an initial snapshot rather than a repeating update), pass <code>____IsReliable = true</code>.</p>
+</div>
+<hr />
+<p><a id="setgatewaywhitelist"></a></p>
+<h4 id="setgatewaywhitelist"><code>SetGatewayWhitelist</code></h4>
+<p>Restricts access to a gateway so that only clients whose UserId appears in the list can send packets through it. Packets from any other player are silently dropped.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AllowedUserIds</code></td>
+<td style="text-align: left;"><code>{ number }</code></td>
+<td style="text-align: left;">Array of UserIds permitted to send on this gateway.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Calling this replaces any existing whitelist for the gateway entirely. There is no additive mode.</p>
+</div>
+<hr />
+<p><a id="setrequesthandler"></a></p>
+<h4 id="setrequesthandler"><code>SetRequestHandler</code></h4>
+<p>Registers a handler function that is called when a client sends a request to the named gateway via <code>ByteWave.Request</code>. The return value of the handler is sent back to the client.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(Player, any) -&gt; any</code></td>
+<td style="text-align: left;">Called with the requesting player and their query data. The return value is delivered to the client.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Only one handler can be registered per gateway. Registering a second one replaces the first and logs a warning in Studio.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Remote Communication</p>
+<p>The handler's return value is routed back through the reliable channel automatically. The client's coroutine resumes when the response arrives.</p>
+</div>
+<hr />
+<p><a id="attachmiddleware"></a></p>
+<h4 id="attachmiddleware"><code>AttachMiddleware</code></h4>
+<p>Attaches a function that is called for every inbound packet, before any gateway listeners receive it. Return <code>false</code> to drop the packet silently.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(ByteWavePacket) -&gt; boolean</code></td>
+<td style="text-align: left;">Intercepts every inbound packet. Return <code>false</code> to drop it.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Order of evaluation</p>
+<p>Middleware functions run in the order they were attached. ByteWave's built-in anti-spam protection is always the first middleware in the pipeline.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">System packets are exempt</p>
+<p>Packets on the <code>"System"</code> gateway (handshake, time sync, RPC responses) bypass all middleware, including the built-in anti-spam layer.</p>
+</div>
+<hr />
+<p><a id="playeradded"></a></p>
+<h4 id="playeradded"><code>PlayerAdded</code></h4>
+<p>Registers a callback that fires once for each player after they have completed ByteWave's connection handshake.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(Player) -&gt; ()</code></td>
+<td style="text-align: left;">Called once per player on handshake completion.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Not equivalent to Players.PlayerAdded</p>
+<p>A player registered through <code>Players.PlayerAdded</code> has joined the server but has not yet completed ByteWave's handshake. Calling <code>Send</code> targeting that player before <code>PlayerAdded</code> fires may result in packets being queued before the client's string registry is synchronized.</p>
+</div>
+<hr />
+<p><a id="inject-server"></a></p>
+<h4 id="inject-server"><code>Inject</code> <em>(server)</em></h4>
+<p>Injects an external library/framework within the Lazy Games Suite of Tools environment. Currently supports the <strong>Assignment</strong> and <strong>Twin</strong> library.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>moduleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>moduleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The module table to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Assignment and Twin</p>
+<p><code>"Assignment"</code> must be injected before the first Heartbeat fires, otherwise it will not take effect. Inject it at the top of the server script before any game logic runs. <code>"Twin"</code> on the other hand do not require strict injection point but please be aware that if you inject <code>Twin</code> in mid-operation, data loss is possible during the transition window from native worker pool to delegating the parallel work to Twin. It still best to inject both <code>Assignment</code> and <code>Twin</code> during ByteWave initialization phase.</p>
+</div>
+<hr />
+<h2 id="bytewave-client">ByteWave Client</h2>
+<p><strong>Module:</strong> <code>ByteWave_Client</code><br />
+Require this in LocalScripts. The module yields until the connection handshake completes before returning.</p>
+<h3 id="summary_1">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#send-client">Send</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Queues a packet to be sent to the server.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#listen-client">Listen</a></strong></td>
+<td style="text-align: left;"><code>DisconnectObject</code></td>
+<td style="text-align: left;">Registers a callback to receive all packets arriving on a named gateway from the server.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#request">Request</a></strong></td>
+<td style="text-align: left;"><code>boolean, any</code></td>
+<td style="text-align: left;">Sends a request to the server and yields until a response arrives or the timeout elapses.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getservertime">GetServerTime</a></strong></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Returns the current server clock, estimated using round-trip time sampling.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#inject-client">Inject</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Injects an external library into the ByteWave suite on the client.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="send-client"></a></p>
+<h4 id="send-client"><code>Send</code> <em>(client)</em></h4>
+<p>Queues a packet to be sent to the server on the next Heartbeat flush.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Path</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path within the gateway.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The payload to be broadcasted.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>SendConfig?</code></td>
+<td style="text-align: left;">(Optional) Control channel via <code>____IsReliable</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="listen-client"></a></p>
+<h4 id="listen-client"><code>Listen</code> <em>(client)</em></h4>
+<p>Registers a callback to receive all packets arriving from the server on the named gateway.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(Packet) -&gt; ()</code></td>
+<td style="text-align: left;">Called for each incoming packet. Runs deferred.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>ListenConfig?</code></td>
+<td style="text-align: left;">(Optional) Provide <code>____BindTo</code> to auto-disconnect on Instance destruction.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>DisconnectObject</code></p>
+<hr />
+<p><a id="request"></a></p>
+<h4 id="request"><code>Request</code></h4>
+<p>Sends a request to the server and yields the calling coroutine until the server responds or the timeout elapses.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Gateway</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The gateway the packet arrived on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Data</code></td>
+<td style="text-align: left;"><code>any?</code></td>
+<td style="text-align: left;">(Optional) Payload passed to the server handler.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>RequestConfig?</code></td>
+<td style="text-align: left;">(Optional) Set <code>____Timeout</code> to control how long to wait.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>boolean, any</code></p>
+<ul>
+<li>First return: <code>true</code> if the server responded successfully, <code>false</code> on error or timeout.</li>
+<li>Second return: the server handler's return value on success, an error string on failure, or <code>"Timeout"</code> if the wait expired.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>This method suspends the calling coroutine until a response arrives. Do not call it on the main script thread in a context where yielding would stall other logic. Call it inside a <code>task.spawn</code>, <code>Assignment.Spawn</code> (if using Assignment library) or a dedicated coroutine.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Default timeout</p>
+<p>If <code>____Timeout</code> is omitted the request waits up to 5 seconds. For operations that may take longer (e.g. DataStore-backed queries), increase the timeout explicitly.</p>
+</div>
+<hr />
+<p><a id="getservertime"></a></p>
+<h4 id="getservertime"><code>GetServerTime</code></h4>
+<p>Returns an estimate of the current server clock, adjusted for network latency using an exponential moving average of recent round-trip times.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>number</code> — estimated server time in seconds.</p>
+<div class="admonition info">
+<p class="admonition-title">Accuracy note</p>
+<p>The estimate improves over time as more round-trip samples accumulate. During the first few seconds after joining the value may be slightly imprecise.</p>
+</div>
+<hr />
+<p><a id="inject-client"></a></p>
+<h4 id="inject-client"><code>Inject</code> <em>(client)</em></h4>
+<p>Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the <strong>Assignment</strong> library.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>moduleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>moduleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The module table to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Assignment</p>
+<p>Just like the server version, <code>"Assignment"</code> must be injected before the first Heartbeat fires, otherwise it will not take effect. Inject it at the ByteWave initialization phase before any game logic runs.</p>
+</div>
+<hr />
+<h2 id="bytewave-state-server-bytewavestate">ByteWave State — Server (<code>ByteWave.State</code>)</h2>
+<p><strong>Accessed via:</strong> <code>ByteWave.State</code> on the server.</p>
+<h3 id="summary_2">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#createstate">CreateState</a></strong></td>
+<td style="text-align: left;"><code>StateObject</code></td>
+<td style="text-align: left;">Creates and registers a new replicated state object.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getstate-server">GetState</a></strong></td>
+<td style="text-align: left;"><code>StateObject?</code></td>
+<td style="text-align: left;">Returns the StateObject for a given ID, or nil if it does not exist.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getactivestates">GetActiveStates</a></strong></td>
+<td style="text-align: left;"><code>{ [string]: StateObject }</code></td>
+<td style="text-align: left;">Returns the full dictionary of all currently registered states.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#setspatialroot">SetSpatialRoot</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Overrides the workspace root used for spatial overlap queries.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="createstate"></a></p>
+<h4 id="createstate"><code>CreateState</code></h4>
+<p>Creates, registers, and immediately replicates a new StateObject with the given data and scope.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>UniqueID</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">A unique string identifier for this state. Must be non-empty and not already in use.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>InitialData</code></td>
+<td style="text-align: left;"><code>{ [string | number]: any }</code></td>
+<td style="text-align: left;">The initial data table. Immediately replicated to eligible clients.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Scope</code></td>
+<td style="text-align: left;"><code>StateScope?</code></td>
+<td style="text-align: left;">Controls which clients receive this state. Defaults to <code>"Spatial_Global"</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>OwnerOrFilter</code></td>
+<td style="text-align: left;"><code>(Player | { Player })?</code></td>
+<td style="text-align: left;">A single Player (for Private scopes) or an array of Players (for Filtered scopes).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Anchor</code></td>
+<td style="text-align: left;"><code>BasePart | Model?</code></td>
+<td style="text-align: left;">Required for Spatial scopes. The world object whose position determines discovery.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Radius</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Discovery radius in studs for Spatial scopes. Defaults to <code>150</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>HierarchyInfo</code></td>
+<td style="text-align: left;"><code>{ Parent: StateObject? }?</code></td>
+<td style="text-align: left;">(Optional) Links this state as a child of another. Children inherit their parent's scope and owner/filter when not specified.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>StateObject</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Raises an error if <code>UniqueID</code> is empty or already registered. Raises an error if a Spatial scope is specified with an <code>Anchor</code> that is not a <code>BasePart</code> or <code>Model</code>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Spatial without Anchor</p>
+<p>Creating a Spatial-scoped state without an <code>Anchor</code> logs a warning in Studio. The state will never be discovered by any client.</p>
+</div>
+<hr />
+<p><a id="getstate-server"></a></p>
+<h4 id="getstate-server"><code>GetState</code> <em>(server)</em></h4>
+<p>Returns the StateObject registered under the given ID.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>UniqueID</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The identifier of the state to retrieve.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>StateObject?</code> — the state controller, or <code>nil</code> if no state with that ID exists.</p>
+<hr />
+<p><a id="getactivestates"></a></p>
+<h4 id="getactivestates"><code>GetActiveStates</code></h4>
+<p>Returns the complete dictionary of all currently registered states, keyed by their UniqueID.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>{ [string]: StateObject }</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>The returned table is a direct reference to the live registry. Do not modify it.</p>
+</div>
+<hr />
+<p><a id="setspatialroot"></a></p>
+<h4 id="setspatialroot"><code>SetSpatialRoot</code></h4>
+<p>Overrides the workspace scope used for all spatial overlap queries. By default queries search the entire workspace. After calling this, queries are restricted to descendants of the specified folder.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Folder</code></td>
+<td style="text-align: left;"><code>Instance</code></td>
+<td style="text-align: left;">The root Instance to scope all spatial queries within.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Must be called before creating Spatial states</p>
+<p>This setting is applied once at startup. Calling it after Spatial states have already been created will not retroactively narrow their search scope.</p>
+</div>
+<hr />
+<p><a id="stateobject-server"></a></p>
+<h3 id="stateobject-methods-server">StateObject Methods (Server)</h3>
+<p>All methods below are called on a StateObject handle returned by <code>CreateState</code> or <code>GetState</code>.</p>
+<h4 id="summary_3">Summary</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#set">Set</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sets a key to a new value and queues the change for replication.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#get-server">Get</a></strong></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Returns the current value stored at a key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#addfilter">AddFilter</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Adds a player to a Filtered state's allow-list and sends an initial full-sync to that player.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#removefilter">RemoveFilter</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Removes a player from a Filtered state's allow-list and sends a destroy signal to that player.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#append">Append</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Adds a value after the highest existing numeric index.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#remove">Remove</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Removes a value by key or index, with optional list-restructuring behaviour.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#swap">Swap</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Exchanges the values at two keys.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#patch">Patch</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sets multiple keys to the same boolean value in one call.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#toggle">Toggle</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Flips the boolean value at a key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#increment">Increment</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Adds a number to the value at a key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#decrement">Decrement</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Subtracts a number from the value at a key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#multiply">Multiply</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Multiplies the value at a key by an amount.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#divide">Divide</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Divides the value at a key by an amount.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#settemporary">SetTemporary</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sets a key to a value for a fixed duration, then reverts or clears it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#destroy-server">Destroy</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Removes the state, cancels all timers, destroys all children, and notifies clients.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="set"></a></p>
+<h4 id="set"><code>Set</code></h4>
+<p>Sets a key to a new value. If the value differs from the current one, the change is marked for replication to all eligible clients. Supports slash-delimited paths for deep nested access (e.g. <code>"inventory/weapons/1"</code>).</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The path as a key to write specific target on the state's data tree.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The new value. Pass <code>nil</code> to delete the key.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Numeric fast path</p>
+<p>When <code>Key</code> is a plain string and <code>Value</code> is a number, the update is delivered through a compact binary channel in the same frame rather than waiting for the next dirty-queue flush 50ms later.</p>
+</div>
+<hr />
+<p><a id="get-server"></a></p>
+<h4 id="get-server"><code>Get</code> <em>(server)</em></h4>
+<p>Returns the value stored at the given key. Supports slash-delimited deep paths.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The path as a key to fetch specific target on the state's data tree.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>any</code></p>
+<hr />
+<p><a id="addfilter"></a></p>
+<h4 id="addfilter"><code>AddFilter</code></h4>
+<p>Adds a player to this state's allow-list. The player immediately receives a full snapshot of the state's current data. Has no effect on non-Filtered states.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>player</code></td>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;">The player to add.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Remote Communication</p>
+<p>Calling this on a <code>"Filtered"</code> state immediately sends a full-sync replication packet to the newly added player.</p>
+</div>
+<hr />
+<p><a id="removefilter"></a></p>
+<h4 id="removefilter"><code>RemoveFilter</code></h4>
+<p>Removes a player from this state's allow-list and sends a destroy signal to that player. Has no effect on non-Filtered states.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>player</code></td>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;">The player to remove.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Remote Communication</p>
+<p>The removed player receives a destroy instruction and their local copy of the state is cleaned up.</p>
+</div>
+<hr />
+<p><a id="append"></a></p>
+<h4 id="append"><code>Append</code></h4>
+<p>Adds a value after the highest currently occupied numeric index in the state data.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value to append.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="remove"></a></p>
+<h4 id="remove"><code>Remove</code></h4>
+<p>Removes the value at the specified key or numeric index and replicates the deletion. When operating on a numeric index, the optional <code>EnableShifting</code> parameter controls how the list is restructured after the removal.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetLocation</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key or numeric index to remove.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>EnableShifting</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">Controls list restructuring for numeric indices. See behaviour table below.</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>EnableShifting</code> behaviour:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Value</th>
+<th style="text-align: left;">Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>nil</code> <em>(default)</em></td>
+<td style="text-align: left;">Deletes the key directly. No reordering — may leave a gap in a numeric list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Tail swap — the last element is moved into the vacated slot and the tail is cleared. O(1), but does not preserve order.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Sequential shift — every element above the removed index shifts down by one. Preserves order, O(n).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">String keys always use simple deletion</p>
+<p>When <code>TargetLocation</code> is a string, <code>EnableShifting</code> is ignored and the key is simply set to <code>nil</code>, regardless of the value passed.</p>
+</div>
+<hr />
+<p><a id="swap"></a></p>
+<h4 id="swap"><code>Swap</code></h4>
+<p>Exchanges the values stored at two keys within the state in a single replicated operation.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key1</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The first key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Key2</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The second key.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="patch"></a></p>
+<h4 id="patch"><code>Patch</code></h4>
+<p>Sets every key in the provided array to the same boolean value in a single call.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKeys</code></td>
+<td style="text-align: left;"><code>{ string | number }</code></td>
+<td style="text-align: left;">Array of keys to update.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">The value to assign to each key.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="toggle"></a></p>
+<h4 id="toggle"><code>Toggle</code></h4>
+<p>Flips the boolean stored at the given key.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key whose boolean value to flip.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="increment"></a></p>
+<h4 id="increment"><code>Increment</code></h4>
+<p>Adds <code>Amount</code> to the numeric value at <code>TargetKey</code>. If the key is empty it is treated as zero.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key to increment.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Amount</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The amount to add.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>In Studio, raises an error if the existing value at <code>TargetKey</code> is not a number.</p>
+</div>
+<hr />
+<p><a id="decrement"></a></p>
+<h4 id="decrement"><code>Decrement</code></h4>
+<p>Subtracts <code>Amount</code> from the numeric value at <code>TargetKey</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key to decrement.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Amount</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The amount to subtract.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="multiply"></a></p>
+<h4 id="multiply"><code>Multiply</code></h4>
+<p>Multiplies the numeric value at <code>TargetKey</code> by <code>Amount</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key to multiply.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Amount</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The multiplier.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="divide"></a></p>
+<h4 id="divide"><code>Divide</code></h4>
+<p>Divides the numeric value at <code>TargetKey</code> by <code>Amount</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key to divide.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Amount</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The divisor. Must not be zero.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Raises an error in Studio if <code>Amount</code> is zero.</p>
+</div>
+<hr />
+<p><a id="settemporary"></a></p>
+<h4 id="settemporary"><code>SetTemporary</code></h4>
+<p>Sets a key to a value for <code>Duration</code> seconds. When the duration expires the value is either restored to what it was before the call, or deleted entirely.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TargetKey</code></td>
+<td style="text-align: left;"><code>string | number</code></td>
+<td style="text-align: left;">The key to temporarily set.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The temporary value.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Duration</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">How long in seconds before the effect expires. Must be positive.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RevertOnExpiry</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">(Optional) <code>true</code> (default) restores the previous value; <code>false</code> deletes the key.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Stacking SetTemporary calls</p>
+<p>Calling <code>SetTemporary</code> on the same key while a previous call's timer is still running cancels the old timer before applying the new one. Only the most recent call's duration and behavior take effect.</p>
+</div>
+<hr />
+<p><a id="destroy-server"></a></p>
+<h4 id="destroy-server"><code>Destroy</code> <em>(server)</em></h4>
+<p>Cancels all active timers on this state, destroys all child states in hierarchy order (deepest first), notifies all eligible clients to remove their local copy, and unregisters the state from the active registry.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Irreversible</p>
+<p>Once destroyed, a StateObject cannot be used again. Attempting to call methods on a destroyed state has undefined behavior.</p>
+</div>
+<hr />
+<h2 id="bytewave-state-client-bytewavestate">ByteWave State — Client (<code>ByteWave.State</code>)</h2>
+<p><strong>Accessed via:</strong> <code>ByteWave.State</code> on the client.</p>
+<h3 id="summary_4">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#getstate-client">GetState</a></strong></td>
+<td style="text-align: left;"><code>StateObject?</code></td>
+<td style="text-align: left;">Waits up to a timeout for a state to arrive, then returns it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#oncreatedstate">OnCreatedState</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Registers a callback that fires whenever a new state is received from the server.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="getstate-client"></a></p>
+<h4 id="getstate-client"><code>GetState</code> <em>(client)</em></h4>
+<p>Returns the locally cached StateObject for the given ID. If the state has not arrived yet, the call yields until it does or the timeout elapses.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Id</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The unique identifier of the state.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>GetStateConfig?</code></td>
+<td style="text-align: left;">(Optional) Set <code>____Timeout</code> to override the default 5-second wait.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>StateObject?</code> — the state controller, or <code>nil</code> if the timeout elapsed.</p>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>This method may suspend the calling coroutine for up to the configured timeout. Do not call it during game initialization code that must complete immediately.</p>
+</div>
+<hr />
+<p><a id="oncreatedstate"></a></p>
+<h4 id="oncreatedstate"><code>OnCreatedState</code></h4>
+<p>Registers a callback that fires whenever a new StateObject is received from the server. Also immediately fires for every state that has already arrived before this call was made.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(StateObject) -&gt; ()</code></td>
+<td style="text-align: left;">Called with each new StateObject on creation.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<p><a id="stateobject-client"></a></p>
+<h3 id="stateobject-methods-client">StateObject Methods (Client)</h3>
+<h4 id="summary_5">Summary</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#get-client">Get</a></strong></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Returns the current local value at a key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#listen-state-client">Listen</a></strong></td>
+<td style="text-align: left;"><code>DisconnectObject</code></td>
+<td style="text-align: left;">Registers a change listener for a key and returns a disconnect object.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#ondestroyedstate">OnDestroyedState</a></strong></td>
+<td style="text-align: left;"><code>DisconnectObject</code></td>
+<td style="text-align: left;">Registers a callback that fires when the server removes this state.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#destroy-client">Destroy</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Cleans up the local state and fires all destroy listeners.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="get-client"></a></p>
+<h4 id="get-client"><code>Get</code> <em>(client)</em></h4>
+<p>Returns the current locally cached value at the given key. Supports slash-delimited deep paths.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The key to read to.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>any</code></p>
+<hr />
+<p><a id="listen-state-client"></a></p>
+<h4 id="listen-client-stateobject"><code>Listen</code> <em>(client StateObject)</em></h4>
+<p>Registers a callback that fires whenever the server updates the given key on this state. Immediately fires once with the current value if the key is already populated.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Key</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The key to watch.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>(newValue: any, oldValue: any) -&gt; ()</code></td>
+<td style="text-align: left;">Called with the new value and the previous value on each change. The first call (immediate) passes <code>nil</code> as the old value.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>DisconnectObject</code> — call <code>:Disconnect()</code> to unregister the listener.</p>
+<hr />
+<p><a id="ondestroyedstate"></a></p>
+<h4 id="ondestroyedstate"><code>OnDestroyedState</code></h4>
+<p>Registers a callback that fires when the server instructs this state to be destroyed.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>() -&gt; ()</code></td>
+<td style="text-align: left;">Called when this state is destroyed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>DisconnectObject</code> — call <code>:Disconnect()</code> to unregister the callback.</p>
+<hr />
+<p><a id="destroy-client"></a></p>
+<h4 id="destroy-client"><code>Destroy</code> <em>(client)</em></h4>
+<p>Fires all destroy listeners, clears all listeners and data, and removes this state from the local registry. Typically called automatically when the server sends a destroy instruction; you may call it manually to proactively clean up.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<h2 id="bytewave-action-server-bytewaveaction">ByteWave Action — Server (<code>ByteWave.Action</code>)</h2>
+<p><strong>Accessed via:</strong> <code>ByteWave.Action</code> on the server.</p>
+<h3 id="summary_6">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#register">Register</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Registers a named handler that fires when a client sends an action with that name.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getconfig">GetConfig</a></strong></td>
+<td style="text-align: left;"><code>{ [string]: any }?</code></td>
+<td style="text-align: left;">Returns the configuration table associated with a registered action.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="register"></a></p>
+<h4 id="register"><code>Register</code></h4>
+<p>Registers a handler function that is called when a client sends an action with the matching name through <code>ByteWave.Action.Send</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ActionName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The unique name identifying this action.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Configuration</code></td>
+<td style="text-align: left;"><code>{ [string]: any }?</code></td>
+<td style="text-align: left;">Optional metadata table associated with this action. Retrievable via <code>GetConfig</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Handler</code></td>
+<td style="text-align: left;"><code>(Player, any) -&gt; ()</code></td>
+<td style="text-align: left;">Called with the triggering player and the payload when the action arrives.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Registering a handler for a name that is already registered replaces the previous handler. A warning is logged in Studio.</p>
+</div>
+<hr />
+<p><a id="getconfig"></a></p>
+<h4 id="getconfig"><code>GetConfig</code></h4>
+<p>Returns the configuration table that was passed when <code>Register</code> was called for the named action.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ActionName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The action name to look up.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>{ [string]: any }?</code> — the config table, or <code>nil</code> if the action is not registered or was registered without a config.</p>
+<hr />
+<h2 id="bytewave-action-client-bytewaveaction">ByteWave Action — Client (<code>ByteWave.Action</code>)</h2>
+<p><strong>Accessed via:</strong> <code>ByteWave.Action</code> on the client.</p>
+<h3 id="summary_7">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#action-send">Send</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Sends a named action to the server.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a id="action-send"></a></p>
+<h4 id="send-action"><code>Send</code> <em>(Action)</em></h4>
+<p>Sends a named action request to the server. The server-side handler registered under the same name will be called.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ActionName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the action to trigger.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Payload</code></td>
+<td style="text-align: left;"><code>{ [string]: any }?</code></td>
+<td style="text-align: left;">(Optional) Data table passed to the server handler.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: ByteWave</p>
+<p><code>ByteWave.Action</code> is initialized automatically when the main client module is required. Calling <code>Send</code> before the main client module has finished loading will log a warning and do nothing.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

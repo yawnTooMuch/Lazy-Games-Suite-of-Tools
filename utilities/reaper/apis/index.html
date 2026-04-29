@@ -1,0 +1,4951 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#reaper-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-reaper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Reaper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Reaper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Function Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#track" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clean
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iscleanable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IsCleanable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trackobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: TrackObject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: TrackObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandleScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-scopeobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: ScopeObject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: ScopeObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bindtotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BindToTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unchain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanchild" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CleanChild
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-events-reapersignals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Events: Reaper.Signals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Global Events: Reaper.Signals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsontracked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnTracked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsoncleaned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnCleaned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsonremoved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnRemoved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal: Once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal-wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal: Wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reapable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trackobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrackObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scopeobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScopeObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectionobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConnectionObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenersignalt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenerSignal&lt;T...&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-reaper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Reaper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Reaper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Function Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#track" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clean
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iscleanable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IsCleanable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-trackobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: TrackObject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: TrackObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlescope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandleScope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destroy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-scopeobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: ScopeObject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: ScopeObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods-summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-details_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bindtotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BindToTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unchain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanchild" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CleanChild
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-events-reapersignals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Events: Reaper.Signals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Global Events: Reaper.Signals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsontracked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnTracked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsoncleaned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnCleaned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reapersignalsonremoved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaper.Signals.OnRemoved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal: Once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal-wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signal: Wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reapable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reapable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trackobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TrackObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scopeobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScopeObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectionobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConnectionObject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listenersignalt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ListenerSignal&lt;T...&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="reaper-api-reference">Reaper API Reference</h1>
+<p>This page documents every public function, method, type, and signal surface exposed by the <strong>Reaper</strong> framework.</p>
+<hr />
+<h2 id="class-reaper">Class: Reaper</h2>
+<p>The global singleton module used to register items for tracking, instantiate Scopes, execute teardowns, fetch live handles, and inject optional dependencies.</p>
+<h3 id="functions-summary">Functions Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#inject">Inject</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Registers an external library from the Lazy Games Suite into Reaper's runtime, activating features that are unavailable without it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#track">Track</a></strong></td>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Registers a raw item into Reaper's memory system and returns a handle to manage its lifecycle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#scope">Scope</a></strong></td>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Creates a named, managed container that accumulates items and tears them all down together when the Scope is cleaned.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#clean">Clean</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Immediately destroys one or more tracked items and cascades teardown to everything they own.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#remove">Remove</a></strong></td>
+<td style="text-align: left;"><code>{Reapable}</code></td>
+<td style="text-align: left;">Releases one or more items from Reaper's registry without destroying them, returning the raw items to the caller.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#get">Get</a></strong></td>
+<td style="text-align: left;"><code>TrackObject?</code></td>
+<td style="text-align: left;">Returns the live tracking handle for an item or Scope registered under a given identifier, or <code>nil</code> if not found.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#is">Is</a></strong></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Returns <code>true</code> if a value is a live, uncleaned, un-evicted tracking handle — including both <code>TrackObject</code> and <code>ScopeObject</code> instances.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#iscleanable">IsCleanable</a></strong></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Returns <code>true</code> if a value is an uncleaned <code>ScopeObject</code> handle, regardless of its eviction state.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="function-details">Function Details</h3>
+<h4 id="inject">Inject</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="nv">ModuleName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">ModuleTableObject</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the <strong>Assignment</strong> and <strong>Relay</strong> libraries.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ModuleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ModuleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The required module table/object to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">Standalone Operation</p>
+<p>Reaper is fully functional without any injection. Inject <strong>Assignment</strong> to enable <code>:Repeat()</code> and advanced scheduling inside Scopes. Inject <strong>Relay</strong> to enable the three global lifecycle signals on <code>Reaper.Signals</code>.</p>
+</div>
+<hr />
+<h4 id="track">Track</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Track</span><span class="p">(</span><span class="nv">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">Reapable</span><span class="p">,</span><span class="w"> </span><span class="nv">ItemClassification</span><span class="p">:</span><span class="w"> </span><span class="nc">Classification</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">CustomMethod</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">IsProtected</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">TrackObject</span>
+</span></code></pre></div>
+<p>Registers a raw item into Reaper's memory system and returns a handle to manage its lifecycle. If the item is already registered, the existing handle is returned without creating a duplicate entry. The item's type is detected automatically unless <code>ItemClassification</code> is explicitly provided.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Item</code></td>
+<td style="text-align: left;"><code>Reapable</code></td>
+<td style="text-align: left;">The <code>Instance</code>, <code>RBXScriptConnection</code>, <code>thread</code>, <code>function</code>, or <code>table</code> to register.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ItemClassification</code></td>
+<td style="text-align: left;"><code>Classification?</code></td>
+<td style="text-align: left;"><em>(Optional)</em> Explicitly overrides auto-classification. Accepts <code>"Instance"</code>, <code>"Connection"</code>, <code>"Thread"</code>, <code>"Function"</code>, <code>"Table"</code>, <code>"Scope"</code>, or <code>"Unknown"</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CustomMethod</code></td>
+<td style="text-align: left;"><code>string?</code></td>
+<td style="text-align: left;"><em>(Optional)</em> Name of the method to call on the item during teardown instead of the default (<code>Destroy</code>, <code>Disconnect</code>, or <code>task.cancel</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsProtected</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;"><em>(Optional)</em> If <code>true</code>, the item is released from the registry intact when its natural end-of-life is detected, allowing external poolers to reclaim it instead of destroying it.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">The tracking handle for the item. If the item was already registered, the existing handle is returned.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Abstract Types Require a Lifecycle Anchor</p>
+<p>Tracking a <code>Table</code>, <code>Function</code>, or <code>Unknown</code> type places it in the zero-cost manual tier because these types have no native dead-state. Reaper will never automatically clean them. You <strong>must</strong> chain them to a Scope or Track, or call <code>Reaper.Clean()</code> explicitly, to prevent memory leaks. A Studio warning is emitted whenever this pattern is detected.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Passing a Live Handle Returns It Unchanged</p>
+<p>If you pass a live <code>TrackObject</code> or <code>ScopeObject</code> as the <code>Item</code> argument, <code>Reaper.Track()</code> detects it immediately and returns it as-is without creating any new registration. This makes it safe to call <code>Track()</code> defensively when the caller is uncertain whether an item is already registered.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Only</p>
+<p>Argument validation and the <code>nil</code> guard only fire in Roblox Studio. In production, invalid inputs fail silently.</p>
+</div>
+<hr />
+<h4 id="scope">Scope</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="nv">ScopeID</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">ScopeObject</span>
+</span></code></pre></div>
+<p>Creates a named, managed container that accumulates items and tears them all down together when the Scope is cleaned. The returned <code>ScopeObject</code> is fully configured on creation and immediately reachable by its ID from any script via <code>Reaper.Get()</code> or <code>Reaper.Clean()</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ScopeID</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Unique string identifier for this Scope. Used for cross-script retrieval and teardown. Must not already be in use.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">The Scope handle.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if <code>ScopeID</code> is an empty string or if a Scope or item with the same ID already exists in the registry.</p>
+</div>
+<hr />
+<h4 id="clean">Clean</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Clean</span><span class="p">(...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Immediately destroys one or more tracked items and cascades teardown to everything they own. For each identifier, Reaper resolves it to its tracking handle, destroys the primary item, then recursively destroys all chained children and cleans all bound Scopes. The item is then removed from the registry.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic list of identifiers. Each can be a string <code>AssignID</code>, a raw item reference, or a <code>TrackObject</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Cascade Teardown</p>
+<p><code>Reaper.Clean()</code> is recursive. Cleaning a Track also destroys all chained children and all bound Scopes, including their children. Ensure dependent systems do not hold stale references to objects in the teardown tree.</p>
+</div>
+<hr />
+<h4 id="remove">Remove</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Remove</span><span class="p">(...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">{</span><span class="nc">Reapable</span><span class="p">}</span>
+</span></code></pre></div>
+<p>Releases one or more items from Reaper's registry without destroying them, returning the raw items to the caller. The primary item itself is left intact and de-registered so it can be safely reclaimed by an external system (such as an Object Pool). Any event-based death listener attached to the primary item is disconnected. Any children chained to the item and any Scopes bound to it are <strong>destroyed</strong>, not released — only the root item is preserved.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic list of identifiers. Each can be a string <code>AssignID</code>, a raw item reference, or a <code>TrackObject</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>{Reapable}</code></td>
+<td style="text-align: left;">An array of the raw primary items that were released, in the order they were processed.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Children Are Destroyed, Not Released</p>
+<p><code>Reaper.Remove()</code> only preserves the <strong>primary</strong> item. Any items chained to it or Scopes bound to it are fully destroyed in the same call. If you need to preserve child items as well, unchain them first with <code>:Unchain()</code> before calling <code>Reaper.Remove()</code>.</p>
+</div>
+<hr />
+<h4 id="get">Get</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nv">Identifier</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">TrackObject</span><span class="err">?</span>
+</span></code></pre></div>
+<p>Returns the live tracking handle for an item or Scope registered under a given identifier, or <code>nil</code> if not found. String identifiers are resolved in constant time. Raw item references are also resolved in constant time via direct registry lookup. Returns <code>nil</code> if the identifier has never been registered, or if the object has already been cleaned or evicted.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Identifier</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">A string <code>AssignID</code>/<code>ScopeID</code>, a raw item reference, or a <code>TrackObject</code>. Booleans and numbers are rejected in Studio.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TrackObject?</code></td>
+<td style="text-align: left;">The live <code>TrackObject</code> or <code>ScopeObject</code>, or <code>nil</code> if not found.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Cross-Script Appending</p>
+<p>Use <code>Reaper.Get()</code> to retrieve a Scope created in another module and dynamically chain additional items to it. When that Scope is eventually cleaned, your chained items are torn down automatically — no shared reference required.</p>
+</div>
+<hr />
+<h4 id="is">Is</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nv">Value</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">boolean</span>
+</span></code></pre></div>
+<p>Returns <code>true</code> if a value is a live, uncleaned, un-evicted tracking handle — including both <code>TrackObject</code> and <code>ScopeObject</code> instances. Passing any other value — a raw <code>Instance</code>, a cleaned handle, a plain table, or <code>nil</code> — returns <code>false</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value to inspect.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if <code>Value</code> is a live, valid <code>TrackObject</code> or <code>ScopeObject</code>; <code>false</code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Scope Detection</p>
+<p><code>Reaper.Is()</code> returns <code>true</code> for live <code>ScopeObject</code>s as well as <code>TrackObject</code>s, because a Scope is an extension of a Track and passes the same validity checks. To test exclusively for a live Scope, use <code>Reaper.IsCleanable()</code> instead.</p>
+</div>
+<hr />
+<h4 id="iscleanable">IsCleanable</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nf">IsCleanable</span><span class="p">(</span><span class="nv">Value</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">boolean</span>
+</span></code></pre></div>
+<p>Returns <code>true</code> if a value is an uncleaned <code>ScopeObject</code> handle, regardless of its eviction state. Distinguishes a live <code>ScopeObject</code> from a plain <code>TrackObject</code>, a cleaned Scope, or any non-Reaper value. Unlike <code>Reaper.Is()</code>, this check does not require the handle to be un-evicted — an evicted Scope that has not been cleaned will still return <code>true</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value to inspect.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if <code>Value</code> is a <code>ScopeObject</code> whose cleaned flag has not been set; <code>false</code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="class-trackobject">Class: TrackObject</h2>
+<p>The core handle representing a tracked item. Returned by <code>Reaper.Track()</code>. Holds the item reference, its resolved classification, and its configured identity.</p>
+<h3 id="methods-summary">Methods Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#configure">Configure</a></strong></td>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Assigns a unique string identifier and a dead-state check interval to this handle, making it reachable by name from any script.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#chain">Chain</a></strong></td>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Subordinates a raw item to this handle so it is destroyed alongside it when this handle is cleaned.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#handlescope">HandleScope</a></strong></td>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Subordinates an entire Scope to this handle so it is cleaned when this handle is cleaned.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#destroy">Destroy</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Immediately destroys this handle and everything it owns — equivalent to calling <code>Reaper.Clean</code> with this handle.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="method-details">Method Details</h3>
+<h4 id="configure">Configure</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">TrackObject</span><span class="p">:</span><span class="nc">Configure</span><span class="p">(</span><span class="nv">AssignID</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">Frequency</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">):</span><span class="w"> </span><span class="nc">TrackObject</span>
+</span></code></pre></div>
+<p>Assigns a unique string identifier and a dead-state check interval to this handle, making it reachable by name from any script. A <code>Frequency</code> of <code>0</code> places the handle in the manual tier with no background polling; any positive value places eligible item types in the frequency-polled tier and schedules checks at that interval in seconds. Configuration is a one-time operation; calling <code>:Configure()</code> on an already-configured handle throws in Studio.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>AssignID</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Unique identifier used for cross-script retrieval and teardown. Must not already be in use.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Frequency</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Dead-state check interval in seconds. <code>0</code> opts out of all background polling.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Frequency Is Ignored for Instances and Manual-Tier Items</p>
+<p>Instances are always monitored via an <code>AncestryChanged</code> hook registered at tracking time — they receive event-driven detection regardless of what <code>Frequency</code> is passed. When <code>:Configure()</code> is called on an Instance track, the <code>Frequency</code> argument is silently ignored and treated as <code>0</code>. The same applies to <code>Table</code>, <code>Function</code>, <code>Scope</code>, and <code>Unknown</code> types. Only <code>Connection</code> and <code>Thread</code> items tracked in the background batch tier are eligible to be promoted into the frequency-polled tier by passing a non-zero value.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if <code>AssignID</code> is empty or already registered, if <code>Frequency</code> is negative, or if this handle has already been configured, cleaned, or evicted.</p>
+</div>
+<hr />
+<h4 id="chain">Chain</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">TrackObject</span><span class="p">:</span><span class="nc">Chain</span><span class="p">(</span><span class="nv">ChildItem</span><span class="p">:</span><span class="w"> </span><span class="nc">Reapable</span><span class="p">,</span><span class="w"> </span><span class="nv">CustomMethod</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">TrackObject</span>
+</span></code></pre></div>
+<p>Subordinates a raw item to this handle so it is destroyed alongside it when this handle is cleaned. The item's type is auto-detected and the correct teardown action is stored. If the item currently belongs to another owner, it is released from that owner before being registered here — Last Call Supremacy. Returns <code>self</code> for fluent chaining.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ChildItem</code></td>
+<td style="text-align: left;"><code>Reapable</code></td>
+<td style="text-align: left;">The raw item to subordinate. Must not be <code>nil</code>, the handle's own item, or a <code>TrackObject</code>/<code>ScopeObject</code> wrapper.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CustomMethod</code></td>
+<td style="text-align: left;"><code>string?</code></td>
+<td style="text-align: left;"><em>(Optional)</em> Explicit teardown method name to call on the child instead of the default.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Raw Items Only</p>
+<p>Pass the raw underlying item, never a <code>TrackObject</code> or <code>ScopeObject</code> wrapper. To bind a Scope to a Track, use <code>:HandleScope()</code> or <code>ScopeObject:BindToTrack()</code>. Passing a wrapper throws in Studio.</p>
+</div>
+<hr />
+<h4 id="handlescope">HandleScope</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">TrackObject</span><span class="p">:</span><span class="nc">HandleScope</span><span class="p">(</span><span class="nv">Scope</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">ScopeObject</span><span class="p">):</span><span class="w"> </span><span class="nc">TrackObject</span>
+</span></code></pre></div>
+<p>Subordinates an entire Scope to this handle so it is cleaned when this handle is cleaned. When teardown cascades to the Scope, the Scope's full child teardown runs in turn. Accepts either the live <code>ScopeObject</code> or its string <code>ScopeID</code>. If the Scope is currently owned by another manager, it is released first - Last Call Suppremacy.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Scope</code></td>
+<td style="text-align: left;"><code>string | ScopeObject</code></td>
+<td style="text-align: left;">The <code>ScopeObject</code> to subordinate, or its string <code>ScopeID</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the argument is a <code>TrackObject</code> (not a Scope), a non-string primitive, or an empty string. Tracks may only handle Scopes — not other Tracks.</p>
+</div>
+<hr />
+<h4 id="destroy">Destroy</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">TrackObject</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">():</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Immediately destroys this handle and everything it owns — equivalent to calling <code>Reaper.Clean</code> with this handle. All chained children are torn down and all bound Scopes are cleaned in the same cascade.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<hr />
+<h2 id="class-scopeobject">Class: ScopeObject</h2>
+<p>An extension of <code>TrackObject</code> representing a named, temporary logic state. Created via <code>Reaper.Scope()</code>. Inherits all <code>TrackObject</code> methods and adds the following.</p>
+<h3 id="methods-summary_1">Methods Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#bindtotrack">BindToTrack</a></strong></td>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Submits this Scope to a Track so it is cleaned when the Track is cleaned.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#unchain">Unchain</a></strong></td>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Removes a chained item from this Scope without destroying it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#cleanchild">CleanChild</a></strong></td>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Immediately destroys a specific item currently chained to this Scope, removing it from the Scope's child list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#connect">Connect</a></strong></td>
+<td style="text-align: left;"><code>RBXScriptConnection</code></td>
+<td style="text-align: left;">Connects a callback to a signal and automatically adds the resulting connection to this Scope's child list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#spawn">Spawn</a></strong></td>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">Launches a coroutine and automatically adds it to this Scope's child list, cancelling it if the Scope is cleaned.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#defer">Defer</a></strong></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Schedules a callback to run at the end of the current frame and adds the scheduled task to this Scope's child list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#delay">Delay</a></strong></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Schedules a callback to run after a set number of seconds and adds the task to this Scope's child list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#repeat">Repeat</a></strong></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Schedules a callback to repeat a fixed number of times and adds the task to this Scope's child list.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="method-details_1">Method Details</h3>
+<h4 id="bindtotrack">BindToTrack</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">BindToTrack</span><span class="p">(</span><span class="nv">Track</span><span class="p">:</span><span class="w"> </span><span class="nc">TrackObject</span><span class="p">):</span><span class="w"> </span><span class="nc">ScopeObject</span>
+</span></code></pre></div>
+<p>Submits this Scope to a Track so it is cleaned when the Track is cleaned. Achieves the same result as calling <code>Track:HandleScope(self)</code> but reads as the Scope declaring its own lifetime contract, which is preferred when the Scope is the acting module. The target Track must be configured with a string identifier before a Scope can bind to it.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Track</code></td>
+<td style="text-align: left;"><code>TrackObject</code></td>
+<td style="text-align: left;">The parent Track to bind this Scope to. Must not be a <code>ScopeObject</code> and must have a configured identifier.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if this Scope has been cleaned or evicted, if <code>Track</code> is a <code>ScopeObject</code>, or if <code>Track</code> has no configured identifier.</p>
+</div>
+<hr />
+<h4 id="unchain">Unchain</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Unchain</span><span class="p">(</span><span class="nv">ChildItem</span><span class="p">:</span><span class="w"> </span><span class="nc">Reapable</span><span class="p">):</span><span class="w"> </span><span class="nc">ScopeObject</span>
+</span></code></pre></div>
+<p>Removes a chained item from this Scope without destroying it. The item is de-registered from this Scope's ownership but is left fully intact.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ChildItem</code></td>
+<td style="text-align: left;"><code>Reapable</code></td>
+<td style="text-align: left;">The physical item to remove from this Scope's child list.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if <code>ChildItem</code> is <code>nil</code> or if this Scope has already been destroyed.</p>
+</div>
+<hr />
+<h4 id="cleanchild">CleanChild</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">CleanChild</span><span class="p">(</span><span class="nv">ChildItem</span><span class="p">:</span><span class="w"> </span><span class="nc">Reapable</span><span class="p">):</span><span class="w"> </span><span class="nc">ScopeObject</span>
+</span></code></pre></div>
+<p>Immediately destroys a specific item currently chained to this Scope, removing it from the Scope's child list. The Scope itself remains alive and continues owning any other chained items. If the item has its own independent tracking handle, that handle is also cleaned.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ChildItem</code></td>
+<td style="text-align: left;"><code>Reapable</code></td>
+<td style="text-align: left;">The physical item to tear down and remove from this Scope.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ScopeObject</code></td>
+<td style="text-align: left;">Returns <code>self</code> for method chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if <code>ChildItem</code> is <code>nil</code> or if this Scope has already been destroyed.</p>
+</div>
+<hr />
+<h4 id="connect">Connect</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Signal</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="nc">function</span><span class="p">):</span><span class="w"> </span><span class="nc">RBXScriptConnection</span>
+</span></code></pre></div>
+<p>Connects a callback to a signal and automatically adds the resulting connection to this Scope's child list. When the Scope is cleaned, the connection is automatically disconnected. Accepts <code>RBXScriptSignal</code> instances or any table with a <code>:Connect()</code> method.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Signal</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The event or signal to connect to. Must be an <code>RBXScriptSignal</code> or a table with a <code>:Connect()</code> function.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to execute when the signal fires.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>RBXScriptConnection</code></td>
+<td style="text-align: left;">The generated connection, also owned by this Scope.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the Scope has been cleaned or evicted, if <code>Signal</code> is <code>nil</code> or not connectable, or if <code>Callback</code> is not a function.</p>
+</div>
+<hr />
+<h4 id="spawn">Spawn</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Spawn</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="nc">function</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nv">any</span><span class="p">):</span><span class="w"> </span><span class="nc">thread</span>
+</span></code></pre></div>
+<p>Launches a coroutine and automatically adds it to this Scope's child list, cancelling it if the Scope is cleaned. The coroutine is registered to this Scope before it begins executing, so teardown is safe even if the Scope is cleaned from within the spawned function. Any arguments after <code>Callback</code> are forwarded to the coroutine on its first resume.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to run in the new coroutine.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic arguments forwarded to the callback on resume.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">The spawned coroutine.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the Scope has been cleaned or evicted, or if <code>Callback</code> is not a function.</p>
+</div>
+<hr />
+<h4 id="defer">Defer</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Defer</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="nc">function</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nv">any</span><span class="p">):</span><span class="w"> </span><span class="nc">any</span>
+</span></code></pre></div>
+<p>Schedules a callback to run at the end of the current frame and adds the scheduled task to this Scope's child list. If the Scope is cleaned before the deferred task executes, the task is cancelled and never runs.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to defer.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic arguments forwarded to the callback when it executes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The handle returned by the scheduler, usable for manual cancellation if needed.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the Scope has been cleaned or evicted, or if <code>Callback</code> is not a function.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Assignment vs Native Task</p>
+<p>If Assignment is injected, the task is deferred instead in the next running frame.</p>
+</div>
+<hr />
+<h4 id="delay">Delay</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Delay</span><span class="p">(</span><span class="nv">TimeDelay</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="nc">function</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nv">any</span><span class="p">):</span><span class="w"> </span><span class="nc">any</span>
+</span></code></pre></div>
+<p>Schedules a callback to run after a set number of seconds and adds the task to this Scope's child list. If the Scope is cleaned before the delay elapses, the task is cancelled and never runs.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TimeDelay</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Seconds to wait before executing the callback.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to run after the delay.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic arguments forwarded to the callback when it executes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The handle returned by the scheduler, usable for manual cancellation if needed.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the Scope has been cleaned or evicted, if <code>TimeDelay</code> is not a number, or if <code>Callback</code> is not a function.</p>
+</div>
+<hr />
+<h4 id="repeat">Repeat</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nv">ScopeObject</span><span class="p">:</span><span class="nc">Repeat</span><span class="p">(</span><span class="nv">Count</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">Interval</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="nc">function</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nv">any</span><span class="p">):</span><span class="w"> </span><span class="nc">any</span>
+</span></code></pre></div>
+<p>Schedules a callback to repeat a fixed number of times and adds the task to this Scope's child list. Each repetition is separated by <code>Interval</code> seconds. When the Scope is cleaned, any remaining repetitions are cancelled.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Count</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Total number of times to execute the callback.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Interval</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;"><em>(Optional)</em> Seconds between repetitions. Behaviour when omitted is defined by the injected Assignment scheduler.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to repeat.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Variadic arguments forwarded to the callback on each execution.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The handle returned by the Assignment scheduler.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Assignment Library</p>
+<p><code>:Repeat()</code> requires the <strong>Assignment</strong> library to be injected via <code>Reaper.Inject("Assignment", ...)</code>. Without it, this method is a no-op stub and produces no repetitions.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws in Studio if the Scope has been cleaned or evicted, if <code>Count</code> is not a number, or if <code>Callback</code> is not a function.</p>
+</div>
+<hr />
+<h2 id="global-events-reapersignals">Global Events: Reaper.Signals</h2>
+<p><code>Reaper.Signals</code> is a table containing three lifecycle event signals. All three are no-op stubs until the <strong>Relay</strong> library is injected. Each signal is a <code>ListenerSignal</code> and exposes <code>Connect</code>, <code>Once</code>, and <code>Wait</code> methods.</p>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: Relay Library</p>
+<p>Global lifecycle signals are powered by <strong>Relay</strong>. Without injection, connecting to any signal emits a Studio warning and returns a permanently-disconnected dummy connection. No runtime errors occur in production.</p>
+</div>
+<hr />
+<h3 id="reapersignalsontracked">Reaper.Signals.OnTracked</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnTracked</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nc">AssignID</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span></code></pre></div>
+<p>Fires immediately after an item is inserted into the registry. The callback receives the raw item, its resolved classification string, and its identifier if already configured — which is typically <code>nil</code> at the moment of tracking since <code>:Configure()</code> is usually called after <code>Track()</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">Receives <code>(Item: any, Classification: string, AssignID: string?)</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">A Relay connection handle.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="reapersignalsoncleaned">Reaper.Signals.OnCleaned</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnCleaned</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span></code></pre></div>
+<p>Fires immediately after the physical teardown action has run on an item. The callback receives the raw item and its classification string. Fires for every item in a cascade, not just the root — including all chained children.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">Receives <code>(Item: any, Classification: string)</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">A Relay connection handle.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Fires After Teardown</p>
+<p>When <code>OnCleaned</code> fires, the item's teardown action has already executed. The raw <code>Item</code> value in the callback is the reference that was tracked — it may no longer be in a valid state depending on its type (e.g., a destroyed <code>Instance</code>).</p>
+</div>
+<hr />
+<h3 id="reapersignalsonremoved">Reaper.Signals.OnRemoved</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnRemoved</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span></code></pre></div>
+<p>Fires after an item has been released from the registry without being destroyed. The callback receives the raw item and its classification string. The item is still fully intact at the time this fires.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">Receives <code>(Item: any, Classification: string)</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">A Relay connection handle.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="signal-once">Signal: Once</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnTracked</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nc">AssignID</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnCleaned</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnRemoved</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="nv">Callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Item</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">Classification</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">ConnectionObject</span>
+</span></code></pre></div>
+<p>Connects a one-shot callback to a signal. The callback fires at most once, then the connection is automatically disconnected. Returns the same <code>ConnectionObject</code> as <code>:Connect()</code>, which can be manually disconnected before the signal fires if the one-shot is no longer needed.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>function</code></td>
+<td style="text-align: left;">The function to execute once when the signal fires.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">A Relay connection handle that disconnects itself after firing once.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="signal-wait">Signal: Wait</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnTracked</span><span class="p">:</span><span class="nc">Wait</span><span class="p">():</span><span class="w"> </span><span class="p">(</span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">)</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnCleaned</span><span class="p">:</span><span class="nc">Wait</span><span class="p">():</span><span class="w"> </span><span class="p">(</span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="nv">Reaper</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnRemoved</span><span class="p">:</span><span class="nc">Wait</span><span class="p">():</span><span class="w"> </span><span class="p">(</span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nc">string</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Yields the calling thread until the signal fires once, then resumes it with the signal's arguments. Equivalent to calling <code>:Once()</code> and then yielding, but expressed inline.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>T...</code></td>
+<td style="text-align: left;">The arguments the signal fired with, matching the callback signature for each respective signal.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p><code>:Wait()</code> yields the calling thread indefinitely until the signal fires. If the signal never fires (for example, because no items are ever tracked after this point), the thread will yield forever. Without Relay injection, calling <code>:Wait()</code> on a stub signal yields forever and emits a Studio warning.</p>
+</div>
+<hr />
+<h2 id="exported-types">Exported Types</h2>
+<h3 id="reapable"><code>Reapable</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">Reapable</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nc">Instance</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">RBXScriptConnection</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="p">(()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">any</span><span class="p">]:</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<p>The union of all value types that Reaper is capable of tracking and tearing down.</p>
+<hr />
+<h3 id="classification"><code>Classification</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">Classification</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;Instance&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Connection&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Thread&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Function&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Table&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Scope&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Unknown&quot;</span>
+</span></code></pre></div>
+<p>A string literal union representing the seven item categories Reaper recognises. Auto-classified by <code>typeof()</code> unless overridden via the <code>ItemClassification</code> parameter of <code>Reaper.Track()</code>.</p>
+<hr />
+<h3 id="trackobject"><code>TrackObject</code></h3>
+<p>The handle returned by <code>Reaper.Track()</code>. Contains the four public methods described above plus the following readable fields. Internal state fields are not part of the public API and should not be accessed directly.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Item</code></td>
+<td style="text-align: left;"><code>Reapable</code></td>
+<td style="text-align: left;">The raw physical item being tracked.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AssignID</code></td>
+<td style="text-align: left;"><code>string?</code></td>
+<td style="text-align: left;">The registered identifier, or <code>nil</code> if not yet configured.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Frequency</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">The effective check interval in seconds. For Instances and manual-tier items, this is always <code>0</code> regardless of what was passed to <code>:Configure()</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Classification</code></td>
+<td style="text-align: left;"><code>Classification</code></td>
+<td style="text-align: left;">The resolved classification string.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsProtected</code></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Whether the item is released instead of destroyed when its natural end-of-life is detected.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="scopeobject"><code>ScopeObject</code></h3>
+<p>An extension of <code>TrackObject</code>. All <code>TrackObject</code> fields apply. The <code>Classification</code> field is always <code>"Scope"</code>.</p>
+<hr />
+<h3 id="connectionobject"><code>ConnectionObject</code></h3>
+<p>The handle returned by signal <code>:Connect()</code> and <code>:Once()</code> calls on <code>Reaper.Signals</code> entries. Provided by the Relay library when injected; returned as a permanently-disconnected stub without it.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Disconnect()</code></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Disconnects this connection so the callback no longer fires.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsConnected()</code></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Returns <code>true</code> if this connection is still active.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BindTo(TieTarget)</code></td>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">Ties this connection's lifetime to another object, automatically disconnecting when that object is destroyed.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="listenersignalt"><code>ListenerSignal&lt;T...&gt;</code></h3>
+<p>The signal interface exposed by each entry in <code>Reaper.Signals</code>. All three methods are available on every signal.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Connect(Callback)</code></td>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">Connects a persistent callback. Fires every time the signal fires.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Once(Callback)</code></td>
+<td style="text-align: left;"><code>ConnectionObject</code></td>
+<td style="text-align: left;">Connects a one-shot callback. Disconnects automatically after firing once.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Wait()</code></td>
+<td style="text-align: left;"><code>T...</code></td>
+<td style="text-align: left;">Yields the calling thread until the signal fires, then returns the signal's arguments.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

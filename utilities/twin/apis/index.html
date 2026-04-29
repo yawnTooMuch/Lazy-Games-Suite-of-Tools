@@ -1,0 +1,4142 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dispatch-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-methods_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dispatch Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twinsplit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twinbulksplit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.BulkSplit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twinsequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utility-methods_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utility Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twinreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twininject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splitcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplitCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequencecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SequenceCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splitoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplitOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkpriority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkPriority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chainstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ChainStep
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrystatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrygroupstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryGroupStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrypoolentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryPoolEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryworkerexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryWorkerExec
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dispatch-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-methods_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dispatch Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twinsplit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twinbulksplit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.BulkSplit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twinsequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utility-methods_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Utility Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twinreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twininject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twin.Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exported-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exported Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exported Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splitcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplitCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequencecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SequenceCallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splitoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SplitOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkpriority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkPriority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bulkoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BulkOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chainstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ChainStep
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrystatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrygroupstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryGroupStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetrypoolentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryPoolEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetryworkerexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TelemetryWorkerExec
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-reference">API Reference</h1>
+<p>Complete reference for all public functions and exported types in the Twin framework.</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<h3 id="dispatch-methods">Dispatch Methods</h3>
+<p><em>Send work to parallel workers. All three methods return a <a href="#handle"><code>Handle</code></a> that cancels
+the job when <code>Disconnect()</code> is called.</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#twinsplit">Twin.Split</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Dispatches a single parallel job and delivers the result to a callback in the same frame the worker finishes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#twinbulksplit">Twin.BulkSplit</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Dispatches a list of items out across all workers in parallel and reassembles the results in original order.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#twinsequence">Twin.Sequence</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Runs an ordered chain of parallel jobs where each step receives the previous step's result.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="utility-methods">Utility Methods</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#twinreport">Twin.Report</a></strong></td>
+<td style="text-align: left;"><code>TelemetryReport?</code></td>
+<td style="text-align: left;">Returns a structured health snapshot of the scheduler's current state, or <code>nil</code> when telemetry is disabled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#twininject">Twin.Inject</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Replaces Twin's internal task scheduler with an external library from the Lazy Games Suite.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dispatch-methods_1">Dispatch Methods</h2>
+<hr />
+<h4 id="twinsplit">Twin.Split</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">Split</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nv">Module</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="nc">ModuleScript</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nv">FunctionName</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nv">Payload</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nv">Callback</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="nc">SplitCallback</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nv">Options</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="nc">SplitOptions</span><span class="err">?</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Dispatches a single parallel job and delivers the result to a callback in the same frame the
+worker finishes. The job is sent to the best available worker. When the worker completes, the
+callback fires synchronously on the main thread with no additional frame delay.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Module</code></td>
+<td style="text-align: left;"><code>ModuleScript</code></td>
+<td style="text-align: left;">The ModuleScript that contains the function to run. This module is required inside the worker.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FunctionName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the function to call on the module. Must be a function that accepts a single argument and returns a single value.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Payload</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The value passed to the worker function as its only argument.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>SplitCallback</code></td>
+<td style="text-align: left;">Called with the function's return value when the job completes. Must not yield.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>SplitOptions?</code></td>
+<td style="text-align: left;">(Optional) Table controlling dispatch weight. See <a href="#splitoptions"><code>SplitOptions</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Call <code>Disconnect()</code> on this to cancel the job before it runs, or to suppress the callback if the job is already in flight.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Callback Must Not Yield</p>
+<p>The callback fires directly on the main thread. Calling <code>task.wait</code>, <code>coroutine.yield</code>, or
+any other yielding function inside the callback will cause an error. Perform only
+synchronous work — update state, fire events, enqueue a new job — and return immediately.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Weight: Heavy vs Light</p>
+<p>The default weight is <code>"heavy"</code>. Heavy jobs wait until all bulk work in flight has
+finished before occupying a worker. Use <code>"heavy"</code> for expensive jobs that should not
+compete with BulkSplit throughput.</p>
+<p>Set <code>____Weight = "light"</code> for jobs that are fast and non-blocking. Light jobs are allowed
+to run speculatively alongside active bulk work when the scheduler detects that a bulk
+worker is slow or a deadline has been exceeded. Light jobs also benefit from starvation
+protection: if a heavy job has been waiting too long, it is automatically promoted to the
+light lane.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Studio Validation</p>
+<p>When running in Roblox Studio, Twin validates that <code>FunctionName</code> exists in <code>Module</code> and
+is callable before the job is enqueued. This check does not run in live servers or
+published clients.</p>
+</div>
+<hr />
+<h4 id="twinbulksplit">Twin.BulkSplit</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">BulkSplit</span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nv">Module</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="nc">ModuleScript</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nv">FunctionName</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nv">Items</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nv">Callback</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="nc">BulkCallback</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nv">Options</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="nc">BulkOptions</span><span class="err">?</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Dispatches a list of items out across all workers in parallel and reassembles the results in
+original order. The items list is automatically divided into batches and distributed across
+every available worker. When every worker has reported back, the callback fires with a single
+result table where <code>results</code> is identical to <code>items</code> fully assembled back automatically.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Module</code></td>
+<td style="text-align: left;"><code>ModuleScript</code></td>
+<td style="text-align: left;">The ModuleScript containing the batch function to run on each slice.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FunctionName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the batch function. Its signature must be <code>(slice: { any }, sharedArgs: any?) -&gt; { any }</code>, returning a result table the same length as the slice.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Items</code></td>
+<td style="text-align: left;"><code>{ any }</code></td>
+<td style="text-align: left;">The full list of inputs to distribute. The list is sliced and each slice is sent to a separate worker.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>BulkCallback</code></td>
+<td style="text-align: left;">Called with the reassembled results table when all workers have finished. See the warning below about buffer lifetime.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Options</code></td>
+<td style="text-align: left;"><code>BulkOptions?</code></td>
+<td style="text-align: left;">(Optional) Table controlling batch size, shared arguments, deadline, and priority. See <a href="#bulkoptions"><code>BulkOptions</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Call <code>Disconnect()</code> on this to cancel all remaining batches. Batches already delivered to workers will finish, but the callback will never fire.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Do Not Store the Result Buffer</p>
+<p>The results table passed to your callback is a pooled buffer that Twin recycles
+immediately after your callback returns. Storing the table reference — assigning it to a
+module-level variable, inserting it into another table, capturing it in a closure — will
+cause that variable to be silently overwritten by a future job's results. Copy any values
+you need before the callback exits.</p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">-- Wrong — the table will be overwritten</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">BulkSplit</span><span class="p">(</span><span class="nv">Mod</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">items</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">results</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nv">self</span><span class="p">.</span><span class="nv">cachedResults</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">results</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1">-- Correct — copy what you need immediately</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">BulkSplit</span><span class="p">(</span><span class="nv">Mod</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Compute&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">items</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">results</span><span class="p">)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nb">table</span><span class="p">.</span><span class="nf">move</span><span class="p">(</span><span class="nv">results</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="err">#</span><span class="nv">results</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nv">self</span><span class="p">.</span><span class="nv">cachedResults</span><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Empty Input Fires Immediately</p>
+<p>Passing an empty <code>Items</code> table causes the callback to fire synchronously before
+<code>BulkSplit</code> returns, with an empty result table. No workers are involved.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Batch Function Contract</p>
+<p>The function named by <code>FunctionName</code> receives a <em>slice</em> of the original item list (not
+the full list) plus the optional <code>SharedArgs</code> value. It must return a table of the same
+length as the slice. Twin uses the <code>StartIndex</code> of each slice to place results back into
+the correct positions in the final buffer, so returning a mis-sized table will silently
+produce <code>nil</code> gaps in the results.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Priority Scheduling</p>
+<p>BulkSplit jobs are queued in one of three priority lanes: <code>"critical"</code>, <code>"normal"</code>, or
+<code>"background"</code>. Workers always drain critical jobs first, then normal, then background.
+Background jobs are never starved indefinitely — they are periodically force-promoted
+regardless of what else is queued.</p>
+</div>
+<hr />
+<h4 id="twinsequence">Twin.Sequence</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">Sequence</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nv">Steps</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nc">ChainStep</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nv">Callback</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">SequenceCallback</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Runs an ordered chain of parallel jobs where each step can receive the previous step's result via dynamic payload. Steps are dispatched one at a time, in order. Step 2 only dispatches after Step 1's worker finishes; Step 3 only dispatches after Step 2, and so on. The final callback receives a table
+containing every step's result in order: <code>results[1]</code> is Step 1's result, <code>results[2]</code> is
+Step 2's, and so on.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Steps</code></td>
+<td style="text-align: left;"><code>{ ChainStep }</code></td>
+<td style="text-align: left;">An ordered array of step descriptors. Each step specifies the module, function name, payload, and optional weight. See <a href="#chainstep"><code>ChainStep</code></a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Callback</code></td>
+<td style="text-align: left;"><code>SequenceCallback</code></td>
+<td style="text-align: left;">Called with all step results in order when the last step completes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Call <code>Disconnect()</code> to cancel the chain at any point. The current in-flight step is cancelled, and no further steps are dispatched. The final callback never fires.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Dynamic Payloads</p>
+<p>The <code>____Payload</code> field on a step may be a plain value <strong>or</strong> a function. If it is a
+function, Twin calls it with the previous step's result at dispatch time — just before
+the step is sent to a worker — and uses the return value as the actual payload. This lets
+you build pipelines where each step's input depends on the previous step's output without
+writing nested callbacks.</p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nv">____Module</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="nv">SomeModule</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nv">____FunctionName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Transform&quot;</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nv">____Payload</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">prevResult</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">prevResult</span><span class="p">,</span><span class="w"> </span><span class="nv">scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="kr">end</span><span class="p">,</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Step Errors Stop the Chain</p>
+<p>If a dynamic payload function throws an error, the chain halts at that step and the final
+callback never fires. Errors inside the worker functions are caught and logged, and the
+step's result is set to <code>nil</code>, but the chain continues. Only payload function errors stop
+the chain entirely.</p>
+</div>
+<hr />
+<h2 id="utility-methods_1">Utility Methods</h2>
+<hr />
+<h4 id="twinreport">Twin.Report</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">Report</span><span class="p">():</span><span class="w"> </span><span class="nc">TelemetryReport</span><span class="err">?</span>
+</span></code></pre></div>
+<p>Returns a structured health snapshot of the scheduler's current state, or <code>nil</code> when
+telemetry is disabled. The snapshot is computed from a rolling window of sampled frames.
+Calling <code>Report</code> is safe at any frequency and does not reset the sample buffer.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TelemetryReport?</code></td>
+<td style="text-align: left;">A full health report across pools, queues, workers, the frame governor, and starvation counters. <code>nil</code> if telemetry is disabled in configuration or if no frames have been sampled yet.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Telemetry Must Be Enabled</p>
+<p>Telemetry sampling is disabled by default. To receive non-nil reports, set
+<code>TELEMETRY_ENABLED = true</code> in <code>TwinConfiguration</code> at the top of the Twin source. When
+disabled, all sampling overhead is eliminated — <code>Report()</code> returns <code>nil</code> immediately with
+no computation.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Reading the Report</p>
+<p>Each metric in the report carries a <code>Status</code> field: <code>"Healthy"</code>, <code>"Warm"</code>, or
+<code>"Overloaded"</code>. Each group (Pools, Queues, Workers, FrameGovernor, Starvation) rolls up
+to a <code>"Green"</code>, <code>"Yellow"</code>, or <code>"Red"</code> group status. The top-level <code>Overall</code> field is
+the worst group status across all five groups. Use <code>Overall == "Red"</code> as your alert
+threshold and drill into the individual groups to find the cause.</p>
+</div>
+<hr />
+<h4 id="twininject">Twin.Inject</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">Twin</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="nv">ModuleName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">ModuleTableObject</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the "Assignment" library.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ModuleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ModuleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The required module table/object to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">When to Use Inject</p>
+<p>Only call <code>Inject</code> if your project uses the Assignment scheduler from the Lazy Games
+Suite and you need Twin's internal coroutine management to participate in the same
+scheduling budget. For all other projects, skip <code>Inject</code> entirely.</p>
+</div>
+<hr />
+<h2 id="exported-types">Exported Types</h2>
+<hr />
+<h3 id="handle">Handle</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">Handle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nc">Disconnect</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Returned by <a href="#twinsplit"><code>Twin.Split</code></a>, <a href="#twinbulksplit"><code>Twin.BulkSplit</code></a>, and
+<a href="#twinsequence"><code>Twin.Sequence</code></a>. Call <code>Disconnect()</code> to cancel the associated job or chain.</p>
+<p>Cancellation is immediate from your code's perspective: the callback will never fire after
+<code>Disconnect()</code> is called. If a worker is already running the job, the worker finishes
+normally, but its result is silently discarded.</p>
+<hr />
+<h3 id="splitcallback">SplitCallback</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">SplitCallback</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="nc">Result</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>The callback type for <a href="#twinsplit"><code>Twin.Split</code></a>. Receives the single return value of the
+worker function. Must not yield.</p>
+<hr />
+<h3 id="bulkcallback">BulkCallback</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">BulkCallback</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="nc">Results</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>The callback type for <a href="#twinbulksplit"><code>Twin.BulkSplit</code></a>. Receives the reassembled results
+table. The table is a pooled buffer — see the danger admonition on <code>BulkSplit</code> for the
+lifetime rule.</p>
+<hr />
+<h3 id="sequencecallback">SequenceCallback</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">SequenceCallback</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="nc">Results</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>The callback type for <a href="#twinsequence"><code>Twin.Sequence</code></a>. Receives an array where index <code>i</code>
+holds the result returned by step <code>i</code>.</p>
+<hr />
+<h3 id="splitoptions">SplitOptions</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">SplitOptions</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nc">____Weight</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="s2">&quot;light&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;heavy&quot;</span><span class="p">)</span><span class="err">?</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Optional options table for <a href="#twinsplit"><code>Twin.Split</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Weight</code></td>
+<td style="text-align: left;"><code>"light" | "heavy"</code></td>
+<td style="text-align: left;"><code>"heavy"</code></td>
+<td style="text-align: left;">Controls whether this job waits for all bulk work to clear (<code>"heavy"</code>) or may run speculatively alongside active bulk jobs (<code>"light"</code>).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="bulkpriority">BulkPriority</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">BulkPriority</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;critical&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;normal&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;background&quot;</span>
+</span></code></pre></div>
+<p>Dispatch priority for <a href="#twinbulksplit"><code>Twin.BulkSplit</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Value</th>
+<th style="text-align: left;">Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>"critical"</code></td>
+<td style="text-align: left;">Dispatched before all other queued bulk jobs. Use for work that is blocking player-visible systems.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"normal"</code></td>
+<td style="text-align: left;">Default priority. Dispatched after critical jobs clear.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"background"</code></td>
+<td style="text-align: left;">Dispatched only when no critical or normal jobs are waiting, but periodically promoted to prevent indefinite starvation.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="bulkoptions">BulkOptions</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">BulkOptions</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="nc">____BatchSize</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nc">____SharedArgs</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nc">____MaxWaitTime</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="nc">____Priority</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="nc">BulkPriority</span><span class="err">?</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Optional options table for <a href="#twinbulksplit"><code>Twin.BulkSplit</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____BatchSize</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;"><code>ceil(itemCount / workerCount)</code></td>
+<td style="text-align: left;">How many items to place in each batch. Smaller batches mean more workers are used; larger batches reduce overhead but reduce parallelism.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____SharedArgs</code></td>
+<td style="text-align: left;"><code>any?</code></td>
+<td style="text-align: left;"><code>nil</code></td>
+<td style="text-align: left;">A value passed as the second argument to every batch function call alongside the slice. Use this for configuration that applies to all items equally — a timestamp, a ruleset, a reference object.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____MaxWaitTime</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;"><code>0.050</code> seconds</td>
+<td style="text-align: left;">The deadline after which a waiting bulk job may preempt single-job dispatch, allowing its batches to reach workers faster.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____Priority</code></td>
+<td style="text-align: left;"><code>BulkPriority?</code></td>
+<td style="text-align: left;"><code>"normal"</code></td>
+<td style="text-align: left;">The priority lane to place this job in. See <a href="#bulkpriority"><code>BulkPriority</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="chainstep">ChainStep</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">ChainStep</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="nc">____Module</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="nc">ModuleScript</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="nc">____FunctionName</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="nc">____Payload</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="nc">____Weight</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="s2">&quot;light&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;heavy&quot;</span><span class="p">)</span><span class="err">?</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>One step in a <a href="#twinsequence"><code>Twin.Sequence</code></a> chain.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Module</code></td>
+<td style="text-align: left;"><code>ModuleScript?</code></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;"><strong>Required.</strong> The module containing the function to run for this step.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____FunctionName</code></td>
+<td style="text-align: left;"><code>string?</code></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;"><strong>Required.</strong> The name of the function on the module to call.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____Payload</code></td>
+<td style="text-align: left;"><code>any?</code></td>
+<td style="text-align: left;"><code>nil</code></td>
+<td style="text-align: left;">The value passed to the worker function. May be a plain value, or a function <code>(prevResult: any) -&gt; any</code> that is called at dispatch time with the previous step's result.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____Weight</code></td>
+<td style="text-align: left;"><code>"light" | "heavy"?</code></td>
+<td style="text-align: left;"><code>"heavy"</code></td>
+<td style="text-align: left;">Dispatch weight for this step. See the Weight description on <a href="#splitoptions"><code>SplitOptions</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="telemetryreport">TelemetryReport</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryReport</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="nc">Pools</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nc">Queues</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="nc">Workers</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="nc">FrameGovernor</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nc">Starvation</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="nc">Overall</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="nc">TelemetryGroupStatus</span><span class="p">,</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="nc">WindowSec</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="nc">SampleCount</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="nc">Timestamp</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Returned by <a href="#twinreport"><code>Twin.Report</code></a>. Contains five group sub-tables plus three
+top-level summary fields.</p>
+<p><strong>Top-level fields:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Overall</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">The worst status across all five groups. <code>"Green"</code> means all groups are healthy. <code>"Yellow"</code> means at least one group is warm. <code>"Red"</code> means at least one group is overloaded.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WindowSec</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">How many seconds have elapsed since the last time <code>Report()</code> was called (or since startup, if this is the first call).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SampleCount</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Number of Heartbeat frames included in the current ring buffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Timestamp</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The <code>os.clock()</code> value at the moment the report was generated.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pools group</strong> — health of each pre-allocated pool. Low free slots indicate heavy throughput
+or a pool size that needs tuning.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Pools.Node</code></td>
+<td style="text-align: left;"><code>TelemetryPoolEntry</code></td>
+<td style="text-align: left;">Queue node pool: <code>Value</code> = free slots, <code>Capacity</code> = total slots, <code>Status</code> = health.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Pools.SingleJob</code></td>
+<td style="text-align: left;"><code>TelemetryPoolEntry</code></td>
+<td style="text-align: left;">Single-job descriptor pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Pools.BulkEntry</code></td>
+<td style="text-align: left;"><code>TelemetryPoolEntry</code></td>
+<td style="text-align: left;">Bulk-job descriptor pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Pools.BulkBatch</code></td>
+<td style="text-align: left;"><code>TelemetryPoolEntry</code></td>
+<td style="text-align: left;">Batch descriptor pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Pools.ResultBuffer</code></td>
+<td style="text-align: left;"><code>TelemetryPoolEntry</code></td>
+<td style="text-align: left;">Result buffer pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Pools.Status</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">Worst pool status.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Queues group</strong> — peak queue depths over the sample window. Deep queues indicate more work
+is arriving than workers can handle.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Queues.Light</code></td>
+<td style="text-align: left;"><code>TelemetryQueueEntry</code></td>
+<td style="text-align: left;">Peak depth of the lightweight single-job queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Queues.Heavy</code></td>
+<td style="text-align: left;"><code>TelemetryQueueEntry</code></td>
+<td style="text-align: left;">Peak depth of the heavyweight single-job queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Queues.BulkCritical</code></td>
+<td style="text-align: left;"><code>TelemetryQueueEntry</code></td>
+<td style="text-align: left;">Peak depth of the critical bulk queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Queues.BulkNormal</code></td>
+<td style="text-align: left;"><code>TelemetryQueueEntry</code></td>
+<td style="text-align: left;">Peak depth of the normal-priority bulk queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Queues.BulkBackground</code></td>
+<td style="text-align: left;"><code>TelemetryQueueEntry</code></td>
+<td style="text-align: left;">Peak depth of the background bulk queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Queues.Status</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">Worst queue status.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Workers group</strong> — worker count and average execution times.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Workers.Total</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Total number of workers in the pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Workers.Free</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Workers not currently running a job (latest sample).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Workers.Busy</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Workers currently running a job (latest sample).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Workers.AvgExecTime</code></td>
+<td style="text-align: left;"><code>{ [number]: TelemetryWorkerExec }</code></td>
+<td style="text-align: left;">Per-worker mean execution time (seconds) over the sample window, with a health status per worker.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Workers.WatchdogInterventions</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">Total number of unresponsive-worker recoveries in the sample window.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Workers.Status</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">Worst worker status.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>FrameGovernor group</strong> — main-thread dispatch budget.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>FrameGovernor.BudgetMs</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">The configured per-frame dispatch budget in milliseconds. Status is always <code>"Healthy"</code> (this is a fixed configuration value).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FrameGovernor.OverBudgetRate</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">Fraction of sampled frames where the budget was exceeded (0.0–1.0). High values mean the main thread is spending too much time on dispatch.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FrameGovernor.ActiveBulkCount</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">Peak number of bulk jobs in flight at the same time during the sample window.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FrameGovernor.Status</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">Worst frame governor status.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Starvation group</strong> — skip counters for lower-priority work.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Starvation.BgSkipCount</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">Peak number of consecutive frames a background bulk job was skipped in favour of higher-priority work.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Starvation.HeavySkipCount</code></td>
+<td style="text-align: left;"><code>{ Value: number, Status: TelemetryStatus }</code></td>
+<td style="text-align: left;">Peak number of consecutive frames a heavy single job was skipped while bulk work was active.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Starvation.Status</code></td>
+<td style="text-align: left;"><code>TelemetryGroupStatus</code></td>
+<td style="text-align: left;">Worst starvation status.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="telemetrystatus">TelemetryStatus</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryStatus</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;Healthy&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Warm&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Overloaded&quot;</span>
+</span></code></pre></div>
+<p>Health status for an individual metric. <code>"Warm"</code> means the value has crossed the warning
+threshold. <code>"Overloaded"</code> means it has crossed the critical threshold.</p>
+<hr />
+<h3 id="telemetrygroupstatus">TelemetryGroupStatus</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryGroupStatus</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;Green&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Yellow&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="s2">&quot;Red&quot;</span>
+</span></code></pre></div>
+<p>Rolled-up health status for a group of metrics. <code>"Yellow"</code> if any metric in the group is
+<code>"Warm"</code>. <code>"Red"</code> if any metric is <code>"Overloaded"</code>.</p>
+<hr />
+<h3 id="telemetrypoolentry">TelemetryPoolEntry</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryPoolEntry</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">    </span><span class="nc">Value</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nc">Capacity</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nc">Status</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="nc">TelemetryStatus</span><span class="p">,</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Current number of free (available) slots in the pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Capacity</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Total pool capacity as configured.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Status</code></td>
+<td style="text-align: left;"><code>TelemetryStatus</code></td>
+<td style="text-align: left;">Health derived from the ratio of free slots to capacity.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="telemetryqueueentry">TelemetryQueueEntry</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryQueueEntry</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span><span class="nc">Value</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nc">Status</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">TelemetryStatus</span><span class="p">,</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Peak queue depth over the sample window.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Status</code></td>
+<td style="text-align: left;"><code>TelemetryStatus</code></td>
+<td style="text-align: left;">Health derived from the peak depth against configured warn and critical thresholds.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="telemetryworkerexec">TelemetryWorkerExec</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">TelemetryWorkerExec</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">    </span><span class="nc">Value</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nc">Status</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">TelemetryStatus</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Value</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Mean execution time for this worker in seconds, averaged over the sample window using an exponential moving average.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Status</code></td>
+<td style="text-align: left;"><code>TelemetryStatus</code></td>
+<td style="text-align: left;">Health derived from the mean execution time against configured warn and critical thresholds.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

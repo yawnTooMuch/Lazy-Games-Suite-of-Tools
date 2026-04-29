@@ -1,0 +1,3959 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../examples/">
+      
+      
+        <link rel="next" href="../../twin/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Best Practices - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stamp-best-practices" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Best Practices
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-behavioural-component-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Behavioural Component Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The Behavioural Component Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-the-owning-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — The Owning System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-consuming-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — Consuming Scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-always-bind-resources-to-the-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Always Bind Resources to the Scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Always Bind Resources to the Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-use-observeattribute-instead-of-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Use ObserveAttribute Instead of Polling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Use ObserveAttribute Instead of Polling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Polling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-manual-event-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Manual Event Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-observeattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: ObserveAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-understand-the-observeattribute-scope-waterfall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Understand the ObserveAttribute Scope Waterfall
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Understand the ObserveAttribute Scope Waterfall">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-use-setattribute-instead-of-direct-roblox-attributes-for-queryable-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Use SetAttribute Instead of Direct Roblox Attributes (For Queryable Data)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Use SetAttribute Instead of Direct Roblox Attributes (For Queryable Data)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-respect-attribute-type-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Respect Attribute Type Constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Respect Attribute Type Constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-server-authority-and-client-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Server Authority and Client Reads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-choose-between-global-and-stream-level-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Choose Between Global and Stream-Level Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Choose Between Global and Stream-Level Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-destroy-streams-at-phase-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Destroy Streams at Phase Boundaries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Destroy Streams at Phase Boundaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-do-not-manually-manage-entity-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Do Not Manually Manage Entity Scopes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Do Not Manually Manage Entity Scopes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-the-configure-then-tag-pattern-hydrate-before-announcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. The "Configure-Then-Tag" Pattern (Hydrate Before Announcing)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. The &#34;Configure-Then-Tag&#34; Pattern (Hydrate Before Announcing)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-behavioural-component-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Behavioural Component Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The Behavioural Component Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-the-owning-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — The Owning System
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-consuming-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — Consuming Scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-always-bind-resources-to-the-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Always Bind Resources to the Scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Always Bind Resources to the Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-use-observeattribute-instead-of-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Use ObserveAttribute Instead of Polling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Use ObserveAttribute Instead of Polling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Polling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-manual-event-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Manual Event Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-observeattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: ObserveAttribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-understand-the-observeattribute-scope-waterfall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Understand the ObserveAttribute Scope Waterfall
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Understand the ObserveAttribute Scope Waterfall">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-use-setattribute-instead-of-direct-roblox-attributes-for-queryable-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Use SetAttribute Instead of Direct Roblox Attributes (For Queryable Data)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Use SetAttribute Instead of Direct Roblox Attributes (For Queryable Data)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-respect-attribute-type-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Respect Attribute Type Constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Respect Attribute Type Constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-server-authority-and-client-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Server Authority and Client Reads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-choose-between-global-and-stream-level-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Choose Between Global and Stream-Level Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Choose Between Global and Stream-Level Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-destroy-streams-at-phase-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Destroy Streams at Phase Boundaries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Destroy Streams at Phase Boundaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-do-not-manually-manage-entity-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Do Not Manually Manage Entity Scopes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Do Not Manually Manage Entity Scopes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-the-configure-then-tag-pattern-hydrate-before-announcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. The "Configure-Then-Tag" Pattern (Hydrate Before Announcing)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. The &#34;Configure-Then-Tag&#34; Pattern (Hydrate Before Announcing)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="stamp-best-practices">Stamp Best Practices</h1>
+<p>This guide covers the correct mental models and architectural patterns for using <strong>Stamp</strong> effectively. Every practice explains not only what to do, but why — in terms of the user-visible consequences.</p>
+<hr />
+<h2 id="1-the-behavioural-component-pattern">1. The Behavioural Component Pattern</h2>
+<p>The central philosophy of Stamp is to replace monolithic object scripts with small, reusable <strong>behaviours</strong> — one stream per concern, each completely independent.</p>
+<p>Think of each <code>StampStream</code> like a React component. In React you build a <code>HealthBar</code> component once and render it wherever health exists — on a player card, an NPC nameplate, a boss UI. You do not copy the component for each context; you apply the same component to whatever needs it. <strong>Stamp</strong> works identically. You build a <code>Health</code> stream once — with all its <code>Tagged</code> logic, attribute initialization, and <code>ObserveAttribute</code> listeners — and then you apply it by tagging any entity that has health: players, NPCs, props, vehicles, breakable terrain, whatever. The same logic runs for all of them without a single line being duplicated.</p>
+<p>This means your codebase grows by adding new streams, not by expanding existing scripts. A <code>Stun</code> stream handles stun for every entity type. A <code>Pickup</code> stream handles pickup logic for every collectible. Each stream is a self-contained unit of behaviour that can be applied, removed, and tested in isolation. When you need to change how health works, you change it in one place — the health stream — and every entity type benefits immediately.</p>
+<p>The stream is also a <strong>globally accessible object</strong>. Because <code>Stamp.Register("Health")</code> always returns the same live stream for the lifetime of that tag, any other script in your codebase can acquire that stream by calling <code>Stamp.Register("Health")</code> itself. The cleaner pattern, however, is to have the system that <em>owns</em> the behaviour return the stream from its module, so consuming scripts require the system — not Stamp directly, <strong>BUT</strong> this introduces heavy coupling and required structure that the owning script must load first since other scripts is dependent on it. By using <code>Stamp.Register</code> directly anywhere in the game scripts, it doesnt matter who loads first whether its the scripts that just consume the stream or the script that setup the stream, both just modified/use the same stream.</p>
+<h3 id="the-problem">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- ServerScriptService/NPCMain.lua</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">-- A single script handles health, AI, and interactions for a specific NPC type.</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">-- If a barrel needs the same &quot;Health&quot; logic, you must copy and adapt the entire script.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">handleNPC</span><span class="p">(</span><span class="nv">npc</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">health</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nv">npc</span><span class="p">.</span><span class="nv">Touched</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span><span class="w">  </span><span class="c1">-- Never disconnected; lives forever in memory</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="nv">health</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="mf">10</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nv">task</span><span class="p">.</span><span class="nf">spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="kr">while</span><span class="w"> </span><span class="nv">npc</span><span class="p">.</span><span class="nv">Parent</span><span class="w"> </span><span class="kr">do</span><span class="w">  </span><span class="c1">-- Checks every frame even when nothing has changed</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">            </span><span class="nv">task</span><span class="p">.</span><span class="nf">wait</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> The logic is locked to one object type. Any resource created here has no guaranteed cleanup path — when the NPC is removed, the <code>Touched</code> connection and the loop remain alive, silently consuming memory and CPU for the rest of the server's lifetime. If a barrel or vehicle also needs health, the code must be duplicated, which means bugs must also be fixed in two places.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Any event connection or loop created without scope binding accumulates silently. A server that spawns and removes hundreds of entities over a session will accumulate thousands of dead connections and zombie loops with no mechanism to release them.</p>
+</div>
+<h3 id="the-solution-the-owning-system">The Solution — The Owning System</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- ServerScriptService/Systems/HealthSystem.lua</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">-- Build the Health component once.</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Stamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">path</span><span class="p">.</span><span class="nv">to</span><span class="p">.</span><span class="nv">Stamp</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">healthStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Register</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nv">healthStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="c1">-- Works identically whether entity is a Player character, an Orc, a Barrel, or a Car</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;MaxHealth&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="c1">-- This listener stops automatically when the tag is removed from any entity type</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">hp</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="the-solution-consuming-scripts">The Solution — Consuming Scripts</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">-- ServerScriptService/Systems/SpawnSystem.lua</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">-- Require stamp here in this script.</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Stamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">path</span><span class="p">.</span><span class="nv">to</span><span class="p">.</span><span class="nv">Stamp</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">healthStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Register</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1">-- Apply the behaviour by tagging — no changes to HealthSystem required</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="kr">if</span><span class="w"> </span><span class="nv">healthStream</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">workspace</span><span class="p">.</span><span class="nv">Orc</span><span class="p">)</span><span class="w">         </span><span class="c1">-- NPC gets health</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">playerCharacter</span><span class="p">)</span><span class="w">       </span><span class="c1">-- Player gets health</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">workspace</span><span class="p">.</span><span class="nv">FuelBarrel</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Prop gets health</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">workspace</span><span class="p">.</span><span class="nv">Jeep</span><span class="p">)</span><span class="w">        </span><span class="c1">-- Vehicle gets health</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="kr">end</span>
+</span></code></pre></div>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- ServerScriptService/Systems/CombatSystem.lua</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1">-- Same setup as above</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Stamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">require</span><span class="p">(</span><span class="nv">path</span><span class="p">.</span><span class="nv">to</span><span class="p">.</span><span class="nv">Stamp</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">healthStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Stamp</span><span class="p">.</span><span class="nf">Register</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">applyDamage</span><span class="p">(</span><span class="nv">entity</span><span class="p">:</span><span class="w"> </span><span class="nc">Model</span><span class="p">,</span><span class="w"> </span><span class="nv">amount</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="nv">healthStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">math</span><span class="p">.</span><span class="nf">max</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nv">current</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nv">amount</span><span class="p">))</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The <code>Health</code> stream behaves identically regardless of what entity type carries the tag. Every resource created inside the <code>Tagged</code> callback is bound to the entity's scope, which is destroyed automatically when the tag is removed — for any entity type, without any per-type cleanup code. Any number of scripts can consume the stream through the owning module; none of them duplicate or re-declare the behaviour logic.</p>
+<div class="admonition tip">
+<p class="admonition-title">Register Is Idempotent</p>
+<p><code>Stamp.Register("Health")</code> called from multiple scripts always returns the same live stream. No duplicate listeners are created. Wrapping the stream in a module and returning it is the good pattern because it makes the ownership chain explicit <strong>BUT</strong> it also introduces coupling, calling <code>Register</code> directly from a consuming script is highly recommended when working with <strong>Stamp</strong>.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">One Stream, Many Entity Types</p>
+<p>This is the key architectural insight: a <code>Tagged</code> callback does not care what type of entity fires it. The same health logic, the same attribute initialization, and the same cleanup guarantee apply equally to every entity that carries the tag — player, NPC, prop, or vehicle.</p>
+</div>
+<hr />
+<h2 id="2-always-bind-resources-to-the-scope">2. Always Bind Resources to the Scope</h2>
+<p>The <code>scope</code> parameter in <code>Signals.Tagged</code> callbacks is the most important tool Stamp provides for preventing memory leaks.</p>
+<p><strong>The Golden Rule:</strong> Every event connection, loop, or task you create inside a <code>Tagged</code> callback must be bound to the provided <code>scope</code>. Any resource created without scope binding can outlive the entity's tag and accumulate in memory.</p>
+<h3 id="the-problem_1">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="c1">-- This connection has no scope binding — it will never be cleaned up</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nv">entity</span><span class="p">.</span><span class="nv">PrimaryPart</span><span class="p">.</span><span class="nv">Touched</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;touched&quot;</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="c1">-- This loop has no scope binding — it will run until the server crashes</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nv">task</span><span class="p">.</span><span class="nf">spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="kr">while</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">            </span><span class="nv">task</span><span class="p">.</span><span class="nf">wait</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">            </span><span class="nf">print</span><span class="p">(</span><span class="nv">entity</span><span class="p">.</span><span class="nv">Name</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="s2">&quot; still ticking&quot;</span><span class="p">)</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> When the entity is untagged, the <code>Touched</code> connection and the loop continue running. After many enemies are spawned and removed, hundreds of dead connections and zombie loops accumulate. After enough time, the server runs out of memory or the frame rate collapses.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Unscoped resources do not produce any error or warning when the entity is removed. The accumulation is entirely silent — the only signal is a gradual decline in server frame rate or an eventual out-of-memory crash.</p>
+</div>
+<h3 id="the-solution">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="c1">-- This connection stops the moment the entity is untagged</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nv">scope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">entity</span><span class="p">.</span><span class="nv">PrimaryPart</span><span class="p">.</span><span class="nv">Touched</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;touched&quot;</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="c1">-- This loop stops the moment the entity is untagged</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nv">scope</span><span class="p">:</span><span class="nc">Repeat</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="nv">entity</span><span class="p">.</span><span class="nv">Name</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="s2">&quot; still ticking&quot;</span><span class="p">)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> Every resource registered through the scope is tracked. When the tag is removed, the scope is torn down in one synchronised step — all connections disconnected, all loops stopped, all tasks cancelled. The entity leaves no trace.</p>
+<div class="admonition tip">
+<p class="admonition-title">The Scope Is the Guarantee</p>
+<p>Binding to the scope is not just a cleanup convenience — it is the only mechanism that guarantees cleanup. If you are unsure whether a resource needs to be scoped, the answer is always yes. There is no downside to binding something that would have cleaned itself up anyway, but there is a significant downside to leaving something unbound that will not.</p>
+</div>
+<hr />
+<h2 id="3-use-observeattribute-instead-of-polling">3. Use ObserveAttribute Instead of Polling</h2>
+<p>Stamp's <code>ObserveAttribute</code> replaces both the manual attribute-read loop and the manual signal setup that developers typically write by hand.</p>
+<h3 id="the-problem-polling">The Problem: Polling</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">-- Checks health every frame for this one NPC.</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">-- With 200 enemies active, this is 12,000 pointless reads per second</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1">-- even when health has not changed at all.</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nv">task</span><span class="p">.</span><span class="nf">spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="nv">entity</span><span class="p">.</span><span class="nv">Parent</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">hp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">hp</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nv">hp</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">            </span><span class="nv">entity</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">            </span><span class="kr">break</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">        </span><span class="nv">task</span><span class="p">.</span><span class="nf">wait</span><span class="p">()</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> The CPU wakes up this code constantly, regardless of whether the attribute has actually changed. This pattern scales catastrophically in games with many entities.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Polling loops created with <code>task.spawn</code> have no guaranteed cleanup path. If the entity is removed before the loop's exit condition is met, the loop continues iterating on a destroyed instance indefinitely.</p>
+</div>
+<h3 id="the-problem-manual-event-setup">The Problem: Manual Event Setup</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">-- More efficient than polling, but fragile.</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">onHealthChanged</span><span class="p">(</span><span class="nv">value</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kr">end</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1">-- Step 1: Handle the initial value (easy to forget)</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="kd">local</span><span class="w"> </span><span class="nv">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="kr">if</span><span class="w"> </span><span class="nv">initial</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nf">onHealthChanged</span><span class="p">(</span><span class="nv">initial</span><span class="p">)</span><span class="w"> </span><span class="kr">end</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1">-- Step 2: Connect the change signal</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="kd">local</span><span class="w"> </span><span class="nv">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">GetAttributeChangedSignal</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">):</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nf">onHealthChanged</span><span class="p">(</span><span class="nv">entity</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">))</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1">-- Step 3: Manually disconnect when the entity is removed (very easy to forget)</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1">-- If this is skipped, the connection stays alive forever.</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> This is three separate steps that must all be written correctly and kept in sync. Missing step 1 means your code doesn't reflect the current state. Missing step 3 causes a memory leak. Stamp collapses all three into one call.</p>
+<h3 id="the-solution-observeattribute">The Solution: ObserveAttribute</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="c1">-- 1. Fires on the next frame with the current value (no manual initial read needed)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="c1">-- 2. Fires again on every future change</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="c1">-- 3. Cleans up automatically when the entity&#39;s tag is removed</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">hp</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">entity</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The callback is scheduled immediately with whatever value the attribute currently holds, then re-fires only when the value actually changes. The CPU is idle in between. The connection is bound to the entity's scope automatically, so cleanup requires no extra code.</p>
+<div class="admonition warning">
+<p class="admonition-title">Asynchronous Initial Callback</p>
+<p>The first callback invocation — the one that delivers the current value — does not run inline when <code>ObserveAttribute</code> is called. It is scheduled to run on the next available frame. Do not write code that assumes the initial callback has already executed by the time <code>ObserveAttribute</code> returns.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Event-Driven Over Time-Driven</p>
+<p><code>ObserveAttribute</code> only wakes up your code when the value actually changes. A health value sitting at 500 produces zero CPU activity between damage events. A polling loop at the same cadence would generate thousands of reads per second doing nothing useful.</p>
+</div>
+<hr />
+<h2 id="4-understand-the-observeattribute-scope-waterfall">4. Understand the ObserveAttribute Scope Waterfall</h2>
+<p>If you call <code>ObserveAttribute</code> outside a <code>Signals.Tagged</code> callback — for example from a UI system observing an entity it did not tag — you must understand how the connection's lifetime is determined.</p>
+<h3 id="the-problem_2">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">-- A UI module observes an enemy&#39;s health to drive a health bar.</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1">-- No scope is provided and the enemy is not being observed through its tag stream.</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">enemy</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nv">healthBar</span><span class="p">.</span><span class="nv">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">hp</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1">-- If the UI is destroyed before the enemy, this connection continues running</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1">-- and attempts to write to a UI element that no longer exists.</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> Without a scope, if the entity is not currently tracked by the stream, the connection binds to the entity's object lifetime — which is correct for that specific case. But if you also need the connection to stop when <em>your</em> system shuts down, you need to pass your own scope.</p>
+<div class="admonition info">
+<p class="admonition-title">Scope Binding Waterfall</p>
+<p>The connection's lifetime is determined in this priority order: 
+(1) custom scope provided → binds to it 
+(2) entity is tracked by this stream → binds to its tag scope
+(3) entity has a parent but is not tracked → binds to its object lifetime
+(4) entity has no parent → disconnected immediately
+Knowing which rule applies tells you exactly how long your connection will live.</p>
+</div>
+<h3 id="the-solution_1">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">-- A UI module that manages its own scope.</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1">-- Passing the scope means the observation ends when the UI is torn down,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1">-- regardless of whether the enemy is still alive.</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">uiScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;HealthBarUI_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">enemy</span><span class="p">.</span><span class="nv">Name</span><span class="p">)</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">enemy</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nv">healthBar</span><span class="p">.</span><span class="nv">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">hp</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="nv">uiScope</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1">-- Later, when the UI is cleaned up:</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="nv">uiScope</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span><span class="w"> </span><span class="c1">-- observation ends here</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The connection's lifetime is now controlled by the scope you own. When your system shuts down, you destroy its scope, which disconnects everything bound to it — including the observation.</p>
+<div class="admonition tip">
+<p class="admonition-title">Own Your Connections From Outside Tagged</p>
+<p>Any time you call <code>ObserveAttribute</code> from outside a <code>Signals.Tagged</code> callback, always ask: "what scope should own this connection?" If you can't answer that question, create a dedicated scope for the observing system. A connection with no clear owner is a potential leak.</p>
+</div>
+<hr />
+<h2 id="5-use-setattribute-instead-of-direct-roblox-attributes-for-queryable-data">5. Use SetAttribute Instead of Direct Roblox Attributes (For Queryable Data)</h2>
+<p>When you set an attribute directly on an instance with <code>instance:SetAttribute(key, value)</code>, that value is invisible to Stamp's query system. <code>GetInstancesWithAttribute (Local)</code> only returns instances whose values were written through Stamp's own <code>SetAttribute</code> method.</p>
+<h3 id="the-problem_3">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">-- This bypasses Stamp&#39;s query cache entirely</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nv">workspace</span><span class="p">.</span><span class="nv">Orc</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">500</span><span class="p">)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">-- This call returns nothing — Stamp has no record of the &quot;Health&quot; attribute on the Orc</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">GetInstancesWithAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">500</span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nf">print</span><span class="p">(</span><span class="err">#</span><span class="nv">results</span><span class="p">)</span><span class="w"> </span><span class="c1">-- 0</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> Stamp cannot see values written by the native Roblox API. The query returns an empty result even though the attribute exists on the instance.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Writing attributes directly to instances does not update Stamp's query cache. There is no error or warning — the cache and the instance simply diverge silently, and queries return stale or empty results.</p>
+</div>
+<h3 id="the-solution_2">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">-- Write through Stamp so the value enters the query cache</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">workspace</span><span class="p">.</span><span class="nv">Orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">500</span><span class="p">)</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1">-- Now the query finds it correctly</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="kd">local</span><span class="w"> </span><span class="nv">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">GetInstancesWithAttribute</span><span class="p">(</span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">500</span><span class="p">)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nf">print</span><span class="p">(</span><span class="err">#</span><span class="nv">results</span><span class="p">)</span><span class="w"> </span><span class="c1">-- 1</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>SetAttribute</code> writes the value to both the Roblox instance and Stamp's query index in one operation. Future <code>GetInstancesWithAttribute (Local)</code> calls find it immediately without walking the workspace hierarchy.</p>
+<div class="admonition tip">
+<p class="admonition-title">Reading Is Always Safe</p>
+<p><code>GetAttribute</code> falls back to the live Roblox value if no cached entry exists. So if an attribute was set directly on the instance (not through Stamp), <code>GetAttribute</code> will still return the correct value. The gap only affects <em>querying by attribute across many instances</em> — reads are always accurate.</p>
+</div>
+<hr />
+<h2 id="6-respect-attribute-type-constraints">6. Respect Attribute Type Constraints</h2>
+<p>Stamp enforces Roblox's attribute type rules. Only a specific set of types can be stored as instance attributes, and attempting to use an unsupported type will cause an error in Studio.</p>
+<h3 id="the-problem_4">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">-- Passing a table or an Instance reference as an attribute value</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;TargetPlayer&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">game</span><span class="p">.</span><span class="nv">Players</span><span class="p">.</span><span class="nv">LocalPlayer</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Wrong: Instance type</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PatrolPath&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nv">Vector3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">)})</span><span class="w">        </span><span class="c1">-- Wrong: Table type</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> Roblox does not support <code>Instance</code> references or <code>table</code> values as attributes. In Studio, Stamp throws a descriptive error. In production, the behaviour is undefined.</p>
+<div class="admonition warning">
+<p class="admonition-title">Supported Attribute Types</p>
+<p>Stamp's attribute cache only supports the types that Roblox itself permits: <code>string</code>, <code>number</code>, <code>boolean</code>, <code>UDim</code>, <code>UDim2</code>, <code>BrickColor</code>, <code>Color3</code>, <code>Vector2</code>, <code>Vector3</code>, <code>NumberRange</code>, <code>NumberSequence</code>, <code>ColorSequence</code>, <code>Rect</code>, and <code>Font</code>. The type check runs in Studio only. Always validate your attribute types during development so unsupported values are caught before they reach production.</p>
+</div>
+<h3 id="the-solution_3">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">-- Store a reference by a serialisable value instead</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;TargetPlayerName&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">game</span><span class="p">.</span><span class="nv">Players</span><span class="p">.</span><span class="nv">LocalPlayer</span><span class="p">.</span><span class="nv">Name</span><span class="p">)</span><span class="w">  </span><span class="c1">-- Acceptable: string</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PatrolIndex&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span><span class="w">                                   </span><span class="c1">-- Acceptable: number</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">orc</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;HomePosition&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Vector3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">))</span><span class="w">               </span><span class="c1">-- Acceptable: Vector3</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> Serialisable types like <code>string</code>, <code>number</code>, <code>boolean</code>, <code>Vector3</code>, <code>Color3</code>, and the other supported types replicate cleanly across the server/client boundary and are queryable through Stamp's attribute system.</p>
+<div class="admonition tip">
+<p class="admonition-title">Model References as Names</p>
+<p>When you need to associate an entity with another object — such as a target player — store the player's <code>Name</code> or <code>UserId</code> as a <code>string</code> or <code>number</code> attribute, then look up the live object from that identifier when you need it. This keeps attributes serialisable and avoids the <code>Instance</code> type restriction entirely.</p>
+</div>
+<hr />
+<h2 id="7-server-authority-and-client-reads">7. Server Authority and Client Reads</h2>
+<p>Stamp does not change the rules of Roblox networking, but it makes it easy to violate them if you are not deliberate.</p>
+<p><strong>The three rules:</strong></p>
+<ol>
+<li>
+<p><strong>Only the server should tag and untag gameplay-critical objects.</strong> Tags replicate to clients automatically. A client tagging an object changes nothing on the server.</p>
+</li>
+<li>
+<p><strong>Never trust attribute values set by the client.</strong> A client can call <code>SetAttribute</code> on its own machine, but those values do not replicate to the server. Treat any attribute your game logic depends on as server-authored.</p>
+</li>
+<li>
+<p><strong>Clients should read attributes, not write them.</strong> The correct pattern is: server calculates the value and writes it via <code>SetAttribute</code>; clients observe it via <code>ObserveAttribute</code> to drive UI or visual effects.</p>
+</li>
+</ol>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">-- Server: calculates and writes</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">200</span><span class="p">)</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1">-- Client: reads and visualises</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1">-- LocalScript</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">        </span><span class="c1">-- Drive a world-space health bar — reading only, never writing</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">        </span><span class="nf">updateHealthBar</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">CollectionService Tag Replication</p>
+<p><code>CollectionService</code> tags set on the server replicate to all clients automatically. A client-side <code>Stamp.Register("Enemy")</code> will fire <code>Signals.Tagged</code> for every server-tagged entity that streams in. The client never needs to call <code>AddTag</code> — the server's tagging is the source of truth.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Client Attributes Do Not Replicate</p>
+<p>Attribute values written on the client via <code>SetAttribute</code> exist only on that client's machine. They are invisible to the server and to other clients. Any attribute that affects gameplay logic — health, damage, ownership — must be written exclusively from the server.</p>
+</div>
+<hr />
+<h2 id="8-choose-between-global-and-stream-level-queries">8. Choose Between Global and Stream-Level Queries</h2>
+<p>Stamp offers two levels of attribute query. Using the wrong one returns more data than you need and makes code harder to reason about.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Goal</th>
+<th style="text-align: left;">Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Find any entity across all types that has a specific attribute</td>
+<td style="text-align: left;"><code>Stamp.GetInstancesWithAttribute(key, value)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Find entities of a specific type that have a specific attribute</td>
+<td style="text-align: left;"><code>stream:GetInstancesWithAttribute(key, value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-problem_5">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">-- You want all stunned *enemies*, but you query globally.</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="c1">-- If the &quot;Stunned&quot; attribute is also used on players or props,</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1">-- you get back all of them mixed together.</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="kd">local</span><span class="w"> </span><span class="nv">allStunned</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Stamp</span><span class="p">.</span><span class="nf">GetInstancesWithAttribute</span><span class="p">(</span><span class="s2">&quot;Stunned&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> The global query does not discriminate between streams. If multiple object types use the same attribute key, you get all of them back — including types you did not intend to act on.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>Attribute key names are not namespaced between streams. Two different streams can both use <code>"Stunned"</code> on their respective entities, and the global query will return all of them regardless of their type. This is correct behaviour for the global query — but it is the wrong tool when you only care about one stream.</p>
+</div>
+<h3 id="the-solution_4">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">-- Scoped to the enemy stream only — no false positives from other object types</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">stunnedEnemies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">GetInstancesWithAttribute</span><span class="p">(</span><span class="s2">&quot;Stunned&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The stream-level query considers only instances that are currently tracked by that specific stream. Results are precise and predictable regardless of what other streams use the same attribute key.</p>
+<div class="admonition tip">
+<p class="admonition-title">Prefer Stream-Level Queries in System Scripts</p>
+<p>Within a system that owns a specific stream, always use the stream-level query. Reserve the global query for cross-system tooling — for example, a debug inspector that needs to display all entities carrying a given attribute regardless of which system manages them.</p>
+</div>
+<hr />
+<h2 id="9-destroy-streams-at-phase-boundaries">9. Destroy Streams at Phase Boundaries</h2>
+<p>Streams accumulate tracked instances, attribute cache entries, and signal connections for as long as they are live. If a behaviour is no longer needed — for example, because a match has ended — destroy the stream rather than leaving it running with zero instances.</p>
+<h3 id="the-problem_6">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">-- The match ends but the stream is left running.</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="c1">-- Its CollectionService listeners remain active, its signal objects stay in memory,</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1">-- and any future accidental tagging would be silently processed.</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="kr">function</span><span class="w"> </span><span class="nf">onMatchEnd</span><span class="p">()</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">RemoveAllTags</span><span class="p">()</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="c1">-- stream is still live; nothing is actually released</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> <code>RemoveAllTags</code> untags the current instances, but the stream itself remains registered. Its <code>CollectionService</code> listeners continue listening, its signal objects remain in memory, and if any script accidentally tags an entity with the old tag name, the stream will silently process it.</p>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>A live stream with zero tracked instances still holds active <code>CollectionService</code> event connections. Over many rounds where streams are never destroyed, these accumulate alongside new ones, consuming memory and slightly increasing the cost of every future tag event on the server.</p>
+</div>
+<h3 id="the-solution_5">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kr">function</span><span class="w"> </span><span class="nf">onMatchEnd</span><span class="p">()</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span><span class="c1">-- RemoveAllTags runs internally first, then all listeners and relays are destroyed</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">Destroy</span><span class="p">()</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">    </span><span class="c1">-- Re-register a fresh stream at the start of the next match</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>Destroy (Local)</code> performs a complete teardown: all entities are untagged, all scope-bound resources are released, and the stream is removed from Stamp's registry. Re-registering the same tag name at the start of the next match gives you a clean slate.</p>
+<div class="admonition tip">
+<p class="admonition-title">Destroy Then Re-Register</p>
+<p>Destroying a stream does not prevent you from creating a new one with the same tag name. Calling <code>Stamp.Register("Enemy")</code> after <code>Stamp.Destroy("Enemy")</code> (or <code>enemyStream:Destroy()</code>) creates a completely fresh stream with no inherited state. This is the recommended pattern for round-based or phase-based game modes.</p>
+</div>
+<hr />
+<h2 id="10-do-not-manually-manage-entity-scopes">10. Do Not Manually Manage Entity Scopes</h2>
+<p>The garbage-collection scope provided to each <code>Signals.Tagged</code> callback belongs entirely to Stamp. Stamp creates it, tracks it, and destroys it at the exact moment the entity loses its tag. Attempting to take ownership of this scope yourself — by binding it to an external track or submitting it to another part of the garbage-collection system — breaks that contract and produces unpredictable behaviour.</p>
+<p>The underlying framework operates on a <strong>Last Call Supremacy</strong> model: whenever an object is registered with a new owner, it is immediately released from its previous one. This means that the instant you try to bind an entity's scope to an external track, the scope leaves Stamp's boundary entirely. Stamp can no longer destroy it when the tag is removed. The scope will instead live until the external track decides to clean it — which may be much later, or never.</p>
+<h3 id="the-problem_7">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">    </span><span class="c1">-- Attempting to bind the entity&#39;s scope to an external track</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="c1">-- immediately removes it from Stamp&#39;s control.</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="nv">someExternalTrack</span><span class="p">:</span><span class="nc">HandleScope</span><span class="p">(</span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="nv">scope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">entity</span><span class="p">.</span><span class="nv">PrimaryPart</span><span class="p">.</span><span class="nv">Touched</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;touched&quot;</span><span class="p">)</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="c1">-- When the enemy is untagged, Stamp can no longer clean this scope.</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span><span class="c1">-- The Touched connection leaks until someExternalTrack is cleaned instead.</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> The moment <code>HandleScope</code> is called, the scope is transferred to a new owner under Last Call Supremacy. Stamp's untag pathway can no longer reach it. Everything bound to the scope — connections, loops, tasks — will persist until the external track is eventually destroyed, which may be at a completely unrelated time. This defeats the entire purpose of Stamp's automated lifecycle management.</p>
+<div class="admonition warning">
+<p class="admonition-title">Last Call Supremacy</p>
+<p>The garbage-collection framework that backs Stamp uses a Last Call Supremacy model: registering an object with a new owner always releases it from its previous one. Because Stamp registers each entity scope internally when the tag is applied, any external re-registration immediately evicts the scope from Stamp's control. There is no way to transfer ownership back.</p>
+</div>
+<h3 id="the-solution_6">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nv">enemyStream</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="nv">scope</span><span class="p">)</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">    </span><span class="c1">-- Use the scope as Stamp intended: bind resources directly to it.</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">    </span><span class="c1">-- Stamp will destroy the scope — and everything in it — when the tag is removed.</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">    </span><span class="nv">scope</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">entity</span><span class="p">.</span><span class="nv">PrimaryPart</span><span class="p">.</span><span class="nv">Touched</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;touched&quot;</span><span class="p">)</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">    </span><span class="c1">-- If you need to observe this entity from a completely separate system,</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">    </span><span class="c1">-- create a fresh scope that belongs to that system — do not share the entity&#39;s scope.</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">externalScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Reaper</span><span class="p">.</span><span class="nf">Scope</span><span class="p">(</span><span class="s2">&quot;ExternalSystem_&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">entity</span><span class="p">.</span><span class="nv">Name</span><span class="p">)</span>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="w">    </span><span class="nv">enemyStream</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Health&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">hp</span><span class="p">)</span>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="w">        </span><span class="c1">-- drive external system logic</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="w">    </span><span class="kr">end</span><span class="p">,</span><span class="w"> </span><span class="nv">externalScope</span><span class="p">)</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="w">    </span><span class="c1">-- externalScope is owned and destroyed by the external system independently</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The entity's scope stays inside Stamp's boundary. When the tag is removed, Stamp destroys the scope and everything bound to it on schedule. Any external system that needs its own connection lifetime creates its own scope — the two lifetimes remain independent and neither interferes with the other.</p>
+<div class="admonition tip">
+<p class="admonition-title">One Scope Per Owner</p>
+<p>If multiple independent systems need to react to the same entity, each system creates its own scope rather than sharing the entity's tag scope. This keeps each system's cleanup path completely self-contained: destroying one system's scope has no effect on any other system's connections or the entity's tag scope itself.</p>
+</div>
+<hr />
+<h2 id="11-the-configure-then-tag-pattern-hydrate-before-announcing">11. The "Configure-Then-Tag" Pattern (Hydrate Before Announcing)</h2>
+<p>If you must set attributes to an entity outside the <code>Signals.Tagged</code> signal, always set its attributes, properties, and network ownership <em>before</em> applying the tag. <code>AddTag</code> should be the absolute final line of the code.</p>
+<h3 id="the-problem_8">The Problem</h3>
+<p>If you apply the tag before setting attributes, you create a severe race condition. The <code>.Tagged</code> signal fires synchronously the exact millisecond <code>:AddTag()</code> is called across all listening scripts. This is a race condition.</p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1">-- BAD: Tag-Then-Configure</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">Fireball</span><span class="p">)</span><span class="w"> </span><span class="c1">-- The .Tagged signal fires instantly here!</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">Fireball</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Damage&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">50</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Too late. Listening systems already read &#39;nil&#39;.</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="c1">-- COMBAT SYSTEM SCRIPT</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1">-- Somewhere scripts in the game inside the Combat System</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="nv">BurningStamp</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">Entity</span><span class="p">,</span><span class="w"> </span><span class="nv">Scope</span><span class="p">)</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">    </span><span class="c1">-- ERROR: The damage attribute hasn&#39;t been set yet!</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">damage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Damage&quot;</span><span class="p">)</span><span class="w"> </span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="the-solution_7">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1">-- GOOD: Configure-Then-Tag</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">Fireball</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Damage&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">50</span><span class="p">)</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">SetAttribute</span><span class="p">(</span><span class="nv">Fireball</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Owner&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Player</span><span class="p">.</span><span class="nv">UserId</span><span class="p">)</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1">-- NOW announce it to the world:</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">AddTag</span><span class="p">(</span><span class="nv">Fireball</span><span class="p">)</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="c1">-- COMBAT SYSTEM SCRIPT</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="c1">-- Somewhere scripts in the game inside the Combat System</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="nv">BurningStamp</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">Tagged</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">Entity</span><span class="p">,</span><span class="w"> </span><span class="nv">Scope</span><span class="p">)</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">    </span><span class="c1">-- PERFECT: The data is immediately available synchronously.</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">damage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">GetAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Damage&quot;</span><span class="p">)</span><span class="w"> </span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="w">    </span><span class="c1">-- ObserveAttribute instantly fires with the correct initial value (&#39;50&#39;)</span>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">    </span><span class="nv">BurningStamp</span><span class="p">:</span><span class="nc">ObserveAttribute</span><span class="p">(</span><span class="nv">Entity</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Damage&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">value</span><span class="p">)</span>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="w">        </span><span class="nf">print</span><span class="p">(</span><span class="s2">&quot;Fireball damage is: &quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">value</span><span class="p">)</span>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works (and why it is memory-safe):</strong> Stamp handles this order of operations flawlessly. When you set an attribute on an untagged entity, Stamp caches the data and quietly uses <code>Reaper.Track(Entity)</code> to ensure the cache doesn't leak if the instance is destroyed prematurely. When you subsequently call <code>AddTag</code>, Stamp generates the dedicated <code>Reaper.Scope</code> for the entity's behaviours. If the entity is later destroyed, Reaper gracefully cleans both the tag's logic scope and the underlying attribute cache without any conflicts.</p>
+<hr />
+<div class="admonition success">
+<p class="admonition-title">Pro Tip: Keep Tag Names Short</p>
+<p><code>CollectionService</code> tags replicate across the network. Every byte in a tag name is transmitted to every client that joins the server. Short, descriptive names like <code>"Enemy"</code> or <code>"Pickup"</code> keep join overhead low. If you find yourself writing tag names longer than 20 characters, consider whether you are using tags as serialised data rather than as category identifiers — and if so, use attributes instead.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,4801 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../utilities/assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#type-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#datatable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datadefinitionschema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataDefinition&lt;Schema&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cachepolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CachePolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queuepublishconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QueuePublishConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queuescanconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QueueScanConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waitconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaitConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datapackage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataPackage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemstats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemStats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signalconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SignalConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diarysignal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DiarySignal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-data-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Data APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queue-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queue APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-lifecycle-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Lifecycle APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics &amp; Utilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#featured-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Featured APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detail-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detail Entries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detail Entries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registertemplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegisterTemplate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registerpolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegisterPolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fetchdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FetchData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#savedata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SaveData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdirty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarkDirty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlememorycaching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandleMemoryCaching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#onloadstarted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnLoadStarted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#onloadcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnLoadCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waitforvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaitForValue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PublishQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scanqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScanQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wipedata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WipeData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exportdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExportData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fetchtombstones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FetchTombstones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemstats_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemStats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threadcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ThreadCount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getdatasize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetDataSize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#isonline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IsOnline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#savehumanoiddescription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SaveHumanoidDescription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loadplayerghostcharactermodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoadPlayerGhostCharacterModel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../utilities/twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#type-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#datatable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataTable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datadefinitionschema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataDefinition&lt;Schema&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cachepolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CachePolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queuepublishconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QueuePublishConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queuescanconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QueueScanConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waitconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaitConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datapackage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataPackage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemstats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemStats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signalconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SignalConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diarysignal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DiarySignal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-data-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Data APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle &amp; Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queue-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queue APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-lifecycle-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Lifecycle APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics &amp; Utilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#featured-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Featured APIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detail-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detail Entries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detail Entries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registertemplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegisterTemplate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registerpolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RegisterPolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fetchdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FetchData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#savedata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SaveData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdirty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MarkDirty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handlememorycaching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandleMemoryCaching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#onloadstarted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnLoadStarted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#onloadcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnLoadCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waitforvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaitForValue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PublishQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scanqueueentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScanQueueEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wipedata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WipeData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exportdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExportData
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fetchtombstones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FetchTombstones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#systemstats_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SystemStats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#threadcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ThreadCount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getdatasize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetDataSize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inject
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#isonline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IsOnline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#savehumanoiddescription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SaveHumanoidDescription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loadplayerghostcharactermodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoadPlayerGhostCharacterModel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-reference">API Reference</h1>
+<p>Complete reference for every public method, signal, and type exported by Diary.</p>
+<hr />
+<h2 id="type-definitions">Type Definitions</h2>
+<h3 id="datatable"><code>DataTable</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">DataTable</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">any</span><span class="p">]:</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<p>A generic table type used throughout Diary wherever an untyped data payload is accepted or returned.</p>
+<hr />
+<h3 id="datadefinitionschema"><code>DataDefinition&lt;Schema&gt;</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">DataDefinition</span><span class="p">&lt;</span><span class="nc">Schema</span><span class="p">&gt;</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nc">____memoryLocation</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nc">structure</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="nc">Schema</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The opaque handle returned by <code>RegisterTemplate</code>. Pass this to <code>FetchData</code> to retrieve a player's typed data. Do not construct this manually.</p>
+<hr />
+<h3 id="cachepolicy"><code>CachePolicy</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">CachePolicy</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nc">____ActiveTTL</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nc">____IdleTTL</span><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nc">____IdleThreshold</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nc">____IntervalMultiplier</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Overrides the framework-wide defaults for a single data location. All fields are optional; omitted fields fall back to the module-level configuration constants.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____ActiveTTL</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">MemoryStore entry lifetime in seconds for active players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____IdleTTL</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">MemoryStore entry lifetime in seconds for idle players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____IdleThreshold</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds of inactivity before the player is considered idle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____IntervalMultiplier</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Factor applied to the base save interval for idle players.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="queuepublishconfig"><code>QueuePublishConfig</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">QueuePublishConfig</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nc">____VisibilityTimeout</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nc">____TimeSpan</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nc">____Priority</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Controls how an entry is placed onto a MemoryStore queue.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____VisibilityTimeout</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds the entry is hidden from other readers after being read. Clamped to 30–300.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____TimeSpan</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Entry lifetime in seconds. Default: <code>60</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____Priority</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Relative ordering within the queue. Default: <code>1</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="queuescanconfig"><code>QueueScanConfig</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">QueueScanConfig</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nc">____Count</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nc">____AllOrNothing</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nc">____WaitTimeout</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nc">____OnDelete</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Controls how entries are read from a MemoryStore queue.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Count</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Maximum entries to read in a single call. Default: <code>1</code>. Capped at <code>100</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____AllOrNothing</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">When true, the read fails unless the full requested count is available.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____WaitTimeout</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds to wait for entries if the queue is empty. Use <code>-1</code> for indefinite. Capped at 3600.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____OnDelete</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">When true, entries are removed from the queue immediately after being read.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="waitconfig"><code>WaitConfig</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">WaitConfig</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nc">____Timeout</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nc">____PollRate</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Controls the polling behaviour of <code>WaitForValue</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>____Timeout</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Maximum seconds to wait before returning failure. Default: <code>10</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>____PollRate</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds between poll attempts. Default: <code>0.2</code>. Minimum: <code>0.1</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="datapackage"><code>DataPackage</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">DataPackage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nc">audit</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">string</span><span class="p">]:</span><span class="w"> </span><span class="nc">any</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nc">copy</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">string</span><span class="p">]:</span><span class="w"> </span><span class="nc">DataTable</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Returned by <code>WipeData</code> and <code>ExportData</code>. Contains a formatted audit record and a snapshot of all data across every registered memory location.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>audit</code></td>
+<td style="text-align: left;"><code>{ [string]: any }</code></td>
+<td style="text-align: left;">Timestamped record describing the action, requester, reason, and server ID.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>copy</code></td>
+<td style="text-align: left;"><code>{ [string]: DataTable }</code></td>
+<td style="text-align: left;">Map of memory location names to their data tables at the time of the operation.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="systemstats"><code>SystemStats</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">SystemStats</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nc">System</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nc">Players</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nc">DataStore</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nc">MemoryStore</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nc">Resources</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>A snapshot of live operational metrics. Returned by <code>SystemStats()</code>.</p>
+<hr />
+<h3 id="signalconnection"><code>SignalConnection</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">SignalConnection</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nc">Disconnect</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">SignalConnection</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">(),</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nc">Connected</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Returned by <code>Signal:Connect(...)</code>. Call <code>:Disconnect()</code> to stop receiving events.</p>
+<hr />
+<h3 id="diarysignal"><code>DiarySignal</code></h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kr">type</span><span class="w"> </span><span class="nc">DiarySignal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nc">Connect</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">DiarySignal</span><span class="p">,</span><span class="w"> </span><span class="nc">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">SignalConnection</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nc">Once</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">DiarySignal</span><span class="p">,</span><span class="w"> </span><span class="nc">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">(),</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The signal interface used by <code>Diary.Signals.OnLoadStarted</code> and <code>Diary.Signals.OnLoadCompleted</code>.</p>
+<hr />
+<h2 id="api-summary">API Summary</h2>
+<h3 id="core-data-apis">Core Data APIs</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#registertemplate">RegisterTemplate</a></strong></td>
+<td style="text-align: left;"><code>DataDefinition&lt;Schema&gt;</code></td>
+<td style="text-align: left;">Declares a data location and its default schema; returns a handle for use with FetchData.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#registerpolicy">RegisterPolicy</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Replaces or sets the cache policy for a named data location.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#fetchdata">FetchData</a></strong></td>
+<td style="text-align: left;"><code>Schema?</code></td>
+<td style="text-align: left;">Returns the current in-memory data for a player at a given location.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#savedata">SaveData</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Schedules a save of a player's data for a specific location to storage.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#markdirty">MarkDirty</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Marks a player's data as changed so the auto-save loop will persist it on the next cycle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#handlememorycaching">HandleMemoryCaching</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Enables or disables the MemoryStore auto-cache loop for a specific player and location.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lifecycle-events">Lifecycle &amp; Events</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#onloadstarted">Signals.OnLoadStarted</a></strong></td>
+<td style="text-align: left;"><code>DiarySignal</code></td>
+<td style="text-align: left;">Fires for every player whose data has begun loading.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#onloadcompleted">Signals.OnLoadCompleted</a></strong></td>
+<td style="text-align: left;"><code>DiarySignal</code></td>
+<td style="text-align: left;">Fires for every player once all data templates have finished loading.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#waitforvalue">WaitForValue</a></strong></td>
+<td style="text-align: left;"><code>(boolean, ...any)</code></td>
+<td style="text-align: left;">Polls a callback until it returns a non-nil value or a timeout expires.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="queue-apis">Queue APIs</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#publishqueueentry">PublishQueueEntry</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Publishes a data payload to a named MemoryStore queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#scanqueueentry">ScanQueueEntry</a></strong></td>
+<td style="text-align: left;"><code>DataTable</code></td>
+<td style="text-align: left;">Reads entries from a named MemoryStore queue and returns them.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data-lifecycle-apis">Data Lifecycle APIs</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#wipedata">WipeData</a></strong></td>
+<td style="text-align: left;"><code>DataPackage</code></td>
+<td style="text-align: left;">Permanently deletes all stored data for a player and bans the account.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#exportdata">ExportData</a></strong></td>
+<td style="text-align: left;"><code>DataPackage</code></td>
+<td style="text-align: left;">Exports a full copy of all stored data for a player with an audit record.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#fetchtombstones">FetchTombstones</a></strong></td>
+<td style="text-align: left;"><code>{ [string]: number }</code></td>
+<td style="text-align: left;">Returns the record of all previously wiped player IDs and their deletion timestamps.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diagnostics-utilities">Diagnostics &amp; Utilities</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#systemstats">SystemStats</a></strong></td>
+<td style="text-align: left;"><code>SystemStats</code></td>
+<td style="text-align: left;">Returns a live snapshot of framework health metrics.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#threadcount">ThreadCount</a></strong></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Returns the estimated number of active threads currently managed by the framework.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#getdatasize">GetDataSize</a></strong></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Returns the total number of cached data keys across all locations for a player.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#inject">Inject</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Injects a compatible external scheduler into the framework.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="featured-apis">Featured APIs</h3>
+<div class="admonition info">
+<p class="admonition-title">Requires FEATURES_ENABLED</p>
+<p>The following APIs are only available when <code>FEATURES_ENABLED</code> is set to <code>true</code> in the module configuration. They will not exist on the Diary table otherwise.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#isonline">IsOnline</a></strong></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Returns whether a player is currently marked as online in MemoryStore.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#savehumanoiddescription">SaveHumanoidDescription</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Captures a player's appearance and last position to MemoryStore.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#loadplayerghostcharactermodel">LoadPlayerGhostCharacterModel</a></strong></td>
+<td style="text-align: left;"><code>Model?</code></td>
+<td style="text-align: left;">Reconstructs and places a player's saved appearance as a character model in the world.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="detail-entries">Detail Entries</h2>
+<hr />
+<h3 id="registertemplate">RegisterTemplate</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">RegisterTemplate</span><span class="p">(</span><span class="nv">memoryLocation</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">template</span><span class="p">:</span><span class="w"> </span><span class="nc">Schema</span><span class="p">,</span><span class="w"> </span><span class="nv">policy</span><span class="p">:</span><span class="w"> </span><span class="nc">CachePolicy</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">DataDefinition</span><span class="p">&lt;</span><span class="nc">Schema</span><span class="p">&gt;</span>
+</span></code></pre></div>
+<p>Declares a data location and its default schema; returns a handle for use with FetchData. Call this once per data location at server startup, before any players join. The returned handle is the only way to retrieve a player's data via <code>FetchData</code> — store it in a variable.</p>
+<p>When called while players are already online, all currently cached data for those players is immediately reconciled against the new template: missing keys are added with their default values and removed keys are cleared.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>memoryLocation</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">A unique name for this data slot. Used as the DataStore and MemoryStore key.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>template</code></td>
+<td style="text-align: left;"><code>Schema</code></td>
+<td style="text-align: left;">The default data table for a new player. All keys and their default values.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>policy</code></td>
+<td style="text-align: left;"><code>CachePolicy?</code></td>
+<td style="text-align: left;">Optional TTL and save-interval overrides. Falls back to module-level configuration if omitted.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DataDefinition&lt;Schema&gt;</code></td>
+<td style="text-align: left;">An opaque handle. Pass this to <code>FetchData</code> to access typed player data.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Store the returned handle</p>
+<p>Keep the <code>DataDefinition</code> in a module-level variable. You need it every time you call <code>FetchData</code>. Calling <code>RegisterTemplate</code> twice for the same location replaces the template and re-reconciles live data.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Side Effect</p>
+<p>If players are online when this is called, their cached data is immediately reconciled and marked for saving.</p>
+</div>
+<hr />
+<h3 id="registerpolicy">RegisterPolicy</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">RegisterPolicy</span><span class="p">(</span><span class="nv">memoryLocation</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">policy</span><span class="p">:</span><span class="w"> </span><span class="nc">CachePolicy</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Replaces or sets the cache policy for a named data location. Use this to change TTL or idle-save behaviour for a location without re-registering the entire template.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>memoryLocation</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the data location whose policy to replace.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>policy</code></td>
+<td style="text-align: left;"><code>CachePolicy</code></td>
+<td style="text-align: left;">The new TTL and interval configuration. All fields are optional; omitted fields use module defaults.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>In Studio (debug mode), throws if <code>memoryLocation</code> is not a non-empty string or if <code>policy</code> is not a table.</p>
+</div>
+<hr />
+<h3 id="fetchdata">FetchData</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">FetchData</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">structureDefinition</span><span class="p">:</span><span class="w"> </span><span class="nc">DataDefinition</span><span class="p">&lt;</span><span class="nc">Schema</span><span class="p">&gt;):</span><span class="w"> </span><span class="nc">Schema</span><span class="err">?</span>
+</span></code></pre></div>
+<p>Returns the current in-memory data for a player at a given location. Returns <code>nil</code> if the player's data has not finished loading yet.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>structureDefinition</code></td>
+<td style="text-align: left;"><code>DataDefinition&lt;Schema&gt;</code></td>
+<td style="text-align: left;">The handle returned by <code>RegisterTemplate</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Schema?</code></td>
+<td style="text-align: left;">A direct reference to the live data table. Mutations to this table are reflected immediately. Returns <code>nil</code> if the data is not yet loaded.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>Internally polls with a short timeout until the data is available. For most in-session use, this returns immediately. Check for <code>nil</code> to detect the not-yet-loaded case.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Mutate directly</p>
+<p>The returned table is the live data copy. You can read and write fields on it directly. Call <code>MarkDirty</code> afterwards to tell the auto-save loop to persist the change.</p>
+</div>
+<hr />
+<h3 id="savedata">SaveData</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">SaveData</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">memoryLocation</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">updateMemoryStore</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Schedules a save of a player's data for a specific location to storage. Use this when you want to guarantee a write at a specific point in your game logic (e.g., after a purchase), rather than waiting for the next auto-save cycle.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>memoryLocation</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The data location name to save.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>updateMemoryStore</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">When true, also writes the data to MemoryStore in addition to DataStore. Default: <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Deferred execution</p>
+<p>The actual write is scheduled for the next available opportunity. This call never blocks. If the write system is busy, the write is placed in the background queue automatically.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Pairing with MarkDirty</p>
+<p><code>SaveData</code> always writes regardless of the dirty flag. Use <code>MarkDirty</code> alone when you are happy for the auto-save loop to decide when to write. Use <code>SaveData</code> when you need the write to happen promptly.</p>
+</div>
+<hr />
+<h3 id="markdirty">MarkDirty</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">MarkDirty</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">memoryLocation</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Marks a player's data as changed so the auto-save loop will persist it on the next cycle.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>memoryLocation</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The data location to mark.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">Preferred pattern for frequent updates</p>
+<p>For high-frequency changes (inventory updates, stat increments), prefer <code>MarkDirty</code> over <code>SaveData</code>. The auto-save loop batches all dirty locations together efficiently and respects the configured save interval.</p>
+</div>
+<hr />
+<h3 id="handlememorycaching">HandleMemoryCaching</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">HandleMemoryCaching</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">memoryLocation</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">state</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Enables or disables the MemoryStore auto-cache loop for a specific player and location. When disabled, data for that location is no longer pushed to MemoryStore automatically between saves. Re-enable with <code>state = false</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>memoryLocation</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The data location to toggle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>state</code></td>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;">Pass <code>true</code> to <strong>disable</strong> caching; <code>false</code> to <strong>re-enable</strong> it.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Inverted polarity</p>
+<p>The <code>state</code> parameter is intentionally inverted: <code>true</code> means "stop caching", <code>false</code> means "resume caching". This is by design to match an internal enabled/disabled semantic. Read carefully.</p>
+</div>
+<hr />
+<h3 id="onloadstarted">OnLoadStarted</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnLoadStarted</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">SignalConnection</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nv">Diary</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnLoadStarted</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="nv">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Fires for every player whose data has begun loading. Fires retroactively for any players who are already loaded when a listener is connected.</p>
+<p><strong>Parameters (<code>Connect</code>):</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>callback</code></td>
+<td style="text-align: left;"><code>(Player) -&gt; ()</code></td>
+<td style="text-align: left;">Called with the Player instance whose load just began.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns (<code>Connect</code>):</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SignalConnection</code></td>
+<td style="text-align: left;">Call <code>:Disconnect()</code> to stop receiving events.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns (<code>Once</code>):</strong> <code>void</code></p>
+<hr />
+<h3 id="onloadcompleted">OnLoadCompleted</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnLoadCompleted</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="nv">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">SignalConnection</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nv">Diary</span><span class="p">.</span><span class="nv">Signals</span><span class="p">.</span><span class="nv">OnLoadCompleted</span><span class="p">:</span><span class="nc">Once</span><span class="p">(</span><span class="nv">callback</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">Player</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Fires for every player once all data templates have finished loading. Fires retroactively for already-loaded players when a listener is connected.</p>
+<p><strong>Parameters (<code>Connect</code>):</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>callback</code></td>
+<td style="text-align: left;"><code>(Player) -&gt; ()</code></td>
+<td style="text-align: left;">Called with the Player instance whose data is fully ready.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns (<code>Connect</code>):</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SignalConnection</code></td>
+<td style="text-align: left;">Call <code>:Disconnect()</code> to stop receiving events.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns (<code>Once</code>):</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">The right spawn gate</p>
+<p>Always gate character spawning and gameplay initialisation behind <code>OnLoadCompleted</code>, not <code>PlayerAdded</code>. Data is not guaranteed to be available at the time <code>PlayerAdded</code> fires.</p>
+</div>
+<hr />
+<h3 id="waitforvalue">WaitForValue</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">WaitForValue</span><span class="p">(</span><span class="nv">callbackFunction</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="err">...</span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nv">options</span><span class="p">:</span><span class="w"> </span><span class="nc">WaitConfig</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">(</span><span class="nc">boolean</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nc">any</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Polls a callback until it returns a non-nil value or a timeout expires.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>callbackFunction</code></td>
+<td style="text-align: left;"><code>() -&gt; ...any</code></td>
+<td style="text-align: left;">Called repeatedly until it returns a non-nil first value.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>options</code></td>
+<td style="text-align: left;"><code>WaitConfig?</code></td>
+<td style="text-align: left;">Optional timeout and poll interval overrides.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if the callback returned a value before the timeout; <code>false</code> on timeout or persistent error.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...any</code></td>
+<td style="text-align: left;">All return values from the final successful callback call, or an error string on failure.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>This function yields the calling thread for up to <code>____Timeout</code> seconds. Do not call it from a path that must not yield (e.g., inside a tight update loop).</p>
+</div>
+<hr />
+<h3 id="publishqueueentry">PublishQueueEntry</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">PublishQueueEntry</span><span class="p">(</span><span class="nv">queueName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">dataReference</span><span class="p">:</span><span class="w"> </span><span class="nc">DataTable</span><span class="p">,</span><span class="w"> </span><span class="nv">options</span><span class="p">:</span><span class="w"> </span><span class="nc">QueuePublishConfig</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Publishes a data payload to a named MemoryStore queue.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>queueName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the target queue.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dataReference</code></td>
+<td style="text-align: left;"><code>DataTable</code></td>
+<td style="text-align: left;">The data table to publish. Must be DataStore-serialisable.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>options</code></td>
+<td style="text-align: left;"><code>QueuePublishConfig?</code></td>
+<td style="text-align: left;">Optional visibility timeout, TTL, and priority.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Deferred write</p>
+<p>The publish is scheduled, not immediate. Do not assume the entry is visible to readers the moment this call returns.</p>
+</div>
+<hr />
+<h3 id="scanqueueentry">ScanQueueEntry</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">ScanQueueEntry</span><span class="p">(</span><span class="nv">queueName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">options</span><span class="p">:</span><span class="w"> </span><span class="nc">QueueScanConfig</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">DataTable</span>
+</span></code></pre></div>
+<p>Reads entries from a named MemoryStore queue and returns them. If <code>____OnDelete</code> is set in options, entries are removed from the queue after reading.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>queueName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the queue to read from.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>options</code></td>
+<td style="text-align: left;"><code>QueueScanConfig?</code></td>
+<td style="text-align: left;">Optional count, all-or-nothing, timeout, and delete-on-read configuration.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DataTable</code></td>
+<td style="text-align: left;">The deserialized entries read from the queue. Returns an empty table if none were available or the read failed.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>This function yields the calling thread until the read completes. If <code>____WaitTimeout</code> is set, it may yield for that many seconds waiting for entries to appear.</p>
+</div>
+<hr />
+<h3 id="wipedata">WipeData</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">WipeData</span><span class="p">(</span><span class="nv">playerInstance</span><span class="p">:</span><span class="w"> </span><span class="nc">Player</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">informationTable</span><span class="p">:</span><span class="w"> </span><span class="nc">DataTable</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">isRecursed</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">DataPackage</span>
+</span></code></pre></div>
+<p>Permanently deletes all stored data for a player, records a tombstone, and bans the account from re-entering. Returns a full copy of all data as it existed before deletion, along with a timestamped audit record.</p>
+<p>If the player is currently online, they are kicked and the deletion is scheduled after a short delay to allow the kick to propagate. If offline, deletion proceeds immediately.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerInstance</code></td>
+<td style="text-align: left;"><code>Player | number</code></td>
+<td style="text-align: left;">The Player instance or their numeric UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>informationTable</code></td>
+<td style="text-align: left;"><code>DataTable?</code></td>
+<td style="text-align: left;">Optional extra fields to merge into the ban record (e.g., <code>reason</code>, <code>requester</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>isRecursed</code></td>
+<td style="text-align: left;"><code>boolean?</code></td>
+<td style="text-align: left;">Internal use only. Do not pass this argument manually.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DataPackage</code></td>
+<td style="text-align: left;">Contains the ban audit record and a copy of all data before deletion.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Irreversible</p>
+<p>This operation is permanent. Data is deleted from both DataStore and MemoryStore. The tombstone prevents future data loads for this UserId. There is no undo.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Online player delay</p>
+<p>When the target player is currently in the server, the actual storage deletion is deferred by 20 seconds to allow the kick to complete. The returned <code>DataPackage</code> reflects the data at the time of the call, not after the deferred deletion.</p>
+</div>
+<hr />
+<h3 id="exportdata">ExportData</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">ExportData</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">requestInfo</span><span class="p">:</span><span class="w"> </span><span class="nc">AuditInfo</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">DataPackage</span>
+</span></code></pre></div>
+<p>Exports a full copy of all stored data for a player with an audit record. For online players, data is read from the live in-memory cache. For offline players, data is fetched from MemoryStore, falling back to DataStore.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>requestInfo</code></td>
+<td style="text-align: left;"><code>{ reason: string?, requester: string? }?</code></td>
+<td style="text-align: left;">Optional audit metadata.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DataPackage</code></td>
+<td style="text-align: left;">Audit record plus a copy of all data across all registered memory locations.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields for offline players</p>
+<p>Fetching data for offline players requires live storage reads, which yield the calling thread.</p>
+</div>
+<hr />
+<h3 id="fetchtombstones">FetchTombstones</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">FetchTombstones</span><span class="p">():</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">string</span><span class="p">]:</span><span class="w"> </span><span class="nc">number</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<p>Returns the record of all previously wiped player IDs and their deletion timestamps.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>{ [string]: number }</code></td>
+<td style="text-align: left;">Map of UserId strings to Unix timestamps of when the wipe occurred.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>May yield when reading from DataStore if the MemoryStore cache has expired.</p>
+</div>
+<hr />
+<h3 id="systemstats_1">SystemStats</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">SystemStats</span><span class="p">():</span><span class="w"> </span><span class="nc">SystemStats</span>
+</span></code></pre></div>
+<p>Returns a live snapshot of framework health metrics.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SystemStats</code></td>
+<td style="text-align: left;">A table with five sub-groups: <code>System</code>, <code>Players</code>, <code>DataStore</code>, <code>MemoryStore</code>, and <code>Resources</code>. See type definition for field details.</td>
+</tr>
+</tbody>
+</table>
+<p>The returned table contains:</p>
+<ul>
+<li><strong>System</strong>: Server ID, shutdown flag, Studio flag, MemoryStore health flag, total thread count.</li>
+<li><strong>Players</strong>: Number of loaded profiles, active auto-save sessions, players missing a lease.</li>
+<li><strong>DataStore</strong>: Current queue depth and active write operations.</li>
+<li><strong>MemoryStore</strong>: Pending batch writes and owned lease count.</li>
+<li><strong>Resources</strong>: Serialisation cache size and active key lock count.</li>
+</ul>
+<hr />
+<h3 id="threadcount">ThreadCount</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">ThreadCount</span><span class="p">():</span><span class="w"> </span><span class="nc">number</span>
+</span></code></pre></div>
+<p>Returns the estimated number of active threads currently managed by the framework. Includes base workers, the DataStore queue processor, and any in-flight per-player save threads.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Estimated active thread count.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="getdatasize">GetDataSize</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">GetDataSize</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">):</span><span class="w"> </span><span class="nc">number</span>
+</span></code></pre></div>
+<p>Returns the total number of cached data keys across all locations for a player.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Total key count across all memory locations. Returns <code>0</code> if no data is cached for this player.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="inject">Inject</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">Inject</span><span class="p">(</span><span class="nv">moduleName</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">moduleTableObject</span><span class="p">:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Injects an external library within the Lazy Games Suite of Tools environment.
+Currently supports the "Assignment" library.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>moduleName</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The name of the ModuleScript file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>moduleTableObject</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The module table to inject.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">Inject before players join</p>
+<p>Call <code>Inject</code> at the very beginning of your server script, before any player can arrive. Injecting after the server is running may cause some operations to execute under the default scheduler.</p>
+</div>
+<hr />
+<h3 id="isonline">IsOnline</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">IsOnline</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">):</span><span class="w"> </span><span class="nc">boolean</span>
+</span></code></pre></div>
+<p>Returns whether a player is currently marked as online in MemoryStore.</p>
+<div class="admonition info">
+<p class="admonition-title">Requires FEATURES_ENABLED</p>
+<p>This method only exists when <code>FEATURES_ENABLED = true</code>.</p>
+</div>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The player's UserId to check.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if the player's online flag is set in MemoryStore; <code>false</code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Eventual consistency</p>
+<p>The online flag is managed via MemoryStore and may not reflect the exact moment of join or departure. Do not use it as a strict presence check for gameplay-critical logic.</p>
+</div>
+<hr />
+<h3 id="savehumanoiddescription">SaveHumanoidDescription</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">SaveHumanoidDescription</span><span class="p">(</span><span class="nv">player</span><span class="p">:</span><span class="w"> </span><span class="nc">Player</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Captures a player's current appearance (accessories, body parts, clothes, body colours, scales) and last known position to MemoryStore with a 60-second TTL. This snapshot can later be used by <code>LoadPlayerGhostCharacterModel</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Requires FEATURES_ENABLED</p>
+<p>This method only exists when <code>FEATURES_ENABLED = true</code>.</p>
+</div>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>player</code></td>
+<td style="text-align: left;"><code>Player</code></td>
+<td style="text-align: left;">The Player whose appearance to capture.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>Waits for the player's character and humanoid to be present before reading the description. Do not call during PlayerRemoving unless the character is guaranteed to still exist.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">TTL is short</p>
+<p>The snapshot expires after 60 seconds. Call this close to when you intend to use <code>LoadPlayerGhostCharacterModel</code>, or call it on a timer to keep it fresh.</p>
+</div>
+<hr />
+<h3 id="loadplayerghostcharactermodel">LoadPlayerGhostCharacterModel</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nv">Diary</span><span class="p">.</span><span class="nf">LoadPlayerGhostCharacterModel</span><span class="p">(</span><span class="nv">playerUserID</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">spawnPosition</span><span class="p">:</span><span class="w"> </span><span class="nc">Vector3</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">Model</span><span class="err">?</span>
+</span></code></pre></div>
+<p>Reconstructs and places a player's saved appearance as a non-playable character model in the world, using the snapshot written by <code>SaveHumanoidDescription</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Requires FEATURES_ENABLED</p>
+<p>This method only exists when <code>FEATURES_ENABLED = true</code>.</p>
+</div>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>playerUserID</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The UserId of the player whose appearance to reconstruct.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spawnPosition</code></td>
+<td style="text-align: left;"><code>Vector3?</code></td>
+<td style="text-align: left;">Where to place the model. Falls back to the last known position from the snapshot if omitted.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Model?</code></td>
+<td style="text-align: left;">The placed character model, or <code>nil</code> if the snapshot could not be found or the humanoid was missing.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yields</p>
+<p>Fetches the snapshot from MemoryStore and applies the HumanoidDescription, both of which yield.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Strict Dependency: FEATURES_ENABLED + Mesh Template</p>
+<p>Requires a <code>"Mesh Template"</code> model in <code>ServerStorage</code>, generated automatically at startup when <code>FEATURES_ENABLED = true</code>. If the template is not present, this will error.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
