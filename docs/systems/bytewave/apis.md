@@ -280,7 +280,7 @@ Attaches a function that is called for every inbound packet, before any gateway 
 
 <a id="playeradded"></a>
 #### `PlayerAdded`
-Registers a callback that fires once for each player after they have completed ByteWave's connection handshake. This is the correct event to use instead of `Players.PlayerAdded` when you need to know that ByteWave is ready to send data to that player.
+Registers a callback that fires once for each player after they have completed ByteWave's connection handshake.
 
 **Parameters:**
 
@@ -437,7 +437,7 @@ Injects an external library within the Lazy Games Suite of Tools environment. Cu
 
 <a id="createstate"></a>
 #### `CreateState`
-Creates, registers, and optionally immediately replicates a new StateObject with the given data and scope.
+Creates, registers, and immediately replicates a new StateObject with the given data and scope.
 
 **Parameters:**
 
@@ -449,7 +449,7 @@ Creates, registers, and optionally immediately replicates a new StateObject with
 | `OwnerOrFilter` | `(Player | { Player })?` | A single Player (for Private scopes) or an array of Players (for Filtered scopes). |
 | `Anchor` | `BasePart | Model?` | Required for Spatial scopes. The world object whose position determines discovery. |
 | `Radius` | `number?` | Discovery radius in studs for Spatial scopes. Defaults to `150`. |
-| `HierarchyInfo` | `{ Parent: StateObject? }?` | Links this state as a child of another. Children inherit their parent's scope and owner/filter when not specified. |
+| `HierarchyInfo` | `{ Parent: StateObject? }?` | (Optional) Links this state as a child of another. Children inherit their parent's scope and owner/filter when not specified. |
 
 **Returns:** `StateObject`
 
@@ -471,7 +471,7 @@ Returns the StateObject registered under the given ID.
 |:---|:---|:---|
 | `UniqueID` | `string` | The identifier of the state to retrieve. |
 
-**Returns:** `StateObject?` — the state handle, or `nil` if no state with that ID exists.
+**Returns:** `StateObject?` — the state controller, or `nil` if no state with that ID exists.
 
 ---
 
@@ -496,7 +496,7 @@ Overrides the workspace scope used for all spatial overlap queries. By default q
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `folder` | `Instance` | The root Instance to scope all spatial queries within. |
+| `Folder` | `Instance` | The root Instance to scope all spatial queries within. |
 
 **Returns:** `void`
 
@@ -759,7 +759,7 @@ Sets a key to a value for `Duration` seconds. When the duration expires the valu
 | `TargetKey` | `string | number` | The key to temporarily set. |
 | `Value` | `any` | The temporary value. |
 | `Duration` | `number` | How long in seconds before the effect expires. Must be positive. |
-| `RevertOnExpiry` | `boolean?` | `true` (default) restores the previous value; `false` deletes the key. |
+| `RevertOnExpiry` | `boolean?` | (Optional) `true` (default) restores the previous value; `false` deletes the key. |
 
 **Returns:** `void`
 
@@ -803,9 +803,9 @@ Returns the locally cached StateObject for the given ID. If the state has not ar
 | Name | Type | Description |
 |:---|:---|:---|
 | `Id` | `string` | The unique identifier of the state. |
-| `Options` | `GetStateConfig?` | Optional. Set `____Timeout` to override the default 5-second wait. |
+| `Options` | `GetStateConfig?` | (Optional) Set `____Timeout` to override the default 5-second wait. |
 
-**Returns:** `StateObject?` — the state handle, or `nil` if the timeout elapsed.
+**Returns:** `StateObject?` — the state controller, or `nil` if the timeout elapsed.
 
 !!! warning "Yields"
     This method may suspend the calling coroutine for up to the configured timeout. Do not call it during game initialization code that must complete immediately.
@@ -959,7 +959,7 @@ Sends a named action request to the server. The server-side handler registered u
 | Name | Type | Description |
 |:---|:---|:---|
 | `ActionName` | `string` | The name of the action to trigger. |
-| `Payload` | `{ [string]: any }?` | Optional data table passed to the server handler. |
+| `Payload` | `{ [string]: any }?` | (Optional) Data table passed to the server handler. |
 
 **Returns:** `void`
 
