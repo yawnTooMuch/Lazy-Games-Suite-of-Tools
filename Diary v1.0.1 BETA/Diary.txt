@@ -1,0 +1,3637 @@
+--[[
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Diary - Data Saving Framework										  							 000
+	000 Version: 1.0.1 Beta													  							 000
+	000 Platform: Roblox													  							 000
+	000 License: Apache 2.0												  	  							 000
+	000																		  							 000
+	000																		  					  		 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  							 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    					 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/diary-data-saving-framework/4595950 000
+	000 Github Repo: https://github.com/yawnTooMuch/Diary/tree/Diary_ReadOnly 							 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/system/diary/ 			 000
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Configuration Section
+----------------------------------------------------------
+
+local DEBUG_MODE               = game:GetService("RunService"):IsStudio() -- enables verbose logging when true
+local FEATURES_ENABLED         = false                                    -- enables featured APIs when true
+
+local BASE_CACHE_INTERVAL      = 15        -- base save interval in seconds for active players
+local ACTIVE_TTL               = 43200     -- MemoryStore TTL for active players (12 hours)
+local IDLE_TTL                 = 54000     -- MemoryStore TTL for idle players (15 hours)
+local IDLE_THRESHOLD           = 30        -- seconds of inactivity before a player is considered idle
+local IDLE_INTERVAL_MULTIPLIER = 3         -- multiplier applied to BASE_CACHE_INTERVAL for idle players
+local LEASE_TTL                = 90        -- session lease TTL in seconds
+local LEASE_RENEW_INTERVAL     = 60        -- seconds between lease renewal attempts
+local MAX_CONCURRENT_SAVES     = 50        -- maximum parallel save threads during server shutdown
+local JANITOR_INTERVAL         = 30        -- seconds between Heartbeat janitor sweeps
+local NORMAL_JOIN_OPERATION    = 1         -- base wait time for normal joins (seconds)
+local BULK_JOIN_OPERATION      = 4         -- extension time for bulk joins (total = 5s)
+local BULK_JOIN_THRESHOLD      = 10        -- players required to trigger extension
+
+-- Batching settings in Diary's background lease worker
+local RENEWAL_BATCH_SIZE 	= 15	-- Max number of leases to renew concurrently before yielding
+local RENEWAL_THROTTLE_WAIT = 0.1	-- Seconds to pause the thread between renewal batches
+local ACQUIRE_BATCH_SIZE 	= 5		-- Max number of missing leases to re-attempt simultaneously
+local ACQUIRE_THROTTLE_WAIT = 0.2	-- Seconds to pause the thread between acquisition batches
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Type Structures Section
+----------------------------------------------------------
+
+--[[
+	Represents a raw, unstructured data dictionary before schema validation.
+	This is the base payload that gets serialized and chunked into DataStores.
+]]
+export type DataTable = { [any]: any }
+
+--[[
+	The core definition mapping a strict Luau type (Schema) to a specific DataStore key.
+    Returned by Diary.RegisterTemplate() and required for fetching typed data.
+    The primary rule for this type is to tell developer what are the data they put in a specific memory location
+    (e.g., "PlayerInventory" might map to a table of {Coins = 100, Items = {Sword = true}}).
+    So that when they need to fetch data, Diary guarantees it will suggest correct data specific to the memory location.
+]]
+export type DataDefinition<Schema> = {
+	____memoryLocation : string, -- The internal DataStore/MemoryStore key (e.g., "PlayerInventory")
+	structure          : Schema, -- The default schema layout for correct suggestion of keys
+}
+
+--[[
+	Determines how aggressively the background worker syncs data to MemoryStore.
+	Crucial for saving API limits on servers with high players count by throttling AFK (Idle) players.
+	
+	Crucial Information:
+		The internal background worker only does run in a single coroutine. When a player detected being AFK (idle),
+		that player will then safely gets skipped and proceeds with the rest of the players. This means that no matter
+		how many players a server gets, only one general coroutine handles the auto-saving mechanism.
+]]
+export type CachePolicy = {
+	____ActiveTTL          : number?, -- How long data stays in MemoryStore for active players
+	____IdleTTL            : number?, -- Extended TTL for players marked as AFK
+	____IdleThreshold      : number?, -- Seconds of no input before marking a player Idle
+	____IntervalMultiplier : number?, -- Multiplier to slow down the auto-save interval when Idle
+}
+
+-- Configuration for publishing payloads to MemoryStoreService Queues.
+export type QueuePublishConfig = {
+	____VisibilityTimeout : number?, -- How long the item is hidden from other readers after being read
+	____TimeSpan          : number?, -- Queue expiration TTL
+	____Priority          : number?, -- Sorting priority (highest is read first)
+}
+
+-- Configuration for polling payloads from MemoryStoreService Queues.
+export type QueueScanConfig = {
+	____Count        : number?, -- Max items to pull in one request
+	____AllOrNothing : boolean?, -- If true, fails if it can't retrieve the exact ____Count
+	____WaitTimeout  : number?, -- How long to yield the thread waiting for items to arrive
+	____OnDelete     : boolean?, -- If true, automatically removes the item from the queue after reading
+}
+
+--[[
+	Options for Diary's internal polling utility (WaitForValue). Similar to WaitForChild method calls, WaitForValue
+	exactly does the same thing but in a context of Diary's data waiting for it to arrive.
+]]
+export type WaitConfig = {
+	____Timeout  : number?, -- Max seconds to yield before failing
+	____PollRate : number?, -- How frequently to check the value
+}
+
+--[[
+	A standardized package used for GDPR Compliance (Right to Access / Right to be Forgotten).
+	Generated by WipeData() and ExportData().
+	
+	Under the GDPR, players have the right to have their data erased from your systems. Diary automatically
+	creates these packages for you to comply with GDPR requests.
+]]
+export type DataPackage = {
+	audit : { [string]: any },   -- Audit log detailing who requested the wipe/export and why
+	copy  : { [string]: DataTable }, -- A static snapshot of the data at the time of export
+}
+
+--[[
+	Live diagnostic readout of the Diary framework. This is where all the framework's vitals stored to check in runtime.
+	You can safely monitor the server's performance here in terms of the running Diary powering the data saving system.
+]]
+export type SystemStats = {
+	-- General server stats
+	System : {
+		____ServerID           : string, -- Unique identifier of the server
+		____IsShuttingDown     : boolean, -- Flags true if the server is shutting down
+		____IsStudio           : boolean,
+		____MemoryStoreHealthy : boolean, -- Flags true if Roblox MemoryStore API is currently failing
+		____TotalThreads       : number,  -- Active background worker threads
+	},
+
+	-- Player specific stats
+	Players : {
+		____LoadedProfiles         : number, -- How many loaded data structure currently in used
+		____ActiveAutoSaveSessions : number, -- Counts how many memory locations currently active inside the running background auto-save cycle
+		____MissingLeases          : number, -- Players whose session locks failed to renew
+	},
+
+	-- DataStore specific stats
+	DataStore : {
+		____QueueSize        : number, -- Backlogged saves waiting to flush
+		____ActiveOperations : number, -- Number of active DataStore write operations
+	},
+
+	-- MemoryStore specific stats
+	MemoryStore : {
+		____PendingWrites : number?, -- Number of pending writes to MemoryStore
+		____OwnedLeases   : number, -- Total active session locks held by this server. A healthy server will have this exactly equal to players count
+	},
+
+	-- DependentServices specific stats
+	Resources : {
+		____SerializationCacheSize : any, -- Number of cached serialized data structures
+		____ActiveKeyLocks         : number, -- How many currently being processed data based on key locks count
+	},
+}
+
+-- A standard connection object returned by Diary's custom signal implementation.
+export type SignalConnection = {
+	Disconnect : (self: SignalConnection) -> (),
+	Connected  : boolean,
+}
+
+-- Diary's internal event dispatcher. Used for OnLoadStarted and OnLoadCompleted.
+export type DiarySignal = {
+	Connect : (self: DiarySignal, callback: (Player) -> ()) -> SignalConnection,
+	Once    : (self: DiarySignal, callback: (Player) -> ()) -> (),
+}
+
+--[[
+	The massive singleton interface for the Diary framework.
+	Exposes all data manipulation, lifecycle, and queueing APIs.
+]]
+export type DiaryType = {
+	-- Lower level modules. Should not be used directly. Commented to hide from intellisense. If you want to contribute to the resource, uncomment these for testing internals directly from external script.
+	--DependentServices : typeof(require(script.DependentServices)), -- Internal service module (serialization, compression, sanitization, messaging service and importing Roblox's services)
+	--MemoryStore       : typeof(require(script.MemoryStore)), -- MemoryStoreService wrapper and also serves as the session lock manager
+	--DataStore         : typeof(require(script.DataStore)), -- DataStoreService wrapper
+
+	-- internal variables
+	_players            : { [number]: boolean },
+	_memoryStoreHealthy : boolean,
+	_serverId           : string,
+	_serverShuttingDown : boolean,
+	_keyLock            : { [number]: { [string]: number } },
+	_inStudio           : boolean,
+	_dataStoreTable     : { [string]: { [string]: DataTable } }?,
+
+	-- internal functions
+	countKeys    : (t: DataTable) -> number,
+	deepMerge    : (target: DataTable, source: DataTable, base: DataTable?) -> (),
+	snapshotData : (data: DataTable) -> DataTable,
+	SystemStats  : () -> SystemStats,
+	ThreadCount  : () -> number,
+
+	-- Public APIs/Methods
+	Inject               : (moduleName: string, moduleTableObject: any) -> (),
+	RegisterTemplate     : <Schema>(memoryLocation: string, template: Schema, policy: CachePolicy?) -> DataDefinition<Schema>,
+	RegisterPolicy       : (memoryLocation: string, policy: CachePolicy) -> (),
+	FetchData            : <Schema>(playerUserID: number, structureDefinition: DataDefinition<Schema>) -> Schema?,
+	SaveData             : (playerUserID: number, memoryLocation: string, updateMemoryStore: boolean?) -> (),
+	MarkDirty            : (playerUserID: number, memoryLocation: string) -> (),
+	HandleMemoryCaching  : (playerUserID: number, memoryLocation: string, state: boolean) -> (),
+	PublishQueueEntry    : (queueName: string, dataReference: DataTable, options: QueuePublishConfig?) -> (),
+	ScanQueueEntry       : (queueName: string, options: QueueScanConfig?) -> DataTable,
+	WipeData             : (playerInstance: Player | number, informationTable: DataTable?, isRecursed: boolean?) -> DataPackage,
+	ExportData           : (playerUserID: number, requestInfo: AuditInfo?) -> DataPackage,
+	FetchTombstones      : () -> GraveyardData,
+	WaitForValue         : (callbackFunction: () -> ...any, options: WaitConfig?) -> (boolean, ...any),
+	GetDataSize          : (playerUserID: number) -> number,
+	Signals : {
+		OnLoadStarted   : DiarySignal,
+		OnLoadCompleted : DiarySignal,
+	},
+	IsOnline                      : ((playerUserID: number) -> boolean)?,
+	SaveHumanoidDescription       : ((player: Player) -> ())?,
+	LoadPlayerGhostCharacterModel : ((playerUserID: number, spawnPosition: Vector3?) -> Model?)?,
+}
+
+--[[
+	Payload sent over MessagingService for cross-server player session validation.
+]]
+type CrossServerPacket = {
+	SenderServerID : string, -- The server ID of the server that sent the packet.
+	Path           : string, -- The specific type of behaviour for the data being passed (the address)
+	
+	Data : { -- The actual payload
+		PlayerUserIDs      : { number }, -- An array of the Roblox UserIDs involved in this validation request.
+		CallerServerID     : string?, 	 -- The server ID of the server that initiated the validation.
+		LastWriterServerID : string?,	 -- The server ID of the server that most recently wrote to the player's data.
+		Code               : string?,	 -- A signal indicating the status of the validation.
+	},
+}
+
+-- Standard connection returned by MessagingService:SubscribeAsync
+type SubscriptionConnection = {
+	Disconnect : (self: SubscriptionConnection) -> (),
+}
+
+-- Wrapper for Roblox's MessagingService to abstract away internal logic present in DependentServices.
+type MessagingInterface = {
+	RelayStream  : (gateway: string, path: string, payload: any) -> boolean,
+	ListenStream : (gateway: string, callback: (packet: CrossServerPacket) -> ()) -> SubscriptionConnection?,
+}
+
+-- Metadata attached to GDPR requests (used in DataPackage).
+type AuditInfo = { reason: string?, requester: string? }
+
+--[[
+	A dictionary of UserIds mapping to Unix timestamps. A record of players who are currently 
+	got banned due to "Right of Erasure" (GDPR request).
+]]
+type GraveyardData = { [string]: number }
+
+-- Represents the active state of a MemoryStore session lock for a specific player on this specific server.
+type LeaseRecord = { alive: boolean }
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Dependency Section
+----------------------------------------------------------
+
+local Diary = {
+	DependentServices = require(script.DependentServices),
+	MemoryStore = require(script.MemoryStore),
+	DataStore = require(script.DataStore),
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Internal States Section
+----------------------------------------------------------
+
+-- General scheduler, can be overridden by the external Assignment scheduler library
+local Scheduler = {
+	Spawn  = task.spawn,
+	Defer  = task.defer,
+	Delay  = task.delay,
+	Wait   = task.wait,
+	Cancel = task.cancel,
+}
+
+-- The in-memory cache of player data. All reads happens instantly from this table preventing unnecessary DataStore/MemoryStore read calls.
+local PlayerDataCache: { [number]: { [string]: DataTable } } = {}
+
+-- The logbook of each player, used to determine between an active player and an inactive player.
+local PlayerLastActivity: { [number]: number } = {}
+
+-- Tracks if a memory location has unsaved changes that DataStore doesn't know about yet
+local NeedsDataStoreFlush: { [number]: { [string]: boolean } } = {}
+
+-- Tracks the exact os.time() a player's memory location was last synced to DataStore (Cold Storage)
+local LastDataStoreSync: { [number]: { [string]: number } } = {}
+
+-- The saving lock mechanism per player to prevent multiple saving threads leading to race conditions.
+local SavingPlayers: { [number]: { [string]: boolean } } = {}
+
+-- The lists of all memory locations Diary is keeping track of. This is heavily used during saving cycle events and cleanup cycle events.
+local MemoryLocationRecord: { [string]: string } = {}
+
+-- The record of all schemas per memory location. This holds the shape of the data for each memory location.
+local Templates: { [string]: DataDefinition<DataTable> } = {}
+
+-- Maps each memory location to its caching rules (TTLs, intervals). This dictates how aggressively the background auto-save cycle flushes data, protecting your API quotas.
+local Policies: { [string]: { activeTTL: number, idleTTL: number, idleThreshold: number, intervalMultiplier: number } } = {}
+
+-- A fast-lookup registry marking which players currently have an active background autosave loop running.
+local ActiveSessions: { [number | string]: boolean } = {}
+
+-- Tracks exactly which memory location keys are hot-cached in RAM for a given player. Prevents flushing the entire profile if only a single memory location (e.g., Inventory) was loaded.
+local ActiveMemoryLocations: { [number]: { [string]: string } } = {}
+
+--[[
+	Main check of data security. Tracks the session locks this exact server (JobId) legally owns. If a player's ID is not in this table, Diary transition from writing directly (SetAsync) 
+	to safely updating (UpdateAsync).
+]]
+local OwnedLeases: { [number]: LeaseRecord } = {}
+
+--[[
+	A quarantine list. If a player's session lease fails to renew (e.g., MemoryStore API outage), they are flagged here safely instead of kicking. Then Diary will attempt to acquire again
+	the lease while temporarily transitions from writing data directly (SetAsync) to safely updating (UpdateAsync).
+]]
+local PlayersMissingLease: { [number]: boolean } = {}
+
+-- A strict security marker indicating a player's data has fully resolved its handshake, merged templates, and is now safe for gameplay systems to mutate.
+local GreenFlag: { [number]: boolean } = {}
+
+-- The active MessagingService connections. These are listening constantly for cross-server player validations.
+local ValidationCheck: SubscriptionConnection? = nil
+
+-- A staging area mapping a specific player to the cross-server packet resolving their session lock dispute.
+local MessageForPlayer: { [number]: CrossServerPacket } = {}
+
+-- Tracks the exact os.time() a player's specific memory location was last flushed to the cloud. Dictates when the background auto-save next cycle occurs per player per memory location.
+local LastAutoSaveTimestamps: { [number]: { [string]: number } } = {}
+
+--[[
+	A registry of yielded coroutines (threads). When a player hops servers too fast, their data-loading thread is paused and stored here until the old 
+	server releases the lease, preventing race conditions.
+]]
+local SignalEvent: { [number]: thread } = {}
+
+-- The background recovery worker attempting to recover session locks that timed out or failed to renew.
+local MissingLeaseThread: any? = nil
+
+--[[
+	List of callbacks to run during a player's data pre-loading phase and post loading phase.
+]]
+local OnLoadStartedCallbacks: { (Player) -> () } = {}
+local OnLoadCompletedCallbacks: { (Player) -> () } = {}
+
+-- A dedicated heartbeat timer to periodically tell the background janitor worker to do cleanup every few seconds (JANITOR_INTERVAL).
+local JanitorAccumulator: number = 0
+
+-- Allows Diary to use external scheduler library overriding the default task scheduler library.
+local InjectedScheduler: any = nil
+
+--[[
+	Diary's automatic schema registration and data sanitization system. Because Diary waits exactly 10 seconds during server boot to register templates (a data structure per memory location), it needs
+	a way to stall players during boot up phase. This is where it catches and stores players until the server is ready.
+]]
+local BootCatchQueue: { Player }? = {}
+local BootAddedConnection: RBXScriptConnection? = nil
+local BootRemovingConnection: RBXScriptConnection? = nil
+
+--[[
+	The MessagingService rate-limit defense. In a high player count server, players can join at the same time and be sent to the same server. This means that if the server is starting up,
+	the server then will be sending out validation requests to all of them at the same time. This is a problem because the MessagingService has a very low rate limit per server. This is where Diary stores
+	validation payload if happens the joining player counts exceed (BULK_JOIN_THRESHOLD) and all have stale data and need to be validated. Though the underlying DependentServices also has this mechanism,
+	it is still best to optimize the payload at the SENDER level so that that it can be optimized further by the underlying module.
+]]
+local PendingValidations: { [number]: string } = {}
+local ValidationBatchActive: boolean = false
+local CurrentBatchPlayerCount: number = 0
+local BatchIsExtended: boolean = false
+
+Diary.Signals = {}
+Diary._players = {} :: { [number]: boolean }
+Diary._memoryStoreHealthy = true
+Diary._serverId = Diary.DependentServices.Http:GenerateGUID(false)
+Diary._serverShuttingDown = false
+Diary._keyLock = {} :: { [number]: { [string]: number } }
+Diary._dataStoreTable = nil :: ({ [string]: { [string]: DataTable } })?
+Diary._inStudio = Diary.DependentServices.Run:IsStudio()
+
+-- Studio mode mock datastore
+if Diary._inStudio then
+	Diary._dataStoreTable = {} :: { [string]: { [string]: DataTable } }
+	warn("[Diary] Studio Mode: Data will NOT persist between sessions!")
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Local Function Section
+----------------------------------------------------------
+
+-- Uniformly logs print messages in studio.
+local function log(...: any): ()
+	if DEBUG_MODE then
+		print("[Diary] ", ...)
+	end
+end
+
+-- Uniformly logs warning messages in studio.
+local function warnLog(...: any): ()
+	if DEBUG_MODE then
+		warn("[Diary] ", ...)
+	end
+end
+
+-- Uniformly logs error messages in studio.
+local function errorLog(...: any): ()
+	error("[Diary]" .. ... .. "\n" .. debug.traceback())
+end
+
+-- PCall wrapper for safe function execution.
+local function safeCall(Function_: (...any) -> ...any, ...: any): (boolean, ...any)
+
+	--[[
+		safeCall: The Thread-Safe Execution Wrapper.
+		
+		A robust utility function that wraps any target function inside a protected 
+		call (pcall). It perfectly forwards variadic arguments and safely unpacks 
+		all return values on success, or catches and returns the error message on failure.
+		This ensures the server thread never crashes during unpredictable network or data operations.
+		
+		Parameters:
+			Function_ : (...any) -> ...any - The target function to be safely executed.
+			...       : any - A variadic list of arguments to pass directly to the target function.
+			
+		Returns:
+			Success : boolean - True if the target function executed without runtime errors, false otherwise.
+			...     : any - The unpacked return values from the target function (if successful), or the string error message (if failed).
+	]]
+
+	local Results = table.pack(pcall(Function_, ...))
+
+	if Results[1] then
+		return true, table.unpack(Results, 2, Results.n)
+	end
+
+	return false, Results[2] -- Return false and the error message
+end
+
+-- Counts the number of keys in a table.
+local function countKeys(Table_: DataTable): number
+
+	--[[
+		This function is built to bridge the gap between the legacy # operator that works only on Arrays.
+		It is designed to work with both arrays and dictionaries, providing a reliable way to count only the upper level keys.
+		Though it is still best to use the # operator on Arrays since this runs on optimized C++ code than Luau implementation.
+	]]
+
+	local Count = 0
+
+	if typeof(Table_) ~= "table" then return 0 end
+
+	for _ in Table_ do -- Manually traverses the table
+		Count += 1
+	end
+
+	return Count
+end
+
+-- Returns the effective TTL and save interval for a player based on their idle state.
+local function getPolicyValues(PlayerId: number, MemoryLocation: string): (number, number)
+
+	--[[
+		getPolicyValues: The Dynamic Rate Limiter.
+		
+		Evaluates a player's recent activity to dynamically adjust their MemoryStore 
+		save intervals and lease Time-To-Live (TTL). This ensures active players get 
+		rapid, high-frequency backups, while idle (AFK) players are heavily throttled 
+		to conserve global API quotas.
+		
+		Parameters:
+			PlayerId       : number - The UserId of the player being evaluated.
+			MemoryLocation : string - The specific DataStore/MemoryStore key being processed.
+			
+		Returns:
+			TimeToLive   : number - The calculated lifespan (in seconds) for the MemoryStore lease.
+			SaveInterval : number - The wait time (in seconds) before the next background auto-save.
+			
+		Core Behaviors:
+			* State Detection: Calculates real-time inactivity deltas using os.clock() and PlayerLastActivity.
+			* Quota Conservation: Multiplies save intervals for idle players to drastically reduce unnecessary network payload and API consumption.
+			* Schema Overrides: Prioritizes specific custom policies defined in the Policies dictionary, safely falling back to global constants if none exist.
+	]]
+
+	local IsIdle = (os.clock() - (PlayerLastActivity[PlayerId] or 0)) > (Policies[MemoryLocation] and Policies[MemoryLocation].idleThreshold or IDLE_THRESHOLD)
+
+	if IsIdle then
+		log("getPolicyValues: Idle player " .. tostring(PlayerId))
+		-- Idle player. There is no data mutations within IDLE_THRESHOLD seconds.
+		return Policies[MemoryLocation] and Policies[MemoryLocation].idleTTL or IDLE_TTL, BASE_CACHE_INTERVAL * (Policies[MemoryLocation] and Policies[MemoryLocation].intervalMultiplier or IDLE_INTERVAL_MULTIPLIER)
+		
+	else
+		log("getPolicyValues: Active player " .. tostring(PlayerId))
+		-- Active player. Data mutation means the player is currently moving (grinding).
+		return Policies[MemoryLocation] and Policies[MemoryLocation].activeTTL or ACTIVE_TTL, BASE_CACHE_INTERVAL
+	end
+end
+
+-- Flushes a single memory location for a player to MemoryStore and DataStore.
+local function persistFromServerMemoryToCloud(PlayerUserID: number, MemoryLocation: string, UpdateMemoryStore: boolean): ()
+
+	--[[
+		persistFromServerMemoryToCloud: The Core Persistence Router.
+		
+		An internal data relay function responsible for migrating a player's cached RAM 
+		data up to Roblox's cloud services. It enforces strict mutex locks to prevent 
+		race conditions and dynamically routes API calls based on the server's current 
+		lifecycle state (e.g., active gameplay vs. server shutdown).
+		
+		Parameters:
+			PlayerUserID      : number - The UserId of the player.
+			MemoryLocation    : string - The specific key being saved.
+			UpdateMemoryStore : boolean - If true, parallel syncs to the hot-cache (MemoryStore). If false, strictly syncs only to cold-storage (DataStore).
+			
+		Core Behaviors:
+			* Mutex Locking: Utilizes SavingPlayers to enforce a strict per-player, per-location debounce, preventing overlapping save threads.
+			* State-Aware Routing (MemoryStore): Dynamically bypasses batch queues and forces immediate writes if the player is disconnecting or the server is terminating.
+			* Adaptive Saving (DataStore): Leverages HybridSave during normal gameplay to manage API load, but escalates to forced, direct writes during critical BindToClose event.
+			* Tracker Synchronization: Automatically resets the NeedsDataStoreFlush flag and updates the 1-hour LastDataStoreSync timeline upon successful handoff to the DataStore module.
+	]]
+
+	if SavingPlayers[PlayerUserID][MemoryLocation] then return end -- Lock check per player per memory location
+	
+	SavingPlayers[PlayerUserID][MemoryLocation] = true
+
+	if PlayerDataCache[PlayerUserID] and PlayerDataCache[PlayerUserID][MemoryLocation] then
+		if UpdateMemoryStore then
+			local TimeToLive = getPolicyValues(PlayerUserID, MemoryLocation)
+
+			-- Critical scenario: If the player is leaving the game or the server is shutting down, we need to save a copy to MemoryStore immediately.
+			if not Diary._players[PlayerUserID] or Diary._serverShuttingDown then
+				Diary.MemoryStore.SaveData(PlayerUserID, MemoryLocation, PlayerDataCache[PlayerUserID][MemoryLocation], {
+					____TimeSpan = TimeToLive,
+					____MapType = true, -- Dynamic store type. True means Hash-Map, False means Sorted Map
+				})
+
+				log("persistFromServerMemoryToCloud: Saved to MemoryStore for " .. tostring(PlayerUserID))
+			else
+				-- Manual calls to Diary.SaveData()
+				Diary.MemoryStore.BatchSaveData(PlayerUserID, MemoryLocation, PlayerDataCache[PlayerUserID][MemoryLocation], {
+					____TimeSpan = TimeToLive,
+					____MapType = true,
+				})
+
+				log("persistFromServerMemoryToCloud: Queued to MemoryStore for " .. tostring(PlayerUserID))
+			end
+		end
+
+		local Response: boolean? = nil
+
+		-- DataStore save logic
+		if Diary._serverShuttingDown then
+			Response = Diary.DataStore.SaveData(PlayerUserID, MemoryLocation, PlayerDataCache[PlayerUserID][MemoryLocation]) -- Force direct save to DataStore
+			
+		else
+			Response = Diary.DataStore.HybridSave(PlayerUserID, MemoryLocation, PlayerDataCache[PlayerUserID][MemoryLocation]) -- Either direct save or queue save depends on server load
+		end
+
+		if Response then
+			if NeedsDataStoreFlush[PlayerUserID] then
+				NeedsDataStoreFlush[PlayerUserID][MemoryLocation] = false -- DataStore is now synced, turn off the flag
+			end
+
+			if LastDataStoreSync[PlayerUserID] then
+				LastDataStoreSync[PlayerUserID][MemoryLocation] = os.time() -- Update the timestamp
+			end
+
+			log("persistFromServerMemoryToCloud: Saved to DataStore for " .. tostring(PlayerUserID))
+		else
+			if NeedsDataStoreFlush[PlayerUserID] then
+				NeedsDataStoreFlush[PlayerUserID][MemoryLocation] = false -- DataStore is now synced, turn off the flag
+			end
+
+			if LastDataStoreSync[PlayerUserID] then
+				LastDataStoreSync[PlayerUserID][MemoryLocation] = os.time() -- Update the timestamp
+			end
+
+			log("persistFromServerMemoryToCloud: Queued to DataStore for " .. tostring(PlayerUserID))
+		end
+
+		-- Lock releasing logic
+		SavingPlayers[PlayerUserID][MemoryLocation] = nil
+		
+	else
+		SavingPlayers[PlayerUserID][MemoryLocation] = nil
+
+		warnLog(string.format("Could not find data for %d in cache (%s) to save.", PlayerUserID, MemoryLocation))
+	end
+end
+
+-- Updates the last-activity timestamp for a player.
+local function registerActivity(PlayerUserID: number): ()
+	PlayerLastActivity[PlayerUserID] = os.clock()
+
+	log("registerActivity: Player " .. tostring(PlayerUserID) .. " refreshed.")
+end
+
+-- Recursively deep-copies a table, with optional numeric-only filtering.
+local function deepCopy(PassedTable: any, Visited: { [any]: boolean }, NumericOnly: boolean): DataTable?
+
+	--[[
+		deepCopy: Deep-copies a table, with optional numeric-only filtering.
+		
+		deepCopy has two modes of operations:
+			* Normal mode (default): Performs a deep copy of the entire table. This means that it traverses the entire table, copying all nested tables and values.
+			* Numeric-only mode: Only copies the table if it has numeric keys.
+			
+		Numeric-only Mode existence:
+			The primary usage of numeric-only mode is to generate both __persistentBase a snapshot data of the DataStore and __cacheBase a snapshot data of the MemoryStore. Both snapshots exists
+			to prevent numerical data loss during UpdateData calls. It is a security measure to prevent direct overwrites of data and strictly enforce only the delta math operations.
+	]]
+
+	-- Numeric-only mode fast check
+	if typeof(PassedTable) ~= "table" then -- If its not a table, maybe it must be a number
+		if NumericOnly and typeof(PassedTable) ~= "number" then
+			return nil -- If Numeric-only mode and is not a number. We dont want to copy it
+		end
+
+		return PassedTable :: any
+	end
+
+	-- Prevent circular references. If we do have already seen this table, skip it
+	Visited = Visited or {}
+	
+	if Visited[PassedTable] then return nil end
+	
+	Visited[PassedTable] = true
+
+	local Copy: DataTable = {}
+	local HasContent      = false
+
+	-- Traverse the table
+	for Key, Value in PassedTable do
+		if NumericOnly and typeof(Key) == "string" and Key:sub(1, 2) == "__" then
+			continue -- Exclude Diary metadata
+		end
+
+		local Result = deepCopy(Value, Visited, NumericOnly) -- Recursive call to copy nested tables
+
+		if Result ~= nil then
+			Copy[Key] = Result
+			HasContent = true
+		end
+	end
+
+	if NumericOnly and not HasContent then return nil end -- No need to copy empty tables in numeric-only mode
+
+	return Copy
+end
+
+-- Reconciles an existing data table against a template, adding missing keys and removing deprecated ones.
+local function reconcileTemplate(ExistingTable: DataTable, Template: DataTable): DataTable
+
+	--[[
+		reconcileTemplate: The Schema Migrator.
+		
+		A critical data-sanitization utility that bridges version gaps between old save 
+		files and current game structures. It mutates the loaded data to match the provided 
+		template, ensuring forward and backward compatibility across game updates while 
+		strictly protecting internal framework metadata.
+		
+		Parameters:
+			ExistingTable : DataTable - The raw, loaded player data (potentially outdated).
+			Template      : DataTable - The current, authoritative data structure for the game.
+			
+		Returns:
+			DataTable - The fully sanitized and updated table (mutated in-place).
+			
+		Core Behaviors:
+			* Metadata Shielding: Identifies and preserves internal framework state keys (prefixed with __) and metatables before mutation.
+			* Safe Injection: Identifies missing keys in the player's data and injects them using deepCopy to prevent memory-reference sharing across player sessions.
+			* Deprecation Pruning: Identifies keys in the player's data that no longer exist in the template and cleans them out, preventing DataStore bloat over years of game updates.
+			* State Restoration: Re-applies the preserved metadata and metatables to the sanitized table before returning.
+	]]
+
+	local Meta = getmetatable(ExistingTable :: any)
+	local PreservedMeta: DataTable = {}
+
+	-- Preserve existing metadata
+	for Key, Value in ExistingTable do
+		if typeof(Key) == "string" and Key:sub(1, 2) == "__" then
+			PreservedMeta[Key] = Value
+			-- These metadata are __isUpdated, __lastUpdated and __lastWriter
+		end
+	end
+
+	-- Compare the fetched data against the template
+	for Key, Value in Template do
+		if ExistingTable[Key] == nil then
+			ExistingTable[Key] = deepCopy(Value, {}, false) -- Added new entry
+			log(string.format("reconcileTemplate: Added '%s'", tostring(Key)))
+		end
+	end
+
+	-- Compare the fetched data against the template 
+	for Key in ExistingTable do
+		if Template[Key] == nil and (typeof(Key) ~= "string" or Key:sub(1, 2) ~= "__") then
+			ExistingTable[Key] = nil -- Remove deprecated entry
+			log(string.format("reconcileTemplate: Removed deprecated '%s'", tostring(Key)))
+		end
+	end
+
+	-- Merge the fully sanitized table with preserved metadata
+	for Key, Value in PreservedMeta do
+		ExistingTable[Key] = Value
+	end
+
+	-- Reapply the original metatable if it exists
+	if Meta and typeof(Meta) == "table" then
+		setmetatable(ExistingTable :: any, Meta)
+	end
+
+	return ExistingTable
+end
+
+-- Attempts to acquire a MemoryStore session lease for a player on this server.
+local function secureLeaseForPlayer(PlayerUserID: number): boolean
+
+	--[[
+		secureLeaseForPlayer: The Session Lock Getter.
+		
+		Attempts to claim authoritative, exclusive ownership of a player's session via 
+		Roblox's MemoryStore service. This distributed mutex lock prevents cross-server 
+		data corruption (e.g., when a player rapidly teleports or server-hops) by ensuring 
+		only one physical server instance can write to a player's DataStore at a time.
+		
+		Parameters:
+			PlayerUserID : number - The UserId of the player attempting to join or load data.
+			
+		Returns:
+			boolean - True if the server successfully acquired (or already owns) the lease. False if the lease is currently held by another active server.
+			
+		Core Behaviors:
+			* Fast Bypass: Idempotently checks local RAM trackers to skip redundant API calls if the lease is already owned.
+			* Distributed Locking: Executes a high-speed MemoryStore request to bind the player's UserId to this specific ServerId for a set Time-To-Live (TTL).
+			* State Reconciliation: On success, safely evicts the player from the PlayersMissingLease queue and registers them as an active, authoritative session.
+	]]
+
+	if OwnedLeases[PlayerUserID] then -- Fast check if the server still has lease ownership for this player
+		return true
+	end
+
+	-- Attempt to acquire a MemoryStore session lease for this player
+	local Status = Diary.MemoryStore.AcquireLease(PlayerUserID, Diary._serverId, {
+		____LeaseTTL = LEASE_TTL,
+	})
+
+	if Status then
+		-- Lease acquired. Register it as alive and evict from the missing queue
+		OwnedLeases[PlayerUserID] = { alive = true }
+		PlayersMissingLease[PlayerUserID] = nil
+
+		return true 
+		
+	else
+		-- Lease failed. Ensure no ghost data remains in the tracker
+		OwnedLeases[PlayerUserID] = nil
+
+		return false 
+	end
+end
+
+-- Releases the MemoryStore session lease for a player on this server.
+local function releaseLeaseForPlayer(PlayerUserID: number): ()
+	if OwnedLeases[PlayerUserID] then
+		OwnedLeases[PlayerUserID] = nil
+	end
+
+	Diary.MemoryStore.ReleaseLease(PlayerUserID, Diary._serverId)
+end
+
+-- Registers a memory location for auto-save caching and starts the shared cache loop if not already running.
+local function startMemoryCache(UserID: number, LocationMemory: string): ()
+
+	--[[
+		startMemoryCache: The Background Auto-Save Worker.
+		
+		Initializes auto-save tracking for a specific player's memory location and starts the 
+		global background caching loop if it is not already running. This worker manages both 
+		frequent hot-cache writes to MemoryStore and staggered, long-term cold-storage writes to DataStore.
+		
+		Parameters:
+			UserID         : number - The UserId of the player.
+			LocationMemory : string - The specific DataStore/MemoryStore key to track.
+			
+		Core Behaviors:
+			* Resource Initialization: Prepares timestamp trackers and dirty-flag states for the specific memory location.
+			* Hot Cache (MemoryStore): Periodically evaluates active/idle policy intervals and flushes __dirty data to MemoryStore to survive fast server-hopping.
+			* Cold Storage Safety Net (DataStore): Implements a 1-hour Write-Back Cache flush. If a player plays for an extended period, unsaved changes are 
+												   staggered and saved to DataStore to prevent massive data loss during fatal crashes, eliminating "Save Stampede" API spikes.
+			* Thread Throttling: Yields every 10 processed players to prevent CPU exhaustion on full servers.
+	]]
+
+	local CacheKey = tostring(UserID) .. "_" .. LocationMemory
+
+	ActiveMemoryLocations[UserID][CacheKey] = LocationMemory
+
+	if not LastAutoSaveTimestamps[UserID] then
+		LastAutoSaveTimestamps[UserID] = {} -- Initialize Hot Cache timestamps
+	end
+
+	if not LastAutoSaveTimestamps[UserID][LocationMemory] then
+		LastAutoSaveTimestamps[UserID][LocationMemory] = os.time() -- Baseline starts at initialization
+	end
+
+	-- Initialize Cold Storage (Write-Back Cache) trackers
+	NeedsDataStoreFlush[UserID] = NeedsDataStoreFlush[UserID] or {}
+	LastDataStoreSync[UserID] = LastDataStoreSync[UserID] or {}
+
+	if not LastDataStoreSync[UserID][LocationMemory] then
+		LastDataStoreSync[UserID][LocationMemory] = os.time() -- Baseline starts at initialization
+	end
+
+	-- Include this player in the auto-save cycle
+	if not ActiveSessions[UserID] then
+		ActiveSessions[UserID] = true
+	end
+
+	if ActiveSessions["MemoryCaching"] then
+		return -- Already running, prevents duplicate loops
+	end
+
+	ActiveSessions["MemoryCaching"] = true
+
+	Scheduler.Spawn(function()
+		while Diary.DependentServices.Run:IsRunning() do
+			local PlayersProcessed = 0
+
+			for PlayerUserID in Diary._players do
+				if ActiveSessions[PlayerUserID] and LastAutoSaveTimestamps[PlayerUserID] then
+					for _, MemoryLocation in ActiveMemoryLocations[PlayerUserID] do
+						local TimeToLive, Interval = getPolicyValues(PlayerUserID, MemoryLocation)
+						local LastSave = LastAutoSaveTimestamps[PlayerUserID][MemoryLocation] or 0
+
+						-- Check if it's time to sync this player's data to MemoryStore
+						if os.time() - LastSave > Interval then
+							local Data = nil
+
+							if Templates then
+								Data = Diary.FetchData(PlayerUserID, Templates[MemoryLocation])
+							end
+
+							-- Checks if the player's data has actually changed before syncing
+							if Data and Data.__dirty then
+								Data.__dirty = false
+								LastAutoSaveTimestamps[PlayerUserID][MemoryLocation] = os.time() -- Update save timestamp
+
+								Diary.MemoryStore.BatchSaveData(PlayerUserID, MemoryLocation, Data, {
+									____TimeSpan = TimeToLive,
+									____MapType  = true,
+								}) -- Queue the data for hot-cache saving
+
+								-- Flag that DataStore is now outdated and needs syncing
+								if NeedsDataStoreFlush[PlayerUserID] then
+									NeedsDataStoreFlush[PlayerUserID][MemoryLocation] = true
+								end
+								
+							else
+								LastAutoSaveTimestamps[PlayerUserID][MemoryLocation] = os.time() -- Update save timestamp despite nothing changing
+							end
+						end
+
+						-- The 1-Hour Staggered Safety Flush to DataStore
+						if NeedsDataStoreFlush[PlayerUserID] and NeedsDataStoreFlush[PlayerUserID][MemoryLocation] then
+							local LastColdSync = LastDataStoreSync[PlayerUserID] and LastDataStoreSync[PlayerUserID][MemoryLocation] or 0
+
+							if os.time() - LastColdSync >= 3600 then
+								-- 1 Hour has passed and we have unsaved changes. Sync data to DataStore (UpdateMemoryStore = false, because the hot cache block above already handles it)
+								Diary.SaveData(PlayerUserID, MemoryLocation, false) 
+
+								-- Reset the cold sync timer immediately to prevent spamming while waiting for the save queue
+								LastDataStoreSync[PlayerUserID][MemoryLocation] = os.time()
+							end
+						end
+					end
+				end
+
+				PlayersProcessed += 1
+
+				-- Yield every 10 players to prevent CPU overload
+				if PlayersProcessed >= 10 then
+					PlayersProcessed = 0
+					Scheduler.Wait()
+				end
+			end
+
+			Scheduler.Wait(1)
+		end
+	end)
+end
+
+-- Recursively merges Source into Target, applying delta arithmetic against an optional Base.
+local function deepMerge(Target: DataTable, Source: DataTable, Base: DataTable?): ()
+
+	--[[
+		deepMerge: A 3-way recursive merge function designed for distributed eventual consistency.
+		
+		Unlike a standard overwrite merge, this function calculates the mathematical 
+		difference (Delta) between the active session (Source) and its baseline 
+		snapshot (Base). It then surgically injects that Delta into the live Cloud Data (Target).
+		
+		Parameters:
+			Target : The current live data fetched from the Cloud (DataStore or MemoryStore).
+			Source : The mutated data from the active server's RAM.
+			Base   : The mathematical snapshot representing the last successful database sync. 
+			         - Both __persistentBase and __cacheBase initialize at load time.
+			         - __cacheBase rolls forward after every MemoryStore auto-save or manual save.
+			         - __persistentBase rolls forward ONLY after a DataStore flush/manual save.
+			
+		Core Behaviors:
+			* Delta Arithmetic: For numeric values, calculates Delta = Source - Base and applies Target = Target + Delta. Prevents overwriting heavy concurrent mutations.
+			* Strict Overwrite: Non-numeric values (Strings, Booleans) are strictly overwritten.
+			* Deletion Propagation: Keys that exist in the Target but were removed from the Source are deleted from the Target. This is another layer of correction logic
+									that catches slipped data during the reconciliation process (reconcileTemplate).
+			* Metadata Safety: Completely ignores internal framework tracking keys (prefixed with __).
+	]]
+
+	for Key, Value in Source do
+		-- Ignore framework metadata
+		if typeof(Key) == "string" and Key:sub(1, 2) == "__" then
+			continue
+		end
+
+		-- Handle nested tables, traverse recursively
+		if typeof(Value) == "table" then
+			if typeof(Target[Key]) ~= "table" then
+				Target[Key] = {}
+			end
+
+			deepMerge(Target[Key], Value, (typeof(Base) == "table" and (Base :: DataTable)[Key]) or nil)
+
+		--[[
+			Numeric delta arithmetic logic. Prevents overwriting concurrent mutations. If this is just a normal overwrite cycle, there is a chance of a data loss due to heavy
+		    concurrent mutation. Though rare likely to happen, this is just a deliberate defensive logic.
+		]]
+		elseif typeof(Value) == "number" and typeof(Target[Key]) == "number" then
+			local BaseValue = (typeof(Base) == "table" and (Base :: DataTable)[Key]) or 0
+			local Delta = Value - BaseValue -- Calculate delta
+
+			Target[Key] = Target[Key] + Delta
+			
+		else
+			Target[Key] = Value
+		end
+	end
+
+	-- Catch-up cleanup deprecated keys that slipped through during the reconciliation process
+	for Key in Target do
+		if typeof(Key) == "string" and Key:sub(1, 2) == "__" then
+			continue
+		end
+
+		if Source[Key] == nil then
+			Target[Key] = nil
+		end
+	end
+end
+
+-- Produces a numeric-only deep copy of a data table for use as a persistent snapshot.
+local function snapshotData(Data: DataTable): DataTable
+	return deepCopy(Data, {}, true) or {} -- Numeric-only mode of deep copy
+end
+
+-- Saves all cached memory locations for a player and clears their cache entry.
+local function saveAllPlayerData(PlayerUserID: number): ()
+
+	--[[
+		saveAllPlayerData: The final save phase of the player's data.
+		
+		Triggered during critical lifecycle termination events (PlayerRemoving or BindToClose). 
+		It iterates through every active schema for the player, forces a save, and permanently 
+		deletes their memory footprint from the server's RAM.
+		
+		Parameters:
+			PlayerUserID : number - The UserId of the player being saved and evicted.
+			
+		Core Behaviors:
+			* Dual-Flush Override: Passes true to the save handler to force a simultaneous write to both DataStore (Cold Storage) and MemoryStore (Hot Cache). 
+								   This guarantees that if the player immediately joins a new server, the new server pulls the exact updated state of player's data from MemoryStore
+								   while the DataStore is currently being sync.
+			* Strict Garbage Collection: Immediately cleans-up memory footprint after save cycle.
+	]]
+
+	if not PlayerDataCache[PlayerUserID] then return end
+
+	for MemoryLocation in PlayerDataCache[PlayerUserID] do
+		-- Only force a DataStore sync if the boolean flag tells us the data actually changed
+		local needsDataStoreSave = NeedsDataStoreFlush[PlayerUserID] and NeedsDataStoreFlush[PlayerUserID][MemoryLocation]
+
+		if needsDataStoreSave then
+			-- Sync to both DataStore and MemoryStore.
+			persistFromServerMemoryToCloud(PlayerUserID, MemoryLocation, true) -- Third parameter (True) forces MemoryStore syncs to DataStore.
+			
+		else
+			local TimeToLive = getPolicyValues(PlayerUserID, MemoryLocation)
+
+			-- It never changed (or was already saved). We ONLY need to update MemoryStore so the lease and hot-cache stays alive for fast server-hopping.
+			Diary.MemoryStore.SaveData(PlayerUserID, MemoryLocation, PlayerDataCache[PlayerUserID][MemoryLocation], {
+				____TimeSpan = TimeToLive,
+				____MapType = true,
+			})
+		end
+
+		Scheduler.Wait(0.1)
+	end
+
+	-- Strict cleanup
+	PlayerDataCache[PlayerUserID] = nil
+	PlayerLastActivity[PlayerUserID] = nil
+	NeedsDataStoreFlush[PlayerUserID] = nil
+	LastDataStoreSync[PlayerUserID] = nil
+end
+
+-- Clears all active session and auto-save tracking for a player.
+local function stopAllCaches(PlayerUserID: number): ()
+	-- Stop auto-save for this player
+	ActiveSessions[PlayerUserID]        = nil
+	ActiveMemoryLocations[PlayerUserID] = nil
+
+	-- Stop current saving processes for this player. This is a safety mechanism to ensure that the final save for this player will not be blocked (Save Lock).
+	if SavingPlayers[PlayerUserID] then
+		for MemoryLocation in MemoryLocationRecord do
+			SavingPlayers[PlayerUserID][MemoryLocation] = nil
+		end
+	end
+end
+
+-- Starts the background lease renewal and acquisition worker loop.
+local function startLeaseWorker(): ()
+
+	--[[
+		startLeaseWorker: The background Session Lease heartbeat.
+
+		This continuous worker is responsible for maintaining server-authoritative 
+		locks on player data using MemoryStoreService. It prevents race conditions 
+		and item duplication by ensuring no other server can mutate a player's data 
+		while they are active in this instance.
+
+		Parameters:
+			None
+			
+		Core Behaviors:
+			* Filtration & Eviction: Categorizes active leases into renewal queues and immediately purges dead lease references from the server's RAM.
+			* Periodic Renewal: Pings MemoryStoreService to extend the Time-To-Live (TTL) of active leases, re-asserting server authority over the data.
+			* Fault Recovery: Spawns a delayed sub-thread to salvage and re-acquire leases that failed renewal due to API throttling or temporary network hiccups.
+	]]
+
+	local function leaseWorker(): ()
+		while Diary.DependentServices.Run:IsRunning() do
+			local leasesToRenew: { number } = {}
+			local leasesToCleanup: { number } = {}
+
+			-- Filtering players by their session status so that we know who are still active from those who already left
+			for userId, leaseData in OwnedLeases do
+				if leaseData.alive and Diary._players[userId] then
+					table.insert(leasesToRenew, userId) -- Needs to be renewed
+
+				elseif not leaseData.alive then
+					table.insert(leasesToCleanup, userId) -- To be cleaned up
+				end
+			end
+
+			-- Cleanup logic
+			for _, userId in ipairs(leasesToCleanup) do
+				OwnedLeases[userId :: number] = nil -- Players who left
+			end
+
+			-- Lease renewal logic, we use batching to ensure other system can work in parallel
+			local processedRenewals = 0
+
+			for _, userId in ipairs(leasesToRenew) do
+				-- Spawn the network call asynchronously to prevent renewal from consuming the main thread whole
+				Scheduler.Spawn(function()
+					local renewed = Diary.MemoryStore.RenewLease(userId :: number, Diary._serverId, {
+						____LeaseTTL = LEASE_TTL,
+					})
+
+					-- Still API outage, keep a reference for the next renewal attempt
+					if not renewed then
+						PlayersMissingLease[userId :: number] = true
+						OwnedLeases[userId :: number] = nil
+					end
+				end)
+
+				processedRenewals += 1
+				
+				if processedRenewals % RENEWAL_BATCH_SIZE == 0 then
+					Scheduler.Wait(RENEWAL_THROTTLE_WAIT) -- Throttle the dispatches to respect MemoryStoreService rate limits
+				end
+			end
+
+			-- Delayed recovery logic for failed renewals
+			local function delayedRenewalWorker(): ()
+				local playersToAcquire: { number } = {}
+
+				--[[
+					Double check the player's presence (_players against Players:GetPlayerByUserId()). 
+				   	Though _players is a local cache, it is still a convenient way to check if the player is still in the server (Defensive Programming).
+				]]
+				for userId in PlayersMissingLease do
+					if Diary._players[userId] then -- Local cache lookup
+						table.insert(playersToAcquire, userId)
+
+					elseif Diary.DependentServices.Players:GetPlayerByUserId(userId) then -- Players service lookup
+						table.insert(playersToAcquire, userId)
+						
+					else
+						-- Player left during the recovery window, cleanup instead
+						PlayersMissingLease[userId] = nil
+					end
+				end
+
+				-- Batched Network Acquisition
+				if #playersToAcquire > 0 then
+					local processedAcquisitions = 0
+
+					for _, userId in ipairs(playersToAcquire) do
+						Scheduler.Spawn(function()
+							secureLeaseForPlayer(userId :: number)
+						end)
+
+						processedAcquisitions += 1
+
+						if processedAcquisitions % ACQUIRE_BATCH_SIZE == 0 then
+							Scheduler.Wait(ACQUIRE_THROTTLE_WAIT)
+						end
+					end
+				end
+			end
+
+			-- Delayed dispatch of delayedRenewalWorker()
+			MissingLeaseThread = Scheduler.Delay(LEASE_RENEW_INTERVAL / 2, delayedRenewalWorker)
+
+			-- Sleep until the next cycle
+			Scheduler.Wait(LEASE_RENEW_INTERVAL)
+		end
+	end
+
+	-- Asynchronous dispatch
+	Scheduler.Spawn(leaseWorker)
+end
+
+-- Creates a blank ghost character mesh template and places it in ReplicatedStorage.
+local function generateMeshTemplate(): ()
+	-- Create a blank ghost character mesh template
+	local Description = Instance.new("HumanoidDescription")
+	local GhostModel = Diary.DependentServices.Players:CreateHumanoidModelFromDescriptionAsync(Description, Enum.HumanoidRigType.R15)
+
+	GhostModel.Name = "Mesh Template"
+
+	-- Remove scripts
+	local AnimateScript = GhostModel:FindFirstChild("Animate")
+	local HealthScript = GhostModel:FindFirstChild("Health")
+
+	-- Remove AnimateScript
+	if AnimateScript then 
+		AnimateScript:Destroy() 
+	end
+
+	-- Remove HealthScript
+	if HealthScript then 
+		HealthScript:Destroy()
+	end
+
+	-- Store the template in ReplicatedStorage
+	GhostModel.Parent = game.ReplicatedStorage
+end
+
+-- Records a player's UserId and departure timestamp in the persistent graveyard store.
+local function registerTombstone(PlayerUserID: number): ()
+	local Delta: DataTable = { 
+		[tostring(PlayerUserID)] = os.time() 
+	}
+
+	Diary.DataStore.UpdateData(1101111010101101, "PlayerGraveyard", Delta :: any)
+end
+
+-- Flushes the batched validation requests to MessagingService.
+local function flushValidationBatch(): ()
+
+	--[[
+		flushValidationBatch: The Cross-Server Validation Dispatcher.
+		
+		Processes and transmits queued session-lock validation requests to other 
+		servers. This function acts as a strict rate-limiter and payload bundler 
+		to protect the server from MessagingService quota exhaustion during mass 
+		joins or crash recovery waves.
+		
+		Parameters:
+			None
+			
+		Core Behaviors:
+			* Crash Wave Defense: If the current queue exceeds the bulk threshold (number of players joining in), it extends the batching window to absorb the rest of the joining wave into a single flush.
+			* Target Grouping: Sorts pending validations by their LastWriterServerID. Bundles multiple players coming from the same previous server into a single network payload.
+			* Dispatch & Reset: Relays the batched payloads across the network and resets the internal batching state for the next wave.
+	]]
+
+	-- Massive player join detection logic
+	if CurrentBatchPlayerCount > BULK_JOIN_THRESHOLD and not BatchIsExtended then
+		BatchIsExtended = true
+
+		warnLog(string.format("Crash wave detected (%d players). Extending validation batch by %ds.", CurrentBatchPlayerCount, BULK_JOIN_OPERATION))
+		Scheduler.Delay(BULK_JOIN_OPERATION, flushValidationBatch)
+
+		return
+	end
+
+	-- Safety check to ensure that we dont mistakenly fires an empty batch
+	if not next(PendingValidations) then
+		ValidationBatchActive = false
+		BatchIsExtended = false
+		CurrentBatchPlayerCount = 0
+
+		return
+	end
+
+	local ServerTargetGroups = {}
+
+	-- Group pending validations by their LastWriterServerID
+	for UserId, LastWriterServerID in PendingValidations do
+		ServerTargetGroups[LastWriterServerID] = ServerTargetGroups[LastWriterServerID] or {}
+
+		table.insert(ServerTargetGroups[LastWriterServerID], UserId)
+	end
+
+	local MessagingService = Diary.DependentServices.Messaging
+
+	-- Send validation requests to the appropriate target servers
+	if MessagingService then
+		for TargetServerID, UserIds in ServerTargetGroups do
+			MessagingService.RelayStream("SystemValidation", "SessionRequest", {
+				PlayerUserIDs = UserIds,
+				CallerServerID = Diary._serverId,
+				LastWriterServerID = TargetServerID,
+			})
+
+			Scheduler.Wait(0.0005)
+		end
+	end
+
+	-- Cleanup for the next batch
+	table.clear(PendingValidations)
+	ValidationBatchActive = false
+	BatchIsExtended = false
+	CurrentBatchPlayerCount = 0
+end
+
+-- Queues a player for cross-server validation.
+local function requestValidation(UserId: number, LastWriterServerId: string): ()
+
+	--[[
+		requestValidation: The Validation Queue Entry Point.
+		
+		Acts as a debounce and accumulator for cross-server session lock validations. 
+		Instead of firing immediate network requests when a player joins, it queues 
+		the player and starts a brief countdown window. Any subsequent players joining 
+		during this window will piggyback onto the same batch, drastically reducing 
+		MessagingService API calls.
+		
+		Parameters:
+			UserId             : number - The ID of the player requesting to load their data.
+			LastWriterServerId : string - The ID of the server that previously held this player's session lock.
+			
+		Core Behaviors:
+			* De-duplication: Ensures a player is only queued once per batch.
+			* Piggybacking: If a flush timer is already active, new requests are silently absorbed into the pending queue without creating new timers.
+			* Deferred Execution: Starts a delayed thread to trigger flushValidationBatch() once the initial gathering window closes.
+	]]
+
+	-- If the player is not yet included in the batch, add it
+	if not PendingValidations[UserId] then
+		PendingValidations[UserId] = LastWriterServerId
+		CurrentBatchPlayerCount += 1
+	end
+
+	-- If there is no active batch, start one
+	if not ValidationBatchActive then
+		ValidationBatchActive = true
+		BatchIsExtended = false
+		Scheduler.Delay(NORMAL_JOIN_OPERATION, flushValidationBatch)
+	end
+end
+
+-- Handles incoming ValidationReply cross-server messages and resumes any waiting coroutine.
+local function relayMessage(Message: any): ()
+
+	--[[
+		relayMessage: The Cross-Server Validation Receiver.
+		
+		Handles incoming ValidationReply packets from other servers. This function 
+		is responsible for processing the security status ("Secure" if the last server
+		previously handled the player's data responsed accordingly or "Terminate" if 
+		the last server previously handled the player's data still processing it) 
+		of joining players and resuming their suspended data-loading threads.
+		
+		Parameters:
+			Message : any - The raw CrossServerPacket payload received via MessagingService.
+			
+		Core Behaviors:
+			* Verification: Ensures the incoming packet is specifically addressed to this server instance.
+			* State Staging: Caches the validation status into the staging area for the loading thread to read.
+			* Thread Resumption: Extracts and wakes up the yielded data-loading coroutine for the verified player, allowing them to proceed into the game or be kicked.
+	]]
+
+	local Packet = Message :: CrossServerPacket
+	
+	-- Verify the packet is intended for this server instance
+	if Packet.Data and Packet.Data.CallerServerID == Diary._serverId and Packet.Data.PlayerUserIDs then
+		for _, UserId in ipairs(Packet.Data.PlayerUserIDs) do
+			MessageForPlayer[UserId] = Packet -- Store the validation result
+
+			local Thread = SignalEvent[UserId] -- Find the specific thread for this player
+
+			if Thread then
+				SignalEvent[UserId] = nil
+				Scheduler.Spawn(Thread)
+			end
+		end
+	end
+end
+
+-- Handles incoming ValidationCheck cross-server messages and replies with ownership status.
+local function checkMessage(Message: any): ()
+
+	--[[
+		checkMessage: The Cross-Server Session Checker.
+		
+		Listens for incoming ValidationCheck requests from other servers and determines 
+		whether it is safe for those servers to grant a new session lock to joining players. 
+		This is the primary defense mechanism against cross-server presence duplication and 
+		race-condition data corruption.
+		
+		Parameters:
+			Message : any - The raw CrossServerPacket payload received via MessagingService.
+			
+		Core Behaviors:
+			* State Verification: Evaluates if interrogated players are still actively registered and mutating data on this specific server instance.
+			* Exploit Prevention: This is the first layer of Diary's automated player session handler. In this phase, it is decided whether the player
+								  is authorized to enter the game or still has an active session in this server.
+			* Targeted Reply: Relays the verdict back to the requesting server via the ValidationReply channel.
+	]]
+
+	local Packet = Message :: CrossServerPacket
+
+	if not Packet.Data or not Packet.Data.PlayerUserIDs then return end -- Prevents processing empty payloads
+
+	local MessagingService = Diary.DependentServices.Messaging
+
+	if not MessagingService then return end
+
+	local SecureIds: { number } = {}
+	local TerminateIds: { number } = {}
+
+	-- Filtering logic
+	for _, TargetId in ipairs(Packet.Data.PlayerUserIDs) do
+		if Diary._players[TargetId] and Packet.Data.LastWriterServerID == Diary._serverId then
+			table.insert(TerminateIds, TargetId) -- This server still has a presence reference to the player, reply back with negative response (Terminate)
+
+		elseif not Diary._players[TargetId] and Packet.Data.LastWriterServerID == Diary._serverId then
+			table.insert(SecureIds, TargetId) -- This server has no presence reference to the player, reply back with positive response (Secure)
+		end
+	end
+
+	-- Terminate message dispatcher back to the requesting server
+	if #TerminateIds > 0 then
+		MessagingService.RelayStream("SystemValidation", "SessionResponse", {
+			Code = "Terminate", -- Signal to kick the player
+			CallerServerID = Packet.Data.CallerServerID,
+			PlayerUserIDs = TerminateIds,
+		})
+	end
+
+	-- Secure message dispatcher back to the requesting server
+	if #SecureIds > 0 then
+		MessagingService.RelayStream("SystemValidation", "SessionResponse", {
+			Code = "Secure", -- Signal to allow the player to enter
+			CallerServerID = Packet.Data.CallerServerID,
+			PlayerUserIDs = SecureIds,
+		})
+	end
+end
+
+-- Loads all registered data templates for a joining player, handling lease acquisition and cross-server validation.
+local function loadPlayerData(PlayerInstance: Player, MemoryLocation: string): DataTable?
+
+	--[[
+		loadPlayerData: The Master Data Entry.
+		
+		The ultimate gatekeeper for player data instantiation. This function fetches, 
+		verifies, and reconciles a specific memory location for a joining player. 
+		It includes aggressive cross-server handshaking and stalling mechanisms to 
+		guarantee that data is never loaded while another server is actively writing to it.
+		
+		Parameters:
+			PlayerInstance : Player - The player entity joining the server.
+			MemoryLocation : string - The specific DataStore/MemoryStore key to load.
+			
+		Core Behaviors:
+			* Tiered Fetching: Prioritizes MemoryStore (Hot Cache) for fast server-hopping, falling back to DataStore (Cold Storage) for fresh logins.
+			* Session Dispute Resolution: If data is locked by a previous server, it stalls and negotiates via MessagingService. It will forcefully kick the player if a duplication exploit or ghost session is detected.
+			* Schema Reconciliation: Automatically patches the loaded data against the latest developer-defined template, ensuring backwards compatibility.
+			* Cache & Baseline Initialization: Stores the sanitized data in the server's RAM and generates numeric snapshots for future delta-merge saves.
+	]]
+
+	local CurrentThread = coroutine.running()
+
+	local function workAround(): ()
+		local ResultToReturn: DataTable? = nil
+
+		-- Processes the data loading phase of the player
+		local function loadProcess(): ()
+			local WaitSuccess, StatusLease = Diary.WaitForValue(function()
+				return secureLeaseForPlayer(PlayerInstance.UserId) -- Attempt to secure a lease for the player
+			end, {
+				____Timeout = 15,
+				____PollRate = 3,
+			})
+
+			-- The lease acquisition failed, likely due to MemoryStore outage or the player is fast hopping server
+			if not WaitSuccess or not StatusLease then
+				PlayersMissingLease[PlayerInstance.UserId] = true -- Mark the player as missing a lease, this is later on be carried during the lease acquisition worker periodic cycle runs
+			end
+
+			local Data: DataTable? = nil
+
+			-- Attempt to fetch data first from MemoryStore
+			local MemoryStoreData = Diary.MemoryStore.FetchData(PlayerInstance.UserId, MemoryLocation, {
+				____MapType = true, -- Sorted map type is used for MemoryStore
+			})
+
+			if MemoryStoreData then
+				Data = MemoryStoreData :: DataTable -- Data is found in MemoryStore, skip DataStore and proceed
+				
+			else
+				local DataStoreSuccess, DataStoreResult = Diary.DataStore.FetchData(PlayerInstance.UserId, MemoryLocation) -- Data not found in MemoryStore, fetch from DataStore
+
+				--[[
+					Critical data security check! In a typical DataStore calls, the result is usually just the one gets saved. However, there are times when DataStore outage might happen, though rare to occur but it
+					still possible. There must be a logic to determine between a fresh player scenario and an API outage scenario. In the case of a fresh player, it doesnt matter if there is an API outage, it will
+					always load a default values, however in the case of a veteran player (a player who has already progress in the game) will be the one that gets hurt during an outage. In the lower level modules, 
+					specifically the DataStore wrapper module already has a mechanism to distinguish between a success query and a failed query. In this phase of the pipeline, if the FetchData call returns a false or
+					nil data for the DataStoreSuccess variable, the session is safely aborted both for fresh players and veteran players under a DataStore API outage.
+				]]
+				if not DataStoreSuccess then
+					PlayerInstance:Kick("System internal failure! Please rejoin.") -- Roblox's DataStore experience an internal error, Diary safely aborts the pipeline
+					return
+				end
+
+				Data = DataStoreResult
+			end
+
+			if Data and typeof(Data) == "table" and next(Data) ~= nil and not GreenFlag[PlayerInstance.UserId] then -- Checks the player's identity to skip further processes for fresh player or for an already verified player
+				local StallTime = os.time()
+
+				-- Further checks the player's state if the system found that the data previously fetched is stale (outdated)
+				while not Data.__isUpdated do
+					local FreshData = Diary.MemoryStore.FetchData(PlayerInstance.UserId, MemoryLocation, { -- Fetch the data again to check if the data is still outdated or not
+						____MapType = true,
+					})
+
+					if FreshData then Data = FreshData :: DataTable end -- Swap the previous data with the new one
+
+					-- Process the verification again and wait for up to 30 seconds until other one of the servers (the previous server who held the player's data) replies
+					if os.time() - StallTime > 30 then
+						if (DateTime.now().UnixTimestamp - (Data.__lastUpdated or 0) > 3600) then
+							Data.__isUpdated = true -- 30 seconds has passed, but the data is still outdated and no server replied during cross-server handshake via MessagingService and also the data's previous update was 1+ hour ago.
+							-- Assumed the player just experienced a server crash, proceed to load data.
+							break
+						end
+
+						local HandshakeThread = coroutine.running()
+
+						SignalEvent[PlayerInstance.UserId] = HandshakeThread
+
+						local HandshakeMessaging = Diary.DependentServices.Messaging
+
+						-- Send a message to the other server to verify the player's state
+						if HandshakeMessaging then
+							requestValidation(PlayerInstance.UserId, Data.__lastWriter)
+
+						else -- MessagingService is missing, abort the process and fallback to polling approach
+							Scheduler.Defer(function()
+								if SignalEvent[PlayerInstance.UserId] then
+									SignalEvent[PlayerInstance.UserId] = nil
+									Scheduler.Spawn(HandshakeThread) -- Wake up the thread in the last resumption cycle. If Assignment is injected, it will then wake up this thread in the next heartbeat
+								end
+							end)
+						end
+
+						-- Security mechanism to prevent the thread from yielding forever if there is no server replied
+						Scheduler.Delay(30, function()
+							local Thread = SignalEvent[PlayerInstance.UserId]
+
+							if Thread then
+								SignalEvent[PlayerInstance.UserId] = nil
+								Scheduler.Spawn(Thread)
+							end
+						end)
+
+						coroutine.yield()
+
+						-- This phase decides based on the result of the cross-server verification if the player should be kicked out or not
+						if MessageForPlayer[PlayerInstance.UserId] and MessageForPlayer[PlayerInstance.UserId].Data.Code == "Terminate" then
+							PlayerInstance:Kick("Session conflict detected. Please rejoin.")
+							
+							return
+								
+						else
+							Data.__isUpdated = true -- Safe to proceed. Conflict resolved.
+							
+							break
+						end
+					end
+
+					Scheduler.Wait(1)
+				end
+			end
+
+			-- Safety mechanism to prevent further processes after verification if the player already left the server
+			if not Diary.DependentServices.Players:GetPlayerByUserId(PlayerInstance.UserId) then
+				return
+			end
+
+			-- If the player is still in the server, proceed to the next phase. Prepare the necessary framework metadata for this player.
+			Diary._players[PlayerInstance.UserId] = true -- Framework cache to prevent expensive Players:GetPlayers() calls
+			MemoryLocationRecord[MemoryLocation] = MemoryLocation
+			ActiveMemoryLocations[PlayerInstance.UserId] = ActiveMemoryLocations[PlayerInstance.UserId] or {}
+			SavingPlayers[PlayerInstance.UserId] = SavingPlayers[PlayerInstance.UserId] or {}
+
+			-- Player data loading process
+			if not Data and Templates then
+				Data = deepCopy(Templates[MemoryLocation].structure, {}, false) -- The player is a fresh joiner. Use the template to initialize the data.
+				
+			else
+				if Templates then
+					Data = reconcileTemplate(Data :: DataTable, Templates[MemoryLocation].structure) -- The player is returning. Reconcile the player's progress data with the template.
+				end
+			end
+
+			-- Update the database with a stale data flag to prevent cross-server data corruption
+			if Data then
+				Data.__dirty = false -- Flags this specific player's memory location to be carried over to the next auto-save cycle
+				Data.__persistentBase = deepCopy(Data, {}, true) or {} -- Snapshot of the player's DataStore data
+				Data.__cacheBase = deepCopy(Data, {}, true) or {} -- Snapshot of the player's MemoryStore data
+				PlayerLastActivity[PlayerInstance.UserId] = os.clock()
+
+				if StatusLease then
+					local TimeToLive = getPolicyValues(PlayerInstance.UserId, MemoryLocation)
+
+					Data.__isUpdated = false -- Stale data flag is set to tell other servers that the data is currently being processed
+					Diary.MemoryStore.SaveData(PlayerInstance.UserId, MemoryLocation, Data, {
+						____TimeSpan = TimeToLive,
+						____MapType = true,
+					}) -- The server currently owned the lease, it is safe to directly overwrite the old data
+
+				else
+					local TimeToLive = getPolicyValues(PlayerInstance.UserId, MemoryLocation)
+
+					Data.__isUpdated = false -- Stale data flag is set to tell other servers that the data is currently being processed
+					Diary.MemoryStore.UpdateData(PlayerInstance.UserId, MemoryLocation, Data, {
+						____TimeSpan = TimeToLive,
+						____MapType = true,
+					}) -- The server currently doesnt own the lease, fallback to safe data update call
+				end
+			end
+
+			-- Cache the data to the server's RAM to prevent repeated MemoryStore Read calls during operation
+			PlayerDataCache[PlayerInstance.UserId] = PlayerDataCache[PlayerInstance.UserId] or {}
+			PlayerDataCache[PlayerInstance.UserId][MemoryLocation] = Data :: DataTable
+			
+			startMemoryCache(PlayerInstance.UserId, MemoryLocation)
+
+			-- Update the player's presence status
+			if FEATURES_ENABLED then
+				Diary.MemoryStore.BatchSaveData(PlayerInstance.UserId, "Online/Offline_Status", {
+					isOnline = true,
+				}, {
+					____TimeSpan = 86400,
+					____MapType  = true,
+				})
+			end
+
+			ResultToReturn = Data
+		end
+
+		local SpawnSuccess, ErrorNotif: any = safeCall(loadProcess)
+
+		if not SpawnSuccess then
+			PlayerInstance:Kick("Unexpected system error! Please rejoin. (Error Code: 500)")
+		end
+
+		Scheduler.Spawn(CurrentThread, ResultToReturn)
+	end
+
+	Scheduler.Spawn(workAround)
+
+	local Result = coroutine.yield()
+
+	-- Cleanup logic
+	Scheduler.Delay(3, function()
+		MessageForPlayer[PlayerInstance.UserId] = nil
+	end)
+
+	return Result
+end
+
+-- Initializes key-lock state and defers data loading for all registered templates when a player joins.
+local function playerJoin(PlayerInstance: Player): ()
+
+	--[[
+		playerJoin: The Onboarding Dispatcher.
+		
+		Triggered upon player connection, this function orchestrates the sequential 
+		loading of all registered data schemas (Templates) for the user. It acts as 
+		the bridge between the underlying data fetches and the rest of the game's 
+		server architecture via lifecycle signals.
+		
+		Parameters:
+			PlayerInstance : Player - The player entity joining the server.
+			
+		Core Behaviors:
+			* Fast-Fail Ban Check: Instantly verifies ban status from GDPR system before allocating resources.
+			* State Initialization: Allocates concurrency locks and mock data tables (if in Studio) to prepare for data mutations.
+			* Dependency Polling: Yields briefly to allow the server to finish registering data templates before attempting to load them.
+			* Lifecycle Dispatching: Fires OnLoadStarted and OnLoadCompleted signals, allowing external systems (UI, Spawners, Combat) to pause and resume player activity.
+			* Iterative Instantiation: Loops through all registered memory locations, invoking the master data entry loadPlayerData() for each one and validating completion.
+	]]
+
+	-- Initializes key locks
+	Diary._keyLock[PlayerInstance.UserId] = Diary._keyLock[PlayerInstance.UserId] or {}
+	Scheduler.Wait(1)
+
+	-- Initializes mock data for Studio testing (only initializes if in Studio)
+	if Diary._inStudio and Diary._dataStoreTable then
+		local UserIdStr = tostring(PlayerInstance.UserId)
+
+		Diary._dataStoreTable[UserIdStr] = Diary._dataStoreTable[UserIdStr] or {}
+	end
+
+	-- Processes the player's data loading process
+	local function joinProcess(): ()
+		local Success, RegisteredTemplates = Diary.WaitForValue(function()
+			return Templates -- Waits for the templates to be registered
+		end, {
+			____Timeout = 10,
+			____PollRate = 2,
+		})
+
+		-- Abort loading process if no templates registered within the 10 seconds window
+		if not Success or not RegisteredTemplates or typeof(RegisteredTemplates) ~= "table" or next(RegisteredTemplates) == nil then
+			Scheduler.Defer(function()
+				for _, Callback in ipairs(OnLoadCompletedCallbacks) do
+					Scheduler.Spawn(Callback, PlayerInstance) -- Fires the OnLoadCompleted callback
+				end
+			end)
+
+			return
+		end
+
+		-- Fires the OnLoadStarted callback
+		for _, Callback in ipairs(OnLoadStartedCallbacks) do
+			Scheduler.Spawn(Callback, PlayerInstance)
+		end
+
+		Scheduler.Wait(math.random(3, 5)) -- Staggers the loading process for a random duration between 3 and 5 seconds. Prevents request stampede on server startup.
+
+		local LoadSuccess, BanData = Diary.DataStore.FetchData(PlayerInstance.UserId, "BannedPlayers")
+
+		-- Checking ban status before loading data
+		if LoadSuccess and BanData and typeof(BanData) == "table" and BanData["banStatus"] == "Active" then
+			PlayerInstance:Kick(string.format("Account terminated! Reason: %s", BanData["reason"] or "No reason provided.")) -- Currently banned, kick the player
+			
+			return nil
+		end
+
+		local AllDataLoaded = true
+
+		-- Synchronously loads all player data
+		for MemoryLocation in RegisteredTemplates :: { [string]: any } do
+			local LoadData = loadPlayerData(PlayerInstance, MemoryLocation) -- Further data loading process
+
+			if not LoadData then
+				AllDataLoaded = false
+				
+				break
+			end
+		end
+
+		-- Fires the OnLoadCompleted callback once all data has been loaded successfully
+		if AllDataLoaded then
+			for _, Callback in ipairs(OnLoadCompletedCallbacks) do
+				Scheduler.Spawn(Callback, PlayerInstance)
+			end
+		end
+	end
+
+	Scheduler.Defer(joinProcess)
+end
+
+-- Saves all player data, releases their lease, and clears all tracking state when a player leaves.
+local function playerCleanup(PlayerInstance: Player): ()
+
+	--[[
+		playerCleanup: The Master Teardown Sequence.
+		
+		Triggered during the PlayerRemoving lifecycle event, this function orchestrates 
+		the complete and safe eviction of a player from the server. It manages the 
+		synchronization of final data flushes, enforces a strict timeout to prevent 
+		thread hanging, and aggressively garbage collects all memory footprints.
+		
+		Parameters:
+			PlayerInstance : Player - The player entity disconnecting from the server.
+			
+		Core Behaviors:
+			* Operations Halt: Instantly terminates all background caching and active session trackers.
+			* Concurrent Flushing: Dispatches parallel save threads for all active memory locations and yields the main thread until every save resolves.
+			* Failsafe Timeout: Implements a 30-second hard timeout on the yield to guarantee the cleanup thread eventually resumes even if DataStore APIs suffer a total outage.
+			* Strict Garbage Collection: Systematically nullifies all internal framework references to the player's UserId to prevent RAM leaks.
+			* Lease Release: Actively revokes the MemoryStore session lease, allowing the player to seamlessly load into a new server.
+	]]
+
+	local function workAround()
+		-- Remove the player from the auto-save worker
+		stopAllCaches(PlayerInstance.UserId)
+		Diary._players[PlayerInstance.UserId] = nil
+
+		if OwnedLeases[PlayerInstance.UserId] then
+			OwnedLeases[PlayerInstance.UserId].alive = false -- Tell the background lease worker to stop renewing the lease for this player
+		end
+
+		local CleanupThread = coroutine.running() -- Grabs this API thread to wake up later
+		local SaveTimeout = false
+
+		-- Spawn a background thread to handle the save. This races against a 30-second timer to prevent this API thread from hanging forever (memory leak)
+		Scheduler.Spawn(function()
+			saveAllPlayerData(PlayerInstance.UserId)
+
+			if not SaveTimeout then
+				Scheduler.Spawn(CleanupThread) -- Save finished first, wake up the API thread
+			end
+		end)
+
+		-- 30-Second Hard Timeout failsafe to guarantee the thread eventually resumes if the DataStore API hangs
+		local TimeoutHandle = Scheduler.Delay(30, function()
+			SaveTimeout = true
+			warnLog(string.format("PlayerCleanup: 30-second timeout reached for User %d. Forcing cleanup.", PlayerInstance.UserId))
+			Scheduler.Spawn(CleanupThread) -- Timer finished first, force the API thread to wake up
+		end)
+
+		coroutine.yield() -- Put this API thread to sleep and let the two threads above race
+
+		if not SaveTimeout then
+			Scheduler.Cancel(TimeoutHandle) -- Save finished before timeout, cancel the timer
+		end
+
+		-- Clear all the framework's references for this player
+		if SignalEvent[PlayerInstance.UserId] then
+			Scheduler.Cancel(SignalEvent[PlayerInstance.UserId])
+			SignalEvent[PlayerInstance.UserId] = nil
+		end
+
+		MessageForPlayer[PlayerInstance.UserId] = nil
+
+		if Diary._inStudio and Diary._dataStoreTable then
+			Diary._dataStoreTable[tostring(PlayerInstance.UserId)] = nil
+		end
+
+		Diary._keyLock[PlayerInstance.UserId] = nil
+
+		if OwnedLeases[PlayerInstance.UserId] then
+			releaseLeaseForPlayer(PlayerInstance.UserId)
+		end
+
+		PlayersMissingLease[PlayerInstance.UserId] = nil
+		GreenFlag[PlayerInstance.UserId] = nil
+		LastAutoSaveTimestamps[PlayerInstance.UserId] = nil
+		ActiveMemoryLocations[PlayerInstance.UserId] = nil
+		PlayerLastActivity[PlayerInstance.UserId] = nil
+		SavingPlayers[PlayerInstance.UserId] = nil
+		ActiveSessions[PlayerInstance.UserId] = nil
+		OwnedLeases[PlayerInstance.UserId] = nil
+		Diary.DataStore.activeOperations[tostring(PlayerInstance.UserId)] = nil -- Cleans up the DataStore debounce lock mechanism for this player
+
+		-- Mark the player as offline in the cross-server presence
+		if FEATURES_ENABLED then
+			Diary.MemoryStore.BatchSaveData(PlayerInstance.UserId, "Online/Offline_Status", {
+				isOnline = nil,
+			}, {
+				____TimeSpan = 86400,
+				____MapType = true,
+			})
+		end
+	end
+
+	if not Diary._inStudio then
+		Scheduler.Spawn(workAround)
+		
+	else
+		releaseLeaseForPlayer(PlayerInstance.UserId)
+		Scheduler.Wait(5)
+	end
+end
+
+-- Flushes all player data and drains the DataStore write queue before the server closes.
+local function lastMinuteCall(): ()
+
+	--[[
+		lastMinuteCall: The Server Shutdown Sequence.
+		
+		Triggered during the BindToClose lifecycle event, this function acts as the 
+		final orchestrator to ensure zero data loss when a server terminates. It 
+		maximizes Roblox's 30-second shutdown window by utilizing throttled 
+		concurrency, queue draining, and deliberate time-stalling.
+		
+		Parameters:
+			None
+			
+		Core Behaviors:
+			* State Override: Flags the framework as shutting down, forcing underlying modules to prioritize immediate saves over delayed batching.
+			* Throttled Concurrency: Dispatches player data flushes using a grouping pattern, capping parallel threads at MAX_CONCURRENT_SAVES to prevent CPU exhaustion.
+			* Queue Draining: Severs cross-server communication and yields until the DataStore batch queue is entirely emptied.
+			* Time Maximization: Intentionally holds the server instance open until the 29-second mark to guarantee all in-flight asynchronous backend requests fully resolve.
+			* Lease Revocation: Safely releases MemoryStore session locks at the very end, ensuring players can instantly reconnect to new servers.
+	]]
+
+	--[[
+		If using the Assignment scheduler, migrate to native task library as Assignment scheduler only enhances the surface Luau thread management using HeartBeat() event.
+		During shutdown phase, HeartBeat event stops firing and there is no driving force anymore for the Assignment library to function.
+	]]
+	if InjectedScheduler and InjectedScheduler.Migrate then
+		InjectedScheduler.Migrate()
+	end
+
+	-- Stops the missing lease acquisition worker
+	if MissingLeaseThread then
+		Scheduler.Cancel(MissingLeaseThread)
+		MissingLeaseThread = nil
+	end
+
+	-- If Diary is running in production, it will save legitimate data to the DataStore database. Else if its in Studio, it will just stall the server for 5 seconds before termination.
+	if not Diary._inStudio then
+		Diary._serverShuttingDown = true -- Flag to tell the lower level module (DataStore) to prioritize immediate saves over delayed batching and bypass throttling
+		Scheduler.Wait(0.1)
+
+		local ShutdownStartTime = os.clock() -- Anchor the exact start time of the shutdown sequence
+		local MaxHoldTime = if game:GetService("RunService"):IsStudio() then 3 else 29
+		local ActiveSaveThreads = 0
+		local SavesDone = 0
+		local CompletedPlayers: { number } = {}
+		local PlayerList: { number } = {} -- This will be used to know when the exact time the main thread should wake up
+
+		for Player in Diary._players do
+			table.insert(PlayerList, Player)
+		end
+
+		local TotalSaves = #PlayerList
+		local MainThread = coroutine.running() -- Grab the main thread
+
+		if TotalSaves > 0 then
+			for _, Player in ipairs(PlayerList) do
+				while ActiveSaveThreads >= MAX_CONCURRENT_SAVES do -- Concurrency protection to prevent the CPU from processing hundreds of coroutines at once
+					Scheduler.Wait(0.1)
+				end
+
+				ActiveSaveThreads += 1
+
+				Scheduler.Spawn(function()
+					stopAllCaches(Player) -- Stops all the caches across all memory locations for this player
+					Diary._players[Player] = nil -- Remove the player's presence reference of the framework
+					saveAllPlayerData(Player) -- Save all data across all memory locations
+					PlayersMissingLease[Player] = nil
+					GreenFlag[Player] = nil
+					ActiveMemoryLocations[Player] = nil
+					PlayerDataCache[Player] = nil
+					PlayerLastActivity[Player] = nil
+					SavingPlayers[Player] = nil
+					ActiveSessions[Player] = nil
+					Diary.DataStore.activeOperations[tostring(Player)] = nil -- Cleans up the DataStore debounce lock mechanism for this player
+
+					-- Mark the player as offline in the cross-server presence
+					if FEATURES_ENABLED then
+						Diary.MemoryStore.BatchSaveData(Player, "Online/Offline_Status", {
+							isOnline = nil,
+						}, {
+							____TimeSpan = 86400,
+							____MapType = true,
+						})
+					end
+
+					ActiveSaveThreads -= 1
+					SavesDone += 1
+					
+					table.insert(CompletedPlayers, Player)
+
+					if SavesDone == TotalSaves then
+						Scheduler.Defer(MainThread) -- When the last save is done, resume the main thread
+					end
+				end)
+			end
+
+			coroutine.yield() -- Yield the main thread until the last save is done
+		end
+
+		if ValidationCheck then ValidationCheck:Disconnect() end
+
+		Diary.DataStore.FlushQueue() -- Force the DataStore to flush any remaining writes in the Queue
+
+		-- Wait until the queue is empty
+		while Diary.DataStore.GetQueueSize() > 0 do
+			Scheduler.Wait(1)
+		end
+
+		-- Release the lease for all those completely saved players
+		for _, Player in ipairs(CompletedPlayers) do
+			Scheduler.Delay(5, function() -- Ensure the server fully saves the player's data using direct writes
+				releaseLeaseForPlayer(Player)
+				Diary._keyLock[Player] = nil
+			end)
+		end
+
+		-- Only stall if the saving phase didn't already eat up the 29 seconds allocation
+		while (os.clock() - ShutdownStartTime) < MaxHoldTime do
+			Scheduler.Wait(1) 
+		end
+
+		-- The remaining 1 second is for the server to shutdown gracefully
+	else
+		Scheduler.Wait(5)
+	end
+end
+
+-- Sweeps all internal tracking tables on each Heartbeat interval, evicting orphaned entries.
+local function onJanitor(DeltaTime: number): ()
+
+	--[[
+		onJanitor: The Background Garbage Collector.
+		
+		A periodic worker function that acts as the ultimate failsafe against memory 
+		leaks. It continuously sweeps all internal tracking dictionaries to identify 
+		and evict orphaned data left behind by disconnected players, ensuring long-term 
+		server stability.
+		
+		Parameters:
+			DeltaTime : number - The time elapsed since the last frame/heartbeat, used to throttle execution.
+			
+		Core Behaviors:
+			* Throttled Execution: Accumulates delta time and only executes sweeps based on the JANITOR_INTERVAL to conserve CPU bandwidth.
+			* State Reconciliation: Uses Diary._players as the absolute source of truth to identify zombie states across all framework tracking tables.
+			* Aggressive Scrubbing: Forcefully cancels orphaned coroutine threads (SignalEvent) and cleans out dangling references.
+			* Save-Safe Eviction: Intelligently checks SavingPlayers flags to ensure it never deletes cache data (PlayerDataCache) while a background thread is actively trying to push that data to the cloud.
+	]]
+
+	-- Accumulate delta time to throttle execution
+	JanitorAccumulator += DeltaTime
+	
+	if JanitorAccumulator < JANITOR_INTERVAL then return end
+	
+	JanitorAccumulator = 0
+
+	-- Periodically check the MessageForPlayer table
+	for UserId in MessageForPlayer do
+		if not Diary._players[UserId] then
+			MessageForPlayer[UserId] = nil
+		end
+	end
+
+	-- Periodically check the SignalEvent table
+	for UserId, Thread in SignalEvent do
+		if not Diary._players[UserId] then
+			Scheduler.Cancel(Thread) -- Because SignalEvent contains sleeping threads per player, it needs to be cleaned up. Though harmless (in some cases where a thread needs events to wake up) but it also contributes to memory leak
+			SignalEvent[UserId] = nil
+		end
+	end
+
+	-- Periodically check the PlayersMissingLease table
+	for UserId in PlayersMissingLease do
+		if not Diary._players[UserId] then
+			PlayersMissingLease[UserId] = nil
+		end
+	end
+
+	-- Periodically check the OwnedLeases table
+	for UserId, Lease in OwnedLeases do
+		if not Diary._players[UserId] then
+			if not Lease.alive then -- This is a critical flag to ensure that the lease is still being maintained by the Lease Background Worker. Though rare but it is still best safe to ensure no race condition occurs during cleanup on in-flight save
+				OwnedLeases[UserId] = nil
+			end
+		end
+	end
+
+	-- Periodically check the LastAutoSaveTimestamps table
+	for UserId in LastAutoSaveTimestamps do
+		if not Diary._players[UserId] then
+			LastAutoSaveTimestamps[UserId] = nil
+		end
+	end
+
+	-- Periodically check the PlayerDataCache table
+	for UserId in ActiveMemoryLocations do
+		if not Diary._players[UserId] then
+			ActiveMemoryLocations[UserId] = nil
+		end
+	end
+
+	-- Periodically check the NeedsDataStoreFlush table
+	for UserId in NeedsDataStoreFlush do
+		if not Diary._players[UserId] then
+			NeedsDataStoreFlush[UserId] = nil
+		end
+	end
+
+	-- Periodically check the LastDataStoreSync table
+	for UserId in LastDataStoreSync do
+		if not Diary._players[UserId] then
+			LastDataStoreSync[UserId] = nil
+		end
+	end
+
+	-- Periodically check the SavingPlayers table
+	for UserId, LocationFlags in SavingPlayers do
+		if not Diary._players[UserId] then
+			local HasPendingSave = false
+
+			for _, InProgress in LocationFlags do -- InProgress here serves as a mutex lock to the specific memory location to prevent race condition. If this is true, meaning this memory location is currently being saved
+				-- Prematurely cleaning the SavingPlayers table here will cause an error "Attempted to index nil" on the root lock in the saving phase when it finally release the root lock
+				if InProgress then
+					HasPendingSave = true
+					break
+				end
+			end
+
+			if not HasPendingSave then
+				SavingPlayers[UserId] = nil
+			end
+		end
+	end
+
+	-- Periodically check the ActiveSessions table
+	for Key in ActiveSessions do
+		if type(Key) == "number" and not Diary._players[Key] then
+			ActiveSessions[Key] = nil
+		end
+	end
+
+	-- Periodically check the PlayerLastActivity table
+	for UserId in PlayerLastActivity do
+		if not Diary._players[UserId] then
+			PlayerLastActivity[UserId] = nil
+		end
+	end
+
+	-- Periodically check the GreenFlag table
+	for UserId in GreenFlag do
+		if not Diary._players[UserId] then
+			GreenFlag[UserId] = nil
+		end
+	end
+
+	-- Periodically check the _keyLock table
+	for UserId in Diary._keyLock do
+		if not Diary._players[UserId] then
+			Diary._keyLock[UserId] = nil
+		end
+	end
+
+	-- Periodically check the PlayerDataCache table
+	for UserId in PlayerDataCache do
+		if not Diary._players[UserId] then
+			local IsSafeToEvict = true
+
+			if SavingPlayers[UserId] then
+				for _, InProgress in SavingPlayers[UserId] do --[[
+																  InProgress here serves as a mutex lock to the specific player, this prevents concurrent saves per player. If this is true, means that this player's data
+																  is currently still being saved. Cleaning up the in-memory (RAM) prematurely will delete all the current up-to-date data that this player progressed while
+																  playing up to this specific timeline of there game session
+															  ]]
+					if InProgress then
+						IsSafeToEvict = false
+						break
+					end
+				end
+			end
+
+			if IsSafeToEvict then
+				PlayerDataCache[UserId] = nil
+			end
+		end
+	end
+end
+
+-- Buffers players who join during the boot sequence.
+local function onPlayerAddedProxy(PlayerInstance: Player): ()
+	if BootCatchQueue then
+		table.insert(BootCatchQueue, PlayerInstance) -- Players to be loaded once Diary is fully initialized
+		log("Server booting... Caught player: " .. PlayerInstance.Name)
+	end
+end
+
+-- Removes a player from the boot catch queue if they leave before the server is ready.
+local function onPlayerRemovingProxy(PlayerInstance: Player): ()
+	if BootCatchQueue then
+		local QueueIndex = table.find(BootCatchQueue, PlayerInstance)
+
+		if QueueIndex then
+			table.remove(BootCatchQueue, QueueIndex) -- Players who got caught during initialization but eventually left during Diary's mid-initialization
+			log("Player left during boot sequence. Removed from queue: " .. PlayerInstance.Name)
+		end
+	end
+
+	playerCleanup(PlayerInstance) -- Defensive cleanup
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Event Binding Section
+----------------------------------------------------------
+
+-- Module property assignments
+Diary.countKeys    = countKeys
+Diary.deepMerge    = deepMerge
+Diary.snapshotData = snapshotData
+
+-- Lease worker initialization
+startLeaseWorker()
+
+-- If FEATURES_ENABLED is true, generate the mesh template
+if FEATURES_ENABLED then
+	Scheduler.Defer(generateMeshTemplate)
+end
+
+-- Inject this parent module to the child module bypassing the legacy require error (cyclic dependency)
+Diary.MemoryStore.Inject("Diary", Diary)
+Diary.DataStore.Inject("Diary", Diary)
+Diary.DataStore.Inject("MemoryStore", Diary.MemoryStore) -- Give DataStore access to the MemoryStore module
+Diary.DependentServices.Inject("Diary", Diary) -- Give DependentServices access to the Diary module
+
+-- Messaging subscriptions
+if Diary.DependentServices.Messaging then
+	local MessagingService = Diary.DependentServices.Messaging :: MessagingInterface -- MessagingService wrapper inside DependentServices module
+	
+	-- Single Gateway Subscription with Path-based routing
+	ValidationCheck = MessagingService.ListenStream("SystemValidation", function(Message: any)
+		local Packet = Message :: CrossServerPacket
+
+		if Packet.Path == "SessionRequest" then
+			checkMessage(Packet)
+			
+		elseif Packet.Path == "SessionResponse" then
+			relayMessage(Packet)
+		end
+	end)
+end
+
+-- Core event connections
+game:BindToClose(lastMinuteCall)
+Diary.DependentServices.Run.Heartbeat:Connect(onJanitor)
+
+-- Boot sequence connections
+BootAddedConnection = Diary.DependentServices.Players.PlayerAdded:Connect(onPlayerAddedProxy)
+BootRemovingConnection = Diary.DependentServices.Players.PlayerRemoving:Connect(onPlayerRemovingProxy)
+
+-- Post-boot processing for players already in the game
+for _, PlayerInstance in ipairs(Diary.DependentServices.Players:GetPlayers()) do
+	Scheduler.Spawn(onPlayerAddedProxy, PlayerInstance)
+end
+
+-- Diary boot sequence on server first initialization
+Scheduler.Spawn(function()
+	Scheduler.Wait(10) -- Give time for the server to fully initialize and other server side scripts to register data structure (via RegisterTemplate)
+	log("Boot sequence finished. Server open for data processing...")
+
+	if BootAddedConnection then
+		BootAddedConnection:Disconnect() -- Cleanup first the temporary proxy connections
+		BootAddedConnection = nil
+	end
+
+	if BootRemovingConnection then
+		BootRemovingConnection:Disconnect() -- Cleanup first the temporary proxy connections
+		BootRemovingConnection = nil
+	end
+
+	-- Connect the permanent Diary listeners on player data cycle
+	Diary.DependentServices.Players.PlayerAdded:Connect(playerJoin)
+	Diary.DependentServices.Players.PlayerRemoving:Connect(playerCleanup)
+
+	-- Load the data on players already in the game during the server initialization
+	if BootCatchQueue then
+		for _, Player in ipairs(BootCatchQueue) do
+			Scheduler.Spawn(playerJoin, Player) -- Manual call to playerJoin for players already in the game
+		end
+
+		-- Cleanup the temporary queue
+		table.clear(BootCatchQueue)
+		BootCatchQueue = nil
+		onPlayerAddedProxy = nil
+		onPlayerRemovingProxy = nil
+	end
+end)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Diary Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the "Assignment" library.
+
+	Params:
+	    ModuleName        : string -- The name of the ModuleScript file.
+	    ModuleTableObject : any    -- The module table to inject.
+
+	Returns:
+	    nil
+]]
+function Diary.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if DEBUG_MODE then
+		if typeof(ModuleName) ~= "string" or ModuleName == "" then
+			errorLog("[Diary] Inject Error: 'ModuleName' must be a non-empty string.")
+		end
+
+		if typeof(ModuleTableObject) ~= "table" then
+			errorLog("[Diary] Inject Error: 'ModuleTableObject' must be a table.")
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		InjectedScheduler = ModuleTableObject
+
+		local Module = ModuleTableObject
+
+		-- Replace the current Scheduler with the injected one
+		Scheduler.Spawn  = function(...) return Module.Spawn(...)  end
+		Scheduler.Defer  = function(...) return Module.Defer(...)  end
+		Scheduler.Delay  = function(...) return Module.Delay(...)  end
+		Scheduler.Wait   = function(...) return Module.Wait(...)   end
+		Scheduler.Cancel = function(...) return Module.Cancel(...) end
+
+		-- Update the scheduler references in other modules
+		Diary.MemoryStore.Inject("Assignment", Module)
+		Diary.DataStore.Inject("Assignment", Module)
+		Diary.DependentServices.Inject("Assignment", Module)
+	end
+end
+
+--[[
+	Returns a snapshot of the current system health and operational counters.
+	
+	Params:
+		nil
+
+	Returns:
+	    SystemStats -- A table of system, player, DataStore, MemoryStore, and resource metrics.
+]]
+function Diary.SystemStats(): SystemStats
+
+	--[[
+		Diary.SystemStats: The Live Diagnostic Monitor.
+		
+		Returns a real-time snapshot of the framework's internal health, memory 
+		consumption, network queues, and active thread count. This is highly useful 
+		for creating server-side admin dashboards, debugging memory leaks, or 
+		monitoring production performance during high-traffic updates.
+		
+		Parameters:
+			None
+			
+		Returns:
+			SystemStats - A nested dictionary containing real-time metrics for the System, Players, DataStore, MemoryStore, and internal Resources.
+			
+		Core Behaviors:
+			* Environment Health: Reports the server's lifecycle state (Studio vs. Live, Shutting Down) and the current stability of the MemoryStore API.
+			* Presence Tracking: Aggregates active session locks, missing/failed leases, and total loaded data profiles in the server's RAM.
+			* Network Queues: Exposes pending write queues and active API operations for both DataStore and MemoryStore to help identify data bottlenecking.
+			* Resource Monitoring: Tracks the serialization cache size and active mutex locks to monitor CPU/RAM efficiency.
+	]]
+
+	return {
+		System = {
+			____ServerID = Diary._serverId,
+			____IsShuttingDown = Diary._serverShuttingDown,
+			____IsStudio = Diary._inStudio,
+			____MemoryStoreHealthy = Diary._memoryStoreHealthy,
+			____TotalThreads = Diary.ThreadCount(),
+		},
+
+		Players = {
+			____LoadedProfiles = countKeys(PlayerDataCache),
+			____ActiveAutoSaveSessions = countKeys(ActiveSessions),
+			____MissingLeases = countKeys(PlayersMissingLease),
+		},
+
+		DataStore = {
+			____QueueSize = Diary.DataStore.GetQueueSize(),
+			____ActiveOperations = countKeys(Diary.DataStore.activeOperations),
+		},
+
+		MemoryStore = {
+			____PendingWrites = (Diary.MemoryStore.GetPendingWriteCount and Diary.MemoryStore.GetPendingWriteCount()),
+			____OwnedLeases = countKeys(OwnedLeases),
+		},
+
+		Resources = {
+			____SerializationCacheSize = Diary.DependentServices.GetSerializationCacheSize(),
+			____ActiveKeyLocks = countKeys(Diary._keyLock),
+		},
+	}
+end
+
+--[[
+	Returns the estimated total number of active threads managed by Diary.
+	
+	Params:
+		nil
+
+	Returns:
+	    number -- Thread count including base workers, DataStore queue, and active save threads.
+]]
+function Diary.ThreadCount(): number
+
+	--[[
+		Diary.ThreadCount: The Active Thread Checker.
+		
+		Returns the estimated total number of background threads and persistent 
+		connections actively managed by the Diary framework. 
+		
+		The "Base 7" threads represent the constant framework overhead:
+		  * Auto-Save Worker (Hot/Cold Storage Flush)
+		  * Lease Renewal Worker (MemoryStore Session Locks)
+		  * Background Janitor (Heartbeat Garbage Collection)
+		  * MessagingService Listener (ValidationCheck)
+		  * MessagingService Listener (ValidationReply)
+		  * MessagingService IDs syncronizer worker
+		  * Intermittent Dispatchers (Lease Recovery / Validation Batching)
+		
+		Parameters:
+			None
+			
+		Returns:
+			number - The total thread count, including the base overhead, dynamic DataStore queues, and active concurrent save threads.
+	]]
+
+	local BaseThreads = 7
+	local DataStoreQueueSize = Diary.DataStore.GetQueueSize()
+	local DataStoreThreads = (DataStoreQueueSize > 0) and 1 or 0
+	local ActiveSaveThreads = 0
+
+	for _, Locations in SavingPlayers do
+		ActiveSaveThreads += countKeys(Locations) -- Estimates active save threads based on number of loaded memory locations that are actively gets save.
+	end
+
+	return BaseThreads + DataStoreThreads + ActiveSaveThreads
+end
+
+--[[
+	Returns the number of cached data keys across all memory locations for a player.
+
+	Params:
+	    PlayerUserID : number -- The player's UserId.
+
+	Returns:
+	    number -- Total key count, or 0 if no data is cached.
+]]
+function Diary.GetDataSize(PlayerUserID: number): number
+	if not PlayerDataCache[PlayerUserID] then return 0 end
+	
+	local Size = 0
+
+	for _, Data in PlayerDataCache[PlayerUserID] do
+		Size += countKeys(Data) -- Estimates size of data based on number of keys in each memory location.
+	end
+
+	return Size
+end
+
+--[[
+	Registers a callback to fire when data loading begins for any player.
+
+	Returns:
+	    SignalConnection -- Contains a :Disconnect() method.
+]]
+Diary.Signals.OnLoadStarted = {
+
+	--[[
+		Diary.Signals.OnLoadStarted: The Data Initialization Signal.
+		
+		A custom event dispatcher that fires immediately when the framework begins the data 
+		loading sequence for a joining player. This occurs after initial ban checks and template 
+		registration, but before the cross-server handshakes and MemoryStore fetches complete.
+		
+		Usage:
+			local Connection = Diary.Signals.OnLoadStarted:Connect(function(Player) ... end)
+			Diary.Signals.OnLoadStarted:Once(function(Player) ... end)
+			
+		Returns (Connect):
+			SignalConnection - An object containing a :Disconnect() method to cleanly sever the listener and prevent memory leaks.
+			
+		Core Behaviors:
+			* Retroactive Dispatching: If a script connects to this signal late (after players have already joined), it immediately iterates through the cache and fires the callback for those existing players to ensure no one is missed.
+			* Safe Event Wrapping: Provides a native :Once() method that automatically handles its own disconnection after firing a single time.
+	]]
+
+	-- Establish a persistent connection to the OnLoadStarted signal.
+	Connect = function(self, Callback: (Player) -> ()): SignalConnection
+		if typeof(Callback) ~= "function" then
+			errorLog("[OnLoadStarted] Expected a function callback.")
+		end
+
+		table.insert(OnLoadStartedCallbacks, Callback) -- Store the callback
+
+		-- Fire the callback for existing players
+		for UserId in PlayerDataCache do
+			local PlayerInstance = Diary.DependentServices.Players:GetPlayerByUserId(UserId)
+
+			if PlayerInstance then
+				Scheduler.Spawn(Callback, PlayerInstance) -- Fire the signal individually on each player
+			end
+		end
+
+		local Connection = { Connected = true }
+
+		function Connection:Disconnect() -- Construct the connection's disconnect method
+			if not self.Connected then return end
+
+			self.Connected = false
+			local Index = table.find(OnLoadStartedCallbacks, Callback)
+
+			if Index then
+				table.remove(OnLoadStartedCallbacks, Index) -- Remove the callback from the list
+			end
+		end
+
+		return Connection
+	end,
+
+	-- Establish a one-time connection to the OnLoadStarted signal.
+	Once = function(self, Callback: (Player) -> ()): ()
+		if typeof(Callback) ~= "function" then
+			errorLog("[OnLoadStarted] Expected a function callback.")
+		end
+
+		local Connection: SignalConnection
+		local Fired = false -- Prevent multiple firings
+
+		Connection = self:Connect(function(PlayerInstance: Player) -- Using the internal :Connect method, no special treatment
+			if Fired then return end
+
+			Fired = true
+			Connection:Disconnect()
+			Scheduler.Spawn(Callback, PlayerInstance)
+		end)
+	end
+} :: DiarySignal
+
+--[[
+	Registers a callback to fire when all data templates have finished loading for any player.
+
+	Returns:
+	    SignalConnection -- Contains a :Disconnect() method.
+]]
+Diary.Signals.OnLoadCompleted = {
+
+	--[[
+		Diary.Signals.OnLoadCompleted: The Data Resolution Signal.
+		
+		A custom event dispatcher that fires exactly when all registered data schemas 
+		(Templates) have been successfully fetched, validated, reconciled, and cached into 
+		the server's RAM for a joining player. This is the definitive "green light" indicating 
+		that the player's data is fully secure and ready for gameplay systems to mutate.
+		
+		Usage:
+			local Connection = Diary.Signals.OnLoadCompleted:Connect(function(Player) ... end)
+			Diary.Signals.OnLoadCompleted:Once(function(Player) ... end)
+			
+		Returns (Connect):
+			SignalConnection - An object containing a :Disconnect() method to cleanly sever the listener and prevent memory leaks.
+			
+		Core Behaviors:
+			* Retroactive Dispatching: If a script connects to this signal late (e.g., after players have already fully loaded in), it immediately iterates through the cache and fires the callback for those existing players, ensuring game scripts don't miss initialization steps.
+			* Safe Event Wrapping: Provides a native :Once() method that automatically handles its own disconnection after firing a single time.
+	]]
+
+	-- Establish a persistent connection to the OnLoadCompleted signal.
+	Connect = function(self, Callback: (Player) -> ()): SignalConnection
+		if typeof(Callback) ~= "function" then
+			errorLog("[OnLoadCompleted] Expected a function callback.")
+		end
+
+		table.insert(OnLoadCompletedCallbacks, Callback) -- Store the callback
+
+		for UserId in PlayerDataCache do
+			local PlayerInstance = Diary.DependentServices.Players:GetPlayerByUserId(UserId)
+
+			if PlayerInstance then
+				Scheduler.Spawn(Callback, PlayerInstance) -- Fire the signal individually on each player
+			end
+		end
+
+		local Connection = { Connected = true }
+
+		function Connection:Disconnect() -- Construct the connection's disconnect method
+			if not self.Connected then return end
+
+			self.Connected = false
+			local Index = table.find(OnLoadCompletedCallbacks, Callback)
+
+			if Index then
+				table.remove(OnLoadCompletedCallbacks, Index) -- Remove the callback from the list
+			end
+		end
+
+		return Connection
+	end,
+
+	-- Establish a one-time connection to the OnLoadCompleted signal.
+	Once = function(self, Callback: (Player) -> ()): ()
+		if typeof(Callback) ~= "function" then
+			errorLog("[OnLoadCompleted] Expected a function callback.")
+		end
+
+		local Connection: SignalConnection
+		local Fired = false -- Prevent multiple firings
+
+		Connection = self:Connect(function(PlayerInstance: Player) -- Using the internal :Connect method, no special treatment
+			if Fired then return end
+
+			Fired = true
+			Connection:Disconnect()
+			Callback(PlayerInstance)
+		end)
+	end
+} :: DiarySignal
+
+--[[
+	Registers a data template for a memory location.
+
+	Params:
+	    MemoryLocation : string       -- The key used to identify this data location.
+	    Template       : Schema       -- The default data structure for new players.
+	    Policy         : CachePolicy? -- Optional TTL and interval overrides.
+
+	Returns:
+	    DataDefinition -- The registered definition, used in FetchData.
+]]
+function Diary.RegisterTemplate<Schema>(MemoryLocation: string, Template: Schema, Policy: CachePolicy?): DataDefinition<Schema>
+
+	--[[
+		Diary.RegisterTemplate: The Schema Registration Entrypoint.
+		
+		Defines the authoritative data structure (Schema) for a specific memory location. 
+		This is required to establish what a fresh player's data looks like, enforce 
+		strict Luau typing for future data fetching, and optionally assign specific network
+		caching policies to different types of data (e.g., Inventory vs. Settings).
+		
+		Parameters:
+			MemoryLocation : string       - The unique identifier/key for this specific subset of data (e.g., "PlayerInventory").
+			Template       : Schema       - The default data table and initial values assigned to new players.
+			Policy         : CachePolicy? - (Optional) Network rules dictating how frequently this specific data syncs to the cloud.
+			
+		Returns:
+			DataDefinition<Schema> - A strictly typed definition object. You must pass this object into FetchData to retrieve the data safely.
+			
+		Core Behaviors:
+			* State Isolation: Uses deepCopy to securely store the template, ensuring new players don't accidentally share the same memory reference.
+			* Policy Binding: Automatically binds the provided network rules (or falls back to global constants) so the Auto-Save Worker knows how aggressively to throttle this specific data type.
+			* Hot Reconciliation (Retroactive Upgrades): If you register a template after players have already joined and loaded data, the framework instantly iterates through all active RAM caches, 
+			  upgrades their old data to match the new template, and flags them as __dirty for the next save cycle (MemoryStore).
+	]]
+
+	Templates = Templates or {}
+
+	-- Copy the template to avoid modifying the original table.
+	Templates[MemoryLocation] = deepCopy({
+		memoryLocation = MemoryLocation,
+		structure = Template,
+	}, {}, false) :: DataDefinition<DataTable>
+
+	-- Apply the policy (the frequency how often this data gets sync and stored in the cache), or use the defaults.
+	Diary.RegisterPolicy(MemoryLocation, Policy or {
+		____ActiveTTL = ACTIVE_TTL,
+		____IdleTTL = IDLE_TTL,
+		____IdleThreshold = IDLE_THRESHOLD,
+		____IntervalMultiplier = IDLE_INTERVAL_MULTIPLIER,
+	})
+
+	-- Reconciliation logic, ensures old players get upgraded to new data structures automatically.
+	for PlayerUserID, Locations in PlayerDataCache do
+		if Locations[MemoryLocation] then
+			Locations[MemoryLocation]         = reconcileTemplate(Locations[MemoryLocation], Templates[MemoryLocation].structure)
+			Locations[MemoryLocation].__dirty = true
+		end
+	end
+
+	return {
+		____memoryLocation = MemoryLocation,
+		structure = Template,
+	} :: DataDefinition<Schema> -- The strictly typed definition object. Used in FetchData API.
+end
+
+--[[
+	Registers or replaces the CachePolicy for a memory location.
+
+	Params:
+	    MemoryLocation : string      -- The key identifying the data location.
+	    Policy         : CachePolicy -- The TTL and interval configuration to apply.
+]]
+function Diary.RegisterPolicy(MemoryLocation: string, Policy: CachePolicy): ()
+
+	--[[
+		Diary.RegisterPolicy: The Cache Throttling Override.
+		
+		Manually registers or overwrites the network caching rules (CachePolicy) for a 
+		specific memory location. This allows you to define custom auto-save intervals 
+		and MemoryStore lifespans to strictly control API quota consumption for 
+		different types of data.
+		
+		Parameters:
+			MemoryLocation : string      - The unique identifier/key for the data location.
+			Policy         : CachePolicy - A dictionary containing custom TTLs, idle thresholds, and interval multipliers.
+			
+		Returns:
+			None
+			
+		Core Behaviors:
+			* Intelligent Fallbacks: Safely fills in any missing configuration fields with the framework's global constants (e.g., ACTIVE_TTL, IDLE_THRESHOLD), ensuring a policy never breaks due to incomplete parameters.
+			* Quota Management: The registered policy directly dictates how the background Auto-Save Worker behaves, heavily throttling cloud syncs when a player goes AFK to preserve Roblox API limits.
+	]]
+
+	if DEBUG_MODE then
+		if typeof(MemoryLocation) ~= "string" or MemoryLocation == "" then
+			errorLog("[RegisterPolicy] Expected MemoryLocation to be a non-empty string.")
+		end
+
+		if typeof(Policy) ~= "table" then
+			errorLog("[RegisterPolicy] Expected Policy to be a CachePolicy table.")
+		end
+	end
+
+	-- Override the policy for this memory location.
+	Policies[MemoryLocation] = {
+		activeTTL = Policy.____ActiveTTL or ACTIVE_TTL,
+		idleTTL = Policy.____IdleTTL or IDLE_TTL,
+		idleThreshold = Policy.____IdleThreshold or IDLE_THRESHOLD,
+		intervalMultiplier = Policy.____IntervalMultiplier or IDLE_INTERVAL_MULTIPLIER,
+	}
+end
+
+--[[
+	Retrieves the cached data for a player/custom data at the given structure definition's memory location.
+
+	Params:
+	    PlayerUserID        : number                 -- The player's UserId or custom data ID.
+	    StructureDefinition : DataDefinition<Schema> -- The definition returned by RegisterTemplate.
+
+	Returns:
+	    Schema? -- The cached data table, or nil if not yet loaded.
+]]
+function Diary.FetchData<Schema>(PlayerUserID: number, StructureDefinition: DataDefinition<Schema>): Schema?
+
+	--[[
+		Diary.FetchData: The Strongly-Typed Data Retriever.
+		
+		The primary API for accessing a player's active session data. It fetches 
+		data exclusively from the server's local RAM cache (PlayerDataCache), 
+		guaranteeing instantaneous, zero-latency reads without consuming Roblox 
+		cloud API quotas.
+		
+		Parameters:
+			PlayerUserID        : number                 - The UserId of the player.
+			StructureDefinition : DataDefinition<Schema> - The strict definition object returned by RegisterTemplate.
+			
+		Returns:
+			Schema? - The player's data table, fully typed to match the registered template, or nil if the data hasn't loaded yet.
+			
+		Core Behaviors:
+			* RAM-First Architecture: Never yields to DataStore or MemoryStore. All data reads are instant, high-speed lookups from local memory.
+			* Strict Type Safety: Leverages Luau generics (<Schema>) to automatically cast the returned data to the exact structure of your template, granting full autocomplete support in your IDE/Studio.
+			* Failsafe Polling: Wraps the internal lookup in WaitForValue to gracefully pause the thread for a fraction of a second if the data happens to be mid-instantiation during the exact tick it is requested.
+	]]
+
+	local Cache = PlayerDataCache[PlayerUserID]
+	local Info: Schema
+
+	if Cache then -- Check first if the data is already loaded. Defensive programming
+		local Success, Result = Diary.WaitForValue(function(): DataTable -- Diary's polling mechanism similar to WaitForChild call
+			return Cache[StructureDefinition.____memoryLocation]
+		end)
+
+		if Success and Result then
+			Info = Result :: Schema -- Pass the fetched data as a reference to the live table in the cache
+		end
+	end
+
+	return Info :: Schema
+end
+
+--[[
+	Schedules a save event of a player's or custom's cached data for a given memory location to both MemoryStore and DataStore.
+
+	Params:
+	    PlayerUserID      : number   -- The player's UserId or custom data ID.
+	    MemoryLocation    : string   -- The data location to save.
+	    UpdateMemoryStore : boolean? -- When true, also writes to MemoryStore.
+]]
+function Diary.SaveData(PlayerUserID: number, MemoryLocation: string, UpdateMemoryStore: boolean?): ()
+
+	--[[
+		Diary.SaveData: The Manual Persistence Trigger.
+		
+		Explicitly forces a cloud sync for a specific memory location. This is useful for 
+		developer-triggered saves (e.g., after a high-value transaction like an in-app 
+		purchase) that shouldn't wait for the next background auto-save cycle.
+		
+		Parameters:
+			PlayerUserID      : number   - The player's UserId.
+			MemoryLocation    : string   - The specific identifier/key for the data location to save.
+			UpdateMemoryStore : boolean? - (Optional) If true, parallel syncs to the hot-cache (MemoryStore) to ensure immediate cross-server availability.
+			
+		Returns:
+			None
+			
+		Core Behaviors:
+			* Activity Registration: Automatically updates the player's internal activity tracker, ensuring their caching policy stays in "Active" mode rather than falling into "Idle" throttling.
+			* Asynchronous Dispatch: Wraps the core save operation (persistFromServerMemoryToCloud) in Scheduler.Defer. This guarantees that calling SaveData() will never yield, block, or cause frame drops on the main server thread.
+	]]
+
+	if DEBUG_MODE then
+		if typeof(PlayerUserID) ~= "number" or PlayerUserID <= 0 or PlayerUserID ~= math.floor(PlayerUserID) then
+			errorLog("[SaveData] Expected PlayerUserID to be a positive integer UserId.")
+		end
+
+		if typeof(MemoryLocation) ~= "string" or MemoryLocation == "" then
+			errorLog("[SaveData] Expected MemoryLocation to be a non-empty string.")
+		end
+	end
+
+	registerActivity(PlayerUserID) -- Update the player's activity timestamp
+
+	local ShouldUpdateMemoryStore: boolean = UpdateMemoryStore or false
+
+	Scheduler.Defer(persistFromServerMemoryToCloud, PlayerUserID, MemoryLocation, ShouldUpdateMemoryStore) -- Schedules the save operation in the next resumption cycle of the frame or next heartbeat event if using Assignment
+end
+
+--[[
+	Marks a player's cached data as dirty so the auto-save event loop will save it on the next cycle.
+
+	Params:
+	    PlayerUserID   : number -- The player's UserId or custom data ID.
+	    MemoryLocation : string -- The data location to be marked.
+]]
+function Diary.MarkDirty(PlayerUserID: number, MemoryLocation: string): ()
+
+	--[[
+		Diary.MarkDirty: The State Mutation Trigger.
+		
+		Manually flags a specific memory location as modified (dirty) in the server's 
+		RAM. This acts as a signal to the background Auto-Save Worker, instructing it 
+		to pick up this new data and sync it to the cloud during the next available 
+		flush cycle. 
+		
+		Parameters:
+			PlayerUserID   : number - The player's UserId.
+			MemoryLocation : string - The specific identifier/key for the mutated data.
+			
+		Returns:
+			None
+			
+		Core Behaviors:
+			* Activity Registration: Refreshes the player's activity timestamp, ensuring their save intervals remain in "Active" mode rather than falling into heavily throttled "Idle" mode.
+			* Hot-Cache Tagging: Sets the internal __dirty flag to true, ensuring the exact delta changes survive fast server-hopping via MemoryStore.
+			* Cold-Storage Tagging: Toggles the NeedsDataStoreFlush tracker, queuing the data for a permanent, staggered write to the DataStore database.
+	]]
+
+	registerActivity(PlayerUserID) -- Update the player's activity timestamp
+
+	local Data = PlayerDataCache[PlayerUserID] and PlayerDataCache[PlayerUserID][MemoryLocation]
+
+	if Data and typeof(Data) == "table" then
+		(Data :: any).__dirty = true -- Flag this exact memory location as dirty for the next auto-save cycle
+
+		-- Flag that DataStore is now out of sync
+		NeedsDataStoreFlush[PlayerUserID] = NeedsDataStoreFlush[PlayerUserID] or {}
+		NeedsDataStoreFlush[PlayerUserID][MemoryLocation] = true
+	end
+end
+
+--[[
+	Enables or disables MemoryStore auto-caching for a player's or custom's data memory location.
+
+	Params:
+	    PlayerUserID   : number  -- The player's UserId or custom data ID.
+	    MemoryLocation : string  -- The data location to toggle.
+	    State          : boolean -- true to disable caching; false to re-enable it.
+]]
+function Diary.HandleMemoryCaching(PlayerUserID: number, MemoryLocation: string, State: boolean): ()
+
+	--[[
+		Diary.HandleMemoryCaching: The Auto-Save Toggle.
+		
+		Dynamically enables or disables the background auto-save loop for a specific 
+		memory location. This is incredibly useful for temporarily pausing cloud syncs 
+		during complex data-mutation events (like a multi-step crafting sequence or 
+		a minigame) to guarantee the background worker never accidentally saves a 
+		partially-finished state to the database.
+		
+		Parameters:
+			PlayerUserID   : number  - The player's UserId.
+			MemoryLocation : string  - The specific identifier/key for the data location.
+			State          : boolean - If true, DISABLES background auto-saving. If false, RE-ENABLES auto-saving.
+			
+		Returns:
+			None
+			
+		Core Behaviors:
+			* Targeted Suspension: Instantly removes (or adds) the specific memory location from the `ActiveMemoryLocations` tracker, making it invisible to the Auto-Save Worker without deleting the actual data from the RAM cache.
+			* Asynchronous Safety: Wraps the state change in `Scheduler.Defer` to prevent thread-blocking during rapid toggles.
+	]]
+
+	Scheduler.Defer(function()
+		if State then
+			ActiveMemoryLocations[PlayerUserID][tostring(PlayerUserID) .. "_" .. MemoryLocation] = nil -- Stop the auto-save loop for this memory location
+			
+		else
+			startMemoryCache(PlayerUserID, MemoryLocation) -- Start the auto-save loop for this memory location
+		end
+	end)
+end
+
+--[[
+	Publishes a data entry to a named MemoryStore queue.
+
+	Params:
+	    QueueName     : string              -- The name of the target queue.
+	    DataReference : DataTable           -- The data payload to enqueue.
+	    Options       : QueuePublishConfig? -- Optional visibility, span, and priority overrides.
+]]
+function Diary.PublishQueueEntry(QueueName: string, DataReference: DataTable, Options: QueuePublishConfig?): ()
+
+	--[[
+		Diary.PublishQueueEntry: The Asynchronous Queue Publisher.
+		
+		Safely dispatches a data payload to a specified Roblox MemoryStore queue. This is 
+		highly useful for building cross-server systems that require high-throughput 
+		message passing, such as global matchmaking, cross-server trading, or live 
+		auction houses.
+		
+		Parameters:
+			QueueName     : string              - The unique identifier for the target queue.
+			DataReference : DataTable           - The data payload to be serialized and enqueued.
+			Options       : QueuePublishConfig? - (Optional) Overrides for visibility timeout, queue lifespan, and sorting priority.
+			
+		Returns:
+			None
+			
+		Core Behaviors:
+			* Non-Blocking Execution: Wraps the underlying network call in Scheduler.Defer. This guarantees that publishing data to a queue will never yield, bottleneck, or drop frames on your main server thread.
+	]]
+
+	if DEBUG_MODE then
+		if typeof(QueueName) ~= "string" or QueueName == "" then
+			errorLog("[PublishQueueEntry] Expected QueueName to be a non-empty string.")
+		end
+
+		if typeof(DataReference) ~= "table" then
+			errorLog("[PublishQueueEntry] Expected DataReference to be a table.")
+		end
+	end
+
+	Scheduler.Defer(function()
+		return Diary.MemoryStore.QueuePublish(QueueName, DataReference, Options) -- Publish a data entry to the queue
+	end)
+end
+
+--[[
+	Reads entries from a named MemoryStore queue and returns them as a table.
+
+	Params:
+	    QueueName : string           -- The name of the queue to read from.
+	    Options   : QueueScanConfig? -- Optional count, all-or-nothing, timeout, and delete-on-read overrides.
+
+	Returns:
+	    DataTable -- The deserialized entries read from the queue.
+]]
+function Diary.ScanQueueEntry(QueueName: string, Options: QueueScanConfig?): DataTable
+
+	--[[
+		Diary.ScanQueueEntry: The Asynchronous Queue Reader.
+		
+		Reads and retrieves data entries from a specified MemoryStore queue. 
+		This is the receiving end of the queue system, designed to safely pull 
+		high-throughput data (like global trading offers or server matchmaking requests) 
+		without stalling your game's main logic.
+		
+		Parameters:
+			QueueName : string           - The unique identifier for the target queue.
+			Options   : QueueScanConfig? - (Optional) Configuration dictionary dictating max items to pull, wait timeouts, and whether to delete items upon reading.
+			
+		Returns:
+			DataTable - A table containing the retrieved queue entries. Safely returns an empty table {} if the queue is empty, or if the underlying Roblox API fails.
+			
+		Core Behaviors:
+			* Safe Thread Yielding: Captures the calling coroutine and puts it to sleep, dispatching the actual network request to a background worker. It resumes this API thread only when the data arrives, preventing server hang-ups during network latency.
+			* Failsafe Execution: Wraps the API request in safeCall. If MemoryStoreService is experiencing an outage, the function gracefully absorbs the error and returns an empty table instead of breaking your game loops.
+			* Strict Validation: Enforces that the returned payload is specifically a table before handing it back to your script, preventing downstream type-mismatch errors.
+	]]
+
+	if DEBUG_MODE then
+		if typeof(QueueName) ~= "string" or QueueName == "" then
+			errorLog("[ScanQueueEntry] Expected QueueName to be a non-empty string.")
+		end
+	end
+
+	local CurrentThread = coroutine.running()
+
+	Scheduler.Spawn(function()
+		local Success, Result = safeCall(function(): (boolean, any)
+			return Diary.MemoryStore.QueueRead(QueueName, Options) -- Read entries from the queue
+		end)
+
+		local FinalResult = {}
+
+		if Success and type(Result) == "table" then -- Ensure the result is a table
+			FinalResult = Result
+		end
+
+		Scheduler.Spawn(CurrentThread, FinalResult) -- Wake up this API thread with the result
+	end)
+
+	return coroutine.yield() -- Yield this thread
+end
+
+--[[
+	Bans and permanently wipes all stored data for a player.
+
+	Params:
+	    PlayerInstance   : Player | number -- The player instance or UserId to wipe.
+	    InformationTable : DataTable?      -- Optional extra fields to merge into the ban record.
+	    IsRecursed       : boolean?        -- Internal flag; do not pass manually.
+
+	Returns:
+	    DataPackage -- The audit record and data copy produced by the wipe.
+]]
+function Diary.WipeData(PlayerInstance: Player | number, InformationTable: DataTable?, IsRecursed: boolean?): DataPackage
+
+	--[[
+		Diary.WipeData: The Account Erasure & GDPR Compliance Utility.
+		
+		Permanently and irreversibly deletes all stored data for a specific player across 
+		both DataStore and MemoryStore. Designed specifically to handle GDPR "Right to 
+		be Forgotten" requests, this function scrubs the database, bans the player to 
+		prevent future data generation, and generates a final audit package.
+		
+		Parameters:
+			PlayerInstance   : Player | number - The active Player object or the offline UserId to be wiped.
+			InformationTable : DataTable?      - (Optional) Additional audit metadata to merge into the ban record (e.g., { reason = "Support Ticket #123" }).
+			IsRecursed       : boolean?        - (Internal Use Only) Used by the framework to handle delayed execution. Do not pass this argument manually.
+			
+		Returns:
+			DataPackage - A standardized dictionary containing an audit log with exact timestamp details and a final copy snapshot of the player's data right before it was destroyed.
+			
+		Core Behaviors:
+			* Deep Scrubbing: Iterates through every registered MemoryLocation and aggressively removes records from both DataStore and the MemoryStore hot-cache.
+			* Tombstone Registration: Adds the player to a persistent graveyard and writes an "Active" ban record to prevent the account from ever re-entering the game and generating new data.
+			* Safe Eviction (Live Players): If the player is currently online, it caches their data for the return package, kicks them immediately, and delays the actual database wipe by 20 seconds to ensure all standard save/cleanup threads have fully terminated first.
+	]]
+
+	local UserId: number
+	local PlayerObj: Player
+
+	-- Determine if the request is coming from Online player or Offline execution
+	if typeof(PlayerInstance) == "Instance" and (PlayerInstance :: Instance):IsA("Player") then -- Online, direct player instance
+		PlayerObj = PlayerInstance :: Player
+		UserId = PlayerObj.UserId
+		
+	elseif typeof(PlayerInstance) == "number" and (PlayerInstance :: number) > 0 then -- Offline, UserID fetching approach
+		UserId = PlayerInstance :: number
+		PlayerObj = game.Players:GetPlayerByUserId(UserId)
+		
+	else
+		errorLog("[WipeData] PlayerInstance must be a valid Player instance or positive UserId.")
+	end
+
+	local PlayerName = (PlayerObj and PlayerObj.Name) or "Unknown(ID: " .. tostring(UserId) .. ")"
+
+	-- DataStore/MemoryStore data deletion sequence
+	local function execute()
+		Scheduler.Spawn(function()
+			if next(Templates) == nil then return end
+
+			for MemoryLocation in Templates do
+				local _DeletedDataStore = Diary.DataStore.DeleteData(UserId, MemoryLocation) -- Execute DataStore data deletion
+				local MemoryStoreSuccess = false
+				local Attempts = 0
+
+				repeat -- Prevents MemoryStore service temporary outtage from interefering with the data deletion event
+					Attempts += 1
+					MemoryStoreSuccess = safeCall(function()
+						local MapRaw = Diary.MemoryStore.getMemoryStoreMap(MemoryLocation, true) :: any
+						
+						MapRaw:RemoveAsync(tostring(UserId))
+					end)
+
+					if not MemoryStoreSuccess and Attempts < 5 then
+						Scheduler.Wait(1)
+					end
+					
+				until MemoryStoreSuccess or Attempts >= 5
+
+				Scheduler.Wait(0.1)
+			end
+
+			registerTombstone(UserId) -- Register the player's UserID in the persistent graveyard
+
+			local StatusMap = Diary.MemoryStore.getMemoryStoreMap("Online/Offline_Status", true) :: any
+
+			safeCall(function() 
+				StatusMap:RemoveAsync(tostring(UserId)) 
+			end) -- Remove the MemoryStore presence record (despite having any or none)
+		end)
+	end
+
+	if IsRecursed then -- Scheduled execution if a player is currently active to prevent conflicting save threads during deletion event
+		execute()
+		return {} :: DataPackage
+	end
+
+	local Info: DataTable = InformationTable or {} -- Additional information table passed from the requester
+	local Months = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }
+	local Suffix = "th"
+	local UtcDate = DateTime.now():ToUniversalTime()
+	local Day = UtcDate.Day
+	local LastDigit, LastTwoDigits = Day % 10, Day % 100
+
+	-- Format proper date
+	if LastTwoDigits >= 11 and LastTwoDigits <= 13 then
+		Suffix = "th"
+		
+	elseif LastDigit == 1 then
+		Suffix = "st"
+		
+	elseif LastDigit == 2 then
+		Suffix = "nd"
+		
+	elseif LastDigit == 3 then
+		Suffix = "rd"
+	end
+
+	-- Prepare the ban record payload to be save in the graveyard (Tombstone System)
+	local BanRecord: DataTable = {
+		banStatus = "Active", -- The status of the record to tell Diary whether this is currently a valid record or not anymore
+		dateOfBanning = DateTime.now().UnixTimestamp,
+		actualDateOfBanning = string.format("%d%s day of %s, %d at exactly %02d hour(s), %02d minute(s), and %02d second(s).", Day, Suffix, Months[UtcDate.Month], UtcDate.Year, UtcDate.Hour, UtcDate.Minute, UtcDate.Second),
+		serverID = Diary._serverId,
+		reason = "Account Deletion",
+		requester = (PlayerObj and "User") or "Roblox via mail notice",
+	}
+
+	-- Insert additional information provided in the deletion event (usually coming from the admin panel)
+	for Key, Value in Info do
+		BanRecord[Key] = Value
+	end
+
+	Diary.DataStore.SaveData(UserId, "BannedPlayers", BanRecord) -- Save the record into the graveyard
+
+	-- Prepare the package to be returned back to the requester (admin or player)
+	local DataPackage_: DataPackage = {
+		audit = BanRecord, -- Information regarding the deletion process
+		copy = {}, -- The copy of the whole progress of the player's journey in the game
+	}
+
+	-- Logic to detect the player subject to the event
+	if Diary._players[UserId] and PlayerObj then -- Player is currently in the game
+		if PlayerDataCache[UserId] then
+			for MemoryLocation, Data in PlayerDataCache[UserId] do
+				DataPackage_.copy[MemoryLocation] = deepCopy(Data, {}, false) :: DataTable -- Copy the player's current data to preserve it before kicking process. This ensures that before the cleanup happens, Diary already have the player's up-to-date data to be saved in the package.
+			end
+		end
+
+		PlayerObj:Kick("Account deletion successfully initiated! Thank you for being part with us.") -- Kick the player
+		Scheduler.Delay(20, function() Diary.WipeData(UserId, Info, true) end) -- Delay deletion process to make sure all of the player references is fully cleaned up
+
+		return DataPackage_
+		
+	else -- The player is offline
+		if next(Templates) then
+			for MemoryLocation in Templates do
+				local Data = Diary.MemoryStore.FetchData(UserId, MemoryLocation, {
+					____MapType = true,
+				}) -- Fetch first the data in the MemoryStore maybe the player still has some cached data
+
+				if not Data then
+					local FetchSuccess, FetchResult = Diary.DataStore.FetchData(UserId, MemoryLocation) -- If no cached data, fetch from the DataStore
+					
+					if FetchSuccess then Data = FetchResult end
+				end
+
+				if Data then DataPackage_.copy[MemoryLocation] = Data end -- Copy the player's whole data to the package
+			end
+		end
+
+		execute() -- Execute the deletion process
+	end
+
+	return DataPackage_ -- The cleaned package
+end
+
+--[[
+	Exports all stored data for a player as a DataPackage with a full audit record.
+
+	Params:
+	    PlayerUserID : number     -- The player's UserId.
+	    RequestInfo  : AuditInfo? -- Optional reason and requester fields for the audit record.
+
+	Returns:
+	    DataPackage -- The audit record and a copy of all data across all memory locations.
+]]
+function Diary.ExportData(PlayerUserID: number, RequestInfo: AuditInfo?): DataPackage
+
+	--[[
+		Diary.ExportData: The Right to Access Utility.
+		
+		Safely extracts a complete, non-destructive copy of a player's data across all 
+		registered memory locations. Designed for GDPR "Right to Access" compliance, 
+		this function compiles the data alongside a strict audit trail detailing exactly 
+		when and why the export was requested.
+		
+		Parameters:
+			PlayerUserID : number      - The UserId of the player whose data is being requested.
+			RequestInfo  : AuditInfo?  - (Optional) Metadata to include in the audit log (e.g., { reason = "Support Request", requester = "Admin123" }).
+			
+		Returns:
+			DataPackage - A standardized dictionary containing a detailed audit log (with precise UTC timestamps) and a copy containing the extracted data payloads.
+			
+		Core Behaviors:
+			* State-Aware Extraction: Intelligently determines if the player is currently online or offline. If online, it instantly pulls the live data from the server's RAM cache (PlayerDataCache). If offline, it seamlessly queries MemoryStore, falling back to DataStore.
+			* Audit Trail Generation: Automatically calculates and formats human-readable UTC timestamps (with correct ordinal suffixes like 'st', 'nd', 'rd', 'th') to ensure the generated audit log is legally sound and easily readable by support staff.
+			* Non-Destructive: Unlike WipeData, this function strictly copies information. It does not alter, delete, or flag the player's live data or session states.
+	]]
+
+	if next(Templates) == nil then
+		return {
+			audit = { status = "Failed", reason = "No Templates Registered" },
+			copy = {},
+		}
+	end
+
+	local Info: AuditInfo = RequestInfo or {} -- Additional information table passed from the requester
+	local Months = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }
+	local Suffix = "th"
+	local UtcDate = DateTime.now():ToUniversalTime()
+	local Day = UtcDate.Day
+	local LastDigit, LastTwoDigits = Day % 10, Day % 100
+
+	-- Format proper date
+	if LastTwoDigits >= 11 and LastTwoDigits <= 13 then
+		Suffix = "th"
+		
+	elseif LastDigit == 1 then
+		Suffix = "st"
+		
+	elseif LastDigit == 2 then
+		Suffix = "nd"
+		
+	elseif LastDigit == 3 then
+		Suffix = "rd"
+	end
+
+	local SafeInfo    = (Info :: any) :: AuditInfo
+
+	-- Prepare the audit record for the export
+	local AuditRecord: { [string]: any } = {
+		actionType = "Data Export (Right to Access)",
+		exportDateTimestamp = DateTime.now().UnixTimestamp,
+		exportDateFormatted = string.format("%d%s day of %s, %d at exactly %02d hour(s), %02d minute(s), and %02d second(s).", Day, Suffix, Months[UtcDate.Month], UtcDate.Year, UtcDate.Hour, UtcDate.Minute, UtcDate.Second),
+		reason = SafeInfo.reason    or "User Request",
+		requester = SafeInfo.requester or "System",
+		serverID = Diary._serverId,
+	}
+
+	-- Merge in any extra info passed by the requester
+	for Key, Value in Info do
+		if AuditRecord[Key :: string] == nil then -- Avoid overwriting existing fields
+			AuditRecord[Key :: string] = Value
+		end
+	end
+
+	local DataPackage_: DataPackage = {
+		audit = AuditRecord, -- Information regarding the exporting process
+		copy = {}, -- The copy of the whole progress of the player's journey in the game
+	}
+
+	if Diary._players[PlayerUserID] then -- The player is currently online, directly fetch the data from the live in-server memory
+		if PlayerDataCache[PlayerUserID] then
+			for MemoryLocation, Data in PlayerDataCache[PlayerUserID] do -- Directly access RAM
+				DataPackage_.copy[MemoryLocation] = deepCopy(Data, {}, false) :: DataTable
+			end
+		end
+		
+	else -- The player is offline, fetch the data from the MemoryStore or DataStore
+		for MemoryLocation in Templates do
+			local Data = Diary.MemoryStore.FetchData(PlayerUserID, MemoryLocation, {
+				____MapType = true,
+			}) -- Fetch from MemoryStore
+
+			if not Data then
+				local FetchSuccess, FetchResult = Diary.DataStore.FetchData(PlayerUserID, MemoryLocation) -- Fetch from DataStore as fallback
+
+				if FetchSuccess then
+					Data = FetchResult
+				end
+			end
+
+			if Data then
+				DataPackage_.copy[MemoryLocation] = Data -- Store fetched data
+			end
+		end
+	end
+
+	return DataPackage_ -- The cleaned package
+end
+
+--[[
+	Fetches the graveyard record of all wiped player IDs and their deletion timestamps.
+
+	Returns:
+	    GraveyardData -- A map of UserId strings to Unix timestamps.
+]]
+function Diary.FetchTombstones(): GraveyardData
+
+	--[[
+		Diary.FetchTombstones: The GDPR Graveyard Retriever.
+		
+		Retrieves the authoritative, global list of player UserIds that have been 
+		permanently banned from the game (tombstones). This is heavily utilized by 
+		the framework's onboarding sequence to instantly reject connections from 
+		players who have invoked their "Right to be Forgotten."
+		
+		Parameters:
+			None
+			
+		Returns:
+			GraveyardData - A dictionary mapping stringified UserIds to their exact Unix deletion timestamps. Returns an empty table `{}` if the graveyard is empty.
+			
+		Core Behaviors:
+			* Hot-Caching (Quota Protection): Because every server needs to know who is banned, querying the DataStore directly would exhaust your global read quotas. This function intelligently checks a MemoryStore cache first.
+			* Cache Hydration: If the hot-cache is cold (or expired), it queries the cold-storage DataStore and instantly populates the MemoryStore cache with a 10-minute Time-To-Live (TTL), effectively acting as a shield for your database.
+	]]
+
+	local Cache = Diary.MemoryStore.FetchData(1101111010101101, "GraveyardCache", {
+		____MapType = true,
+	}) -- Fetch first from the MemoryStore
+
+	if Cache and typeof(Cache) == "table" then
+		return Cache :: GraveyardData
+	end
+
+	local FetchSuccess, Data = Diary.DataStore.FetchData(1101111010101101, "PlayerGraveyard") -- No active cache, fetch from DataStore
+	local ValidData: GraveyardData = if (typeof(Data) == "table") then (Data :: any) else {}
+
+	Diary.MemoryStore.SaveData(1101111010101101, "GraveyardCache", ValidData, {
+		____TimeSpan = 600,
+		____MapType = true,
+	}) -- Save a cache to the MemoryStore
+
+	return ValidData -- The lists of players who is currenly in the graveyard record of Diary
+end
+
+--[[
+	Polls a callback until it returns a non-nil value or the timeout expires.
+
+	Params:
+	    CallbackFunction : () -> ...any -- The function to poll.
+	    Options          : WaitConfig?  -- Optional timeout (seconds) and poll rate (seconds) overrides.
+
+	Returns:
+	    boolean -- true if a value was returned before the timeout.
+	    ...any  -- The return values of the callback, or an error string on timeout.
+]]
+function Diary.WaitForValue(CallbackFunction: () -> ...any, Options: WaitConfig?): (boolean, ...any)
+
+	--[[
+		Diary.WaitForValue: The Resilient Polling Utility.
+		
+		A robust, asynchronous waiter that repeatedly evaluates a callback function 
+		until it returns a non-nil value or reaches a strict time limit. This is highly 
+		useful for awaiting data initialization, waiting for dynamically created instances, 
+		or handling retries without freezing the server's main thread.
+		
+		Parameters:
+			CallbackFunction : () -> ...any - A function that returns the desired value when ready, or nil if timeout is reached.
+			Options          : WaitConfig?  - (Optional) Configuration dictionary to override the default ____Timeout (10 seconds) and ____PollRate (0.2 seconds).
+			
+		Returns:
+			boolean - True if the value was successfully retrieved before the timeout, false otherwise.
+			...any  - The resolved value(s) returned by the callback, or a string detailing the timeout/last error reason.
+			
+		Core Behaviors:
+			* Safe Thread Yielding: Utilizes Scheduler.Wait() to gracefully pause the execution thread between polling cycles, ensuring game performance remains perfectly smooth while waiting.
+			* Fault Tolerance: Wraps the callback execution in safeCall. If the callback unexpectedly throws an error (e.g., attempting to index a table that doesn't exist yet), it absorbs the error rather than breaking the loop.
+			* Exponential Backoff: If the callback continuously throws errors, the system intelligently slows down its retry rate (scaling up to a maximum 5-second delay) to prevent CPU thrashing or spamming.
+	]]
+
+	if DEBUG_MODE then
+		if typeof(CallbackFunction) ~= "function" then
+			errorLog("[WaitForValue] Expected argument #1 to be a function.")
+		end
+	end
+
+	local TimeLimit = if Options and type(Options.____Timeout) == "number" then Options.____Timeout else 10
+	local Rate = if Options and type(Options.____PollRate) == "number" then Options.____PollRate else 0.2
+
+	if Rate < 0.09 then Rate = 0.1 end -- Prevents the frequency from reaching beyond recommended limit
+
+	local Start = os.clock()
+	local FailureCount = 0
+	local LastError = nil
+
+	-- Polls until the callback returns a non-nil value or the time limit is reached
+	while os.clock() - Start < TimeLimit do
+		local Results = table.pack(safeCall(CallbackFunction))
+		local ExecuteSafe = Results[1] -- The boolean returned by safeCall indicating success or failure call
+		local FirstValue = Results[2] -- The value returned by the callback
+
+		if ExecuteSafe then -- This is the boolean returned by safeCall indicating success or failure call. If this is false, the polling mechanism interval will gradually increase
+			if FirstValue ~= nil then
+				return true, table.unpack(Results, 2, Results.n) -- If both safeCall boolean is true and the return data is not nil then the fetching is success and will return the data back to the caller
+			end
+
+			FailureCount = 0 -- If the callback executes properly but returns nil, stay with the current polling interval
+			LastError = nil
+			
+		else
+			FailureCount += 1
+			LastError = FirstValue
+
+			local BackoffWait = math.min(Rate * math.pow(1.5, FailureCount), 5)
+
+			Scheduler.Wait(BackoffWait) -- If the callback doesnt execute properly, add a delay on top of the standard polling interval
+			
+			continue
+		end
+
+		Scheduler.Wait(Rate)
+	end
+
+	return false, LastError or "Timeout: Value not found."
+end
+
+if FEATURES_ENABLED then
+	--[[
+		Returns whether a player is currently marked online in MemoryStore.
+
+		Params:
+		    PlayerUserID : number -- The player's UserId.
+
+		Returns:
+		    boolean -- true if the player's online status entry is active.
+	]]
+	function Diary.IsOnline(PlayerUserID: number): boolean
+		local IsOnlineData: any = Diary.MemoryStore.FetchData(PlayerUserID, "Online/Offline_Status", {
+			____MapType = true,
+		}) -- Change the presence status based on current state
+
+		return IsOnlineData and IsOnlineData.isOnline or false
+	end
+
+	--[[
+		Saves the current HumanoidDescription and character position for a player to MemoryStore.
+
+		Params:
+		    PlayerInstance : Player -- The player whose appearance to capture.
+	]]
+	function Diary.SaveHumanoidDescription(PlayerInstance: Player): ()
+
+		--[[
+			Diary.SaveHumanoidDescription: The Avatar & State Snapshot.
+			
+			Asynchronously captures a comprehensive snapshot of a player's active avatar 
+			configuration (accessories, body colors, proportions, and clothing IDs) alongside 
+			their current physical world position (Vector3). This data is injected into the 
+			high-speed MemoryStore for exactly 60 seconds. 
+			
+			Parameters:
+				PlayerInstance : Player - The active player object whose character state is being recorded.
+				
+			Returns:
+				None
+				
+			Core Behaviors:
+				* Non-Blocking Extraction: Wraps the entire sequence in Scheduler.Defer. Even if the framework has to wait for the Character or HumanoidRootPart to render, it will never stall the main server thread.
+				* Safe Asset Polling: Wraps GetAccessories(true) in safeCall. If a player is wearing a malformed or moderated catalog asset that causes the method to throw an error, the function gracefully absorbs it and continues saving the rest of the body data.
+				* Ephemeral Caching: Writes strictly to MemoryStore (not DataStore) with a 60-second Time-To-Live (____TimeSpan = 60). This ensures lightning-fast cross-server reads while guaranteeing the temporary data automatically deletes itself to prevent memory bloat.
+		]]
+
+		Scheduler.Defer(function()
+			local Character = PlayerInstance.Character or PlayerInstance.CharacterAdded:Wait()
+			local HumanoidObj = Character:FindFirstChild("Humanoid") or Character:WaitForChild("Humanoid")
+			local Humanoid = HumanoidObj :: Humanoid
+			local HumanoidDesc = Humanoid:GetAppliedDescription() -- Get the player's current outfit
+			local AppearanceData: DataTable = {}
+			local AccessoriesSuccess, Accessories = safeCall(function()
+				return HumanoidDesc:GetAccessories(true) -- Get the player's current accessories
+			end)
+
+			if AccessoriesSuccess and typeof(Accessories) == "table" then
+				AppearanceData.Accessories = Accessories -- Store the accessories alongside with the outfit and character data
+			end
+
+			-- Store the body colors
+			AppearanceData.BodyColors = {
+				HeadColor = HumanoidDesc.HeadColor,
+				TorsoColor = HumanoidDesc.TorsoColor,
+				LeftArmColor = HumanoidDesc.LeftArmColor,
+				RightArmColor = HumanoidDesc.RightArmColor,
+				LeftLegColor = HumanoidDesc.LeftLegColor,
+				RightLegColor = HumanoidDesc.RightLegColor,
+			}
+
+			-- Store the body parts
+			AppearanceData.BodyParts = {
+				Face = HumanoidDesc.Face,
+				Head = HumanoidDesc.Head,
+				Torso = HumanoidDesc.Torso,
+				LeftArm = HumanoidDesc.LeftArm,
+				RightArm = HumanoidDesc.RightArm,
+				LeftLeg = HumanoidDesc.LeftLeg,
+				RightLeg = HumanoidDesc.RightLeg,
+			}
+
+			-- Store the current clothing
+			AppearanceData.Clothes = {
+				GraphicTShirt = HumanoidDesc.GraphicTShirt,
+				Pants = HumanoidDesc.Pants,
+				Shirt = HumanoidDesc.Shirt,
+			}
+
+			-- Store the current scale values (the body type and proportion scales of the character)
+			AppearanceData.Scales = {
+				BodyTypeScale = HumanoidDesc.BodyTypeScale,
+				ProportionScale = HumanoidDesc.ProportionScale,
+				HeightScale = HumanoidDesc.HeightScale,
+				WidthScale = HumanoidDesc.WidthScale,
+				HeadScale = HumanoidDesc.HeadScale,
+				DepthScale = HumanoidDesc.DepthScale,
+			}
+
+			AppearanceData.playerName = PlayerInstance.Name -- Store the player's name
+
+			local RootPart = Character:WaitForChild("HumanoidRootPart") :: BasePart
+
+			AppearanceData.characterPosition = RootPart.Position -- Store the player's position data in the map
+			Diary.MemoryStore.SaveData(PlayerInstance.UserId, "HumanoidDescription", AppearanceData, {
+				____TimeSpan = 60,
+				____MapType = true,
+			}) -- Save the data to the MemoryStore
+		end)
+	end
+
+	--[[
+		Loads and places a ghost character model using their saved HumanoidDescription.
+
+		Params:
+		    PlayerUserID  : number   -- The UserId of the player.
+		    SpawnPosition : Vector3? -- Optional position to place the model; falls back to last known position.
+
+		Returns:
+		    Model? -- The placed ghost character model, or nil on failure.
+	]]
+	function Diary.LoadPlayerGhostCharacterModel(PlayerUserID: number, SpawnPosition: Vector3?): Model?
+
+		--[[
+			Diary.LoadPlayerGhostCharacterModel: The Cross-Server Avatar Reconstructor.
+			
+			Asynchronously retrieves a player's temporary avatar state from MemoryStore 
+			(saved via SaveHumanoidDescription) and physically reconstructs a "Ghost" 
+			character model in the workspace.
+			
+			Parameters:
+				PlayerUserID  : number   - The UserId of the player to reconstruct.
+				SpawnPosition : Vector3? - (Optional) An explicit physical location to place the model. If left blank, it defaults to the player's last recorded position.
+				
+			Returns:
+				Model? - The fully constructed and dressed Dummy character model, or nil if no cached data was found in the MemoryStore.
+				
+			Core Behaviors:
+				* Safe Thread Yielding: Captures the calling coroutine and puts it to sleep until the network requests and physical instance constructions are finished, allowing for synchronous-style coding without stalling the server.
+				* Enum Deserialization: Intelligently parses serialized string representations of Enum.AccessoryType back into native Luau Enums so the Roblox engine can properly render the accessories.
+				* Failsafe Rendering: Wraps the ApplyDescriptionResetAsync method in safeCall. If a player's outfit contains a recently deleted or moderated asset that causes the fetch to fail, it gracefully catches the error and applies a default, blank HumanoidDescription to ensure the model still spawns.
+		]]
+
+		local CurrentThread = coroutine.running() -- Grab this API's thread
+
+		Scheduler.Spawn(function()
+			local Data = nil
+			local FetchSuccess, FetchResult = safeCall(function(): (boolean, any)
+				return Diary.MemoryStore.FetchData(PlayerUserID, "HumanoidDescription", {
+					____MapType = true,
+				}) :: any -- Fetch the saved HumanoidDescription data from MemoryStore
+			end)
+
+			if FetchSuccess then
+				Data = FetchResult :: any
+			end
+
+			if not Data then
+				Scheduler.Spawn(CurrentThread, nil) -- No data found, wake the API thread and early exit
+				
+				return
+			end
+
+			local HumanoidDesc = Instance.new("HumanoidDescription")
+			local DescAny = HumanoidDesc :: any
+
+			-- Apply the scale
+			if Data.Scales then
+				for Key, Value in Data.Scales do
+					DescAny[Key] = Value
+				end
+			end
+
+			-- Apply the body parts
+			if Data.BodyParts then
+				for Key, Value in Data.BodyParts do
+					DescAny[Key] = Value
+				end
+			end
+
+			-- Apply the clothes
+			if Data.Clothes then
+				for Key, Value in Data.Clothes do
+					DescAny[Key] = Value
+				end
+			end
+
+			-- Apply the body colors
+			if Data.BodyColors then
+				for Key, Color in Data.BodyColors do
+					DescAny[Key] = Color
+				end
+			end
+
+			-- Apply the accessories
+			if Data.Accessories and typeof(Data.Accessories) == "table" then
+				for Index = 1, #Data.Accessories do
+					local Accessory = Data.Accessories[Index]
+
+					if Accessory and typeof(Accessory["AccessoryType"]) == "string" then
+						local AccessoryTypeStr = string.gsub(Accessory["AccessoryType"], "^Enum%.AccessoryType%.", "")
+						local EnumItem = (Enum.AccessoryType :: any)[AccessoryTypeStr]
+
+						if EnumItem then
+							Accessory["AccessoryType"] = EnumItem
+						end
+					end
+				end
+
+				local _AccessoriesSuccess, _AccessoriesResult = safeCall(function()
+					HumanoidDesc:SetAccessories(Data.Accessories, true)
+				end)
+			end
+
+			-- Fetched and clone the already created character rig template inside ReplicatedStorage
+			local Template = game.ReplicatedStorage:WaitForChild("Mesh Template")
+			local DummyChar = Template:Clone() :: Model
+			local HumanoidObj = DummyChar:WaitForChild("Humanoid", 10)
+			local Humanoid = HumanoidObj :: Humanoid or nil
+
+			if Humanoid then
+				DummyChar.Name = Data.playerName or ("Ghost_" .. PlayerUserID) -- Set the name of the dummy character
+				DummyChar.Parent = game.Workspace -- Spawn the dummy in the workspace
+
+				local ApplySuccess, _ = safeCall(function(): (boolean?, any)
+					Humanoid:ApplyDescriptionResetAsync(HumanoidDesc)
+					
+					return nil -- Must return something back to the caller thread
+				end)
+
+				if not ApplySuccess then
+					safeCall(function()
+						Humanoid:ApplyDescriptionResetAsync(Instance.new("HumanoidDescription")) -- Apply the blank default because the previous applications in the earlier block is failure
+					end)
+				end
+
+				local TargetPosition = SpawnPosition or Data.characterPosition -- Set the spawn position of the dummy character
+
+				if TargetPosition then
+					DummyChar:MoveTo(TargetPosition)
+				end
+				
+			else
+				DummyChar:Destroy() -- For safety, abort the operation if the humanoid object is not found
+				Scheduler.Spawn(CurrentThread, nil) -- Wake up the API thread to finally return the data back to the main thread
+				
+				return
+			end
+
+			for _, Object in DummyChar:GetChildren() do
+				if Object:IsA("BaseScript") then
+					Object.Enabled = true
+				end
+			end
+
+			Scheduler.Spawn(CurrentThread, DummyChar) -- Wake up the main thread no matter what happen inside the process
+		end)
+
+		return coroutine.yield() -- Yield this API thread until the process is complete
+	end
+
+else
+	warnLog("To use Diary's Featured Functionality, please toggle FEATURES_ENABLED to true")
+end
+
+----------------------------------------------------------
+return Diary :: DiaryType -- Diary Main module version 2.3.11
+----------------------------------------------------------
