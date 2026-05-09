@@ -1,0 +1,2331 @@
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Configuration Section
+----------------------------------------------------------
+
+local IGNORED_KEYS: { [string]: boolean } = {
+	["__persistentBase"] = true, -- internal snapshot key excluded from serialization
+	["__cacheBase"]      = true, -- internal cache baseline key excluded from serialization
+	["__dirty"]          = true, -- dirty flag excluded from serialization
+	["__retries"]        = true, -- retry counter excluded from serialization
+	["__failedHistory"]  = true, -- failure flag excluded from serialization
+}
+
+local POOL_SIZE: number = 1000                                                               	-- maximum number of recycled tables held in the pool
+local BASE64_CHARS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" -- Base64 character table
+local SYSTEM_GATEWAY: string = "DiaryValidationGateway_BedQuest"								-- The name of the framework's validation system gateway
+local MULTIPLEX_GATEWAY: string = "SpecialDeliveryDiaryGateway_BedQuest"						-- The name of the framework's multiplexing system (specifically the mixed gateways package) gateway
+local DISPATCH_INTERVAL: number = 0.75															-- The number of frames before the MessagingService dispatcher dispatches exactly 1 package
+
+local IN_STUDIO: boolean = game:GetService("RunService"):IsStudio()
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Type Structures Section
+----------------------------------------------------------
+
+-- The unified packet object returned to the developer.
+export type DiaryPacket = {
+	SenderServerID : string,
+	Path           : string,
+	Data           : any,
+}
+
+-- The clean, abstracted public API for cross-server messaging.
+export type MessagingInterface = {
+	RelayStream  : (gateway: string, path: string, payload: any) -> (),
+	ListenStream : (gateway: string, callbackFunction: (packet: DiaryPacket) -> ()) -> SubscriptionConnection?,
+}
+
+-- Standard disconnect handle returned by ListenStream subscriptions.
+export type SubscriptionConnection = {
+	Disconnect : (self: SubscriptionConnection) -> (),
+}
+
+----------------------------------------------------------
+-- MessagingService Type Structures Section
+type ActivePackage = {
+	SenderServerID : string,
+	Payloads       : { { any } },
+}
+
+type MultiplexedPackage = {
+	SenderServerID : string,
+	Payloads       : { { any } },
+}
+----------------------------------------------------------
+
+----------------------------------------------------------
+-- Serialization Type Structures Section
+type SerializedVector3      = { __type: "Vector3",      b64: string }
+type SerializedVector2      = { __type: "Vector2",      b64: string }
+type SerializedVector3int16 = { __type: "Vector3int16", b64: string }
+type SerializedCFrame       = { __type: "CFrame",       b64: string }
+type SerializedUDim         = { __type: "UDim",         b64: string }
+type SerializedUDim2        = { __type: "UDim2",        b64: string }
+type SerializedRect         = { __type: "Rect",         b64: string }
+type SerializedColor3       = { __type: "Color3",       b64: string }
+type SerializedBrickColor   = { __type: "BrickColor",   Name: string }
+
+type SerializedColorSequence = {
+	__type    : "ColorSequence",
+	Keypoints : { { Time: number, Value: { number } } },
+}
+
+type SerializedNumberSequence = {
+	__type    : "NumberSequence",
+	Keypoints : { { Time: number, Value: number, Envelope: number } },
+}
+
+type SerializedFont = {
+	__type : "Font",
+	Family : string,
+	Weight : string,
+	Style  : string,
+}
+
+type SerializedPhysicalProperties = {
+	__type           : "PhysicalProperties",
+	Density          : number,
+	Friction         : number,
+	Elasticity       : number,
+	FrictionWeight   : number,
+	ElasticityWeight : number,
+}
+
+type SerializedRaycastParams = {
+	__type         : "RaycastParams",
+	FilterType     : string,
+	IgnoreWater    : boolean,
+	CollisionGroup : string,
+	FilterNames    : { string },
+}
+
+type SerializedOverlapParams = {
+	__type         : "OverlapParams",
+	FilterType     : string,
+	MaxParts       : number,
+	CollisionGroup : string,
+	FilterNames    : { string },
+}
+
+type SerializedPathWaypoint = {
+	__type   : "PathWaypoint",
+	Position : SerializedVector3,
+	Action   : string,
+}
+
+type SerializedEnumItem = {
+	__type: "EnumItem",
+	Value: string,
+}
+
+type SerializedDateTime = {
+	__type        : "DateTime",
+	UnixTimestamp : number,
+}
+
+type SerializedInstance = {
+	__type    : "Instance",
+	Name      : string,
+	ClassName : string,
+}
+
+type SerializedTweenInfo = {
+	__type          : "TweenInfo",
+	Time            : number,
+	EasingStyle     : string,
+	EasingDirection : string,
+	RepeatCount     : number,
+	Reverses        : boolean,
+	DelayTime       : number,
+}
+
+type SerializedValue =
+	SerializedVector3 | SerializedVector2 | SerializedVector3int16 | SerializedCFrame
+| SerializedUDim | SerializedUDim2 | SerializedRect | SerializedColor3
+| SerializedBrickColor | SerializedColorSequence | SerializedNumberSequence
+| SerializedFont | SerializedPhysicalProperties | SerializedRaycastParams
+| SerializedOverlapParams | SerializedPathWaypoint | SerializedEnumItem
+| SerializedTweenInfo | SerializedDateTime | SerializedInstance
+| string | number | boolean | { [any]: SerializedValue }
+----------------------------------------------------------
+
+-- Generic table structure
+type DataTable = { [any]: any }
+
+-- The Infinite Loop Preventer (Cycle Detection)
+type VisitedTable = { [DataTable]: boolean }
+
+-- The Recycling Bin. Avoids high memory wastes
+type TablePool = { DataTable }
+
+-- The result of the cached data against the new data to see which fields actually changed for Serialization
+type DeltaChanges = DataTable | nil
+
+-- The serialized data container, it caches the last data to compare against the newly incoming data. For serialization optimization
+type SerializationCacheEntry = {
+	cachedData     : DataTable,
+	serializedData : DataTable,
+	[string]       : any,
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Imported Services Section
+----------------------------------------------------------
+
+local CollectionService  = game:GetService("CollectionService")
+local PlayersService     = game:GetService("Players")
+local RunService         = game:GetService("RunService")
+local HttpService        = game:GetService("HttpService")
+local MessagingService   = game:GetService("MessagingService")
+local MemoryStoreService = game:GetService("MemoryStoreService")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Internal States Section
+----------------------------------------------------------
+
+local DependentServices = {
+	Players   = PlayersService,
+	Run       = RunService,
+	Http      = HttpService,
+	Messaging = nil :: MessagingInterface?,
+}
+
+-- Dynamic Task Scheduler
+local Scheduler = {
+	Spawn  = task.spawn,
+	Defer  = task.defer,
+	Delay  = task.delay,
+	Wait   = task.wait,
+	Cancel = task.cancel,
+}
+
+local ModuleScriptTable: { [string]: any } = {}							  -- The table that holds all the table references injected in this module
+local SerializationCacheStore: { [string]: SerializationCacheEntry } = {} -- Stores the previous data of the player to be used for the diffing algorithm during serialization phase
+local CacheCount: number = 0 											  -- Stores the number of cached data DependentServices is currently holding
+local PooledTables: TablePool = {} 										  -- Holds the tables that can be use throughout the entire system so that it will never produce large amount of table wastes
+local FinalizedPackages: { [string]: { any } } = {}  	   				  -- Stores all the finalized packages (packed number of MessagingService payloads) ready to be dispatch
+local ActivePackages: { [string]: any } = {} 			   				  -- The current not yet full package that needs to be filled up
+local GatewayReceivers: { [string]: { (any) -> () } } = {} -- Stores all the callback functions for each declared gateway
+local StringsToIDs: { [string]: number } = {} 		   	   -- Store the encoded string's assigned ID (number)
+local IDsToString: { [number]: string } = {} 		       -- Store the ID's (number) assigned encoded string
+local IDsToQuery: { string } = {} 				 	       -- Store all the string that needs yet an assigned ID
+local MultiplexerInitialized: boolean = false 		       -- A flag that tells the MessagingService wrapper system that the listener is currently active listening
+local CustomGatewaysArray: { string } = {} 			       -- An array that holds all the declared gateway to be used inside the aggressive drain ring-buffer system
+local CustomGatewaysLookup: { [string]: boolean } = {}     -- A dictionary that holds all the references of the declared gateways so that the system will not create duplicate gateways of the same name
+local CurrentTargetIndex: number = 1 				       -- A pointer to the aggressive drain ring-buffer system
+local DispatcherAccumulator: number = 0 			       -- An accumulator that accumulate frame times to drive the MessagingService wrapper system's dispatcher
+
+----------------------------------------------------------
+-- Stores the already decoded character values for faster encoding/decoding process
+local Base64Lookup: { [number]: number } = {}
+
+for CharIndex = 1, 64 do
+	local ByteValue = string.byte(BASE64_CHARS, CharIndex, CharIndex)
+
+	Base64Lookup[ByteValue] = CharIndex - 1
+end
+----------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Local Function Section
+----------------------------------------------------------
+
+-- Creates a metadata-stripped deep clone of a value for use in serialization cache comparisons.
+local function deepCloneForCache(Value: any, Visited: { [any]: boolean }?): any
+
+	--[[
+		deepCloneForCache: The Cache-Safe Snapshot Copier.
+
+		Produces a deep copy of any Luau value while deliberately skipping all
+		internal Diary metadata keys (those listed in IGNORED_KEYS). This sanitized
+		copy is stored inside the SerializationCacheStore and acts as the "before"
+		snapshot that detectChangedFields compares against to find the delta between
+		serialization cycles.
+
+		Parameters:
+			Value   : any                    - The value to clone, which may be a primitive, table, or Instance reference.
+			Visited : { [any]: boolean }?    - A cycle-detection map to prevent infinite loops on circularly referenced tables. Must not be provided manually.
+
+		Returns:
+			any - A deep copy of the input value with all IGNORED_KEYS entries and Instance references stripped.
+
+		Core Behaviors:
+			* Instance Guarding: Converts Roblox Instance references into a lightweight placeholder string
+			  (e.g., "[Instance:PartName]") to prevent non-serializable references from polluting the cache.
+			* Circular Reference Protection: Tracks every visited table in the Visited map and silently
+			  returns nil if a cycle is detected, preventing stack overflows.
+			* Metadata Exclusion: Any key present in IGNORED_KEYS is skipped during traversal, ensuring
+			  internal framework flags never corrupt the cached baseline snapshot.
+	]]
+
+	Visited = Visited or {}
+	local ValueType = typeof(Value)
+
+	-- If the value is an Instance, since instances cannot be saved in the cloud. Return the instance's name as string representation instead
+	if ValueType == "Instance" then
+		return string.format("[Instance:%s]", (Value :: Instance).Name or "?")
+	end
+
+	-- Copy the values and traverse any tables found
+	if type(Value) ~= "table" then
+		return Value
+	end
+
+	-- If the table is already visited, skip it
+	if Visited and Visited[Value] then
+		return nil
+	end
+
+	Visited[Value] = true
+
+	local Copy: { [any]: any } = {}
+
+	for Key, Child in Value do
+		if not IGNORED_KEYS[Key :: string] then -- Ignore any framework's trackers
+			Copy[Key] = deepCloneForCache(Child, Visited) -- Recursive copy
+		end
+	end
+
+	return Copy
+end
+
+-- Acquires a recycled table from the pool, or allocates a fresh one if the pool is empty.
+local function acquireTableFromPool(): DataTable
+
+	--[[
+		acquireTableFromPool: The Zero-Allocation Table Recycler.
+
+		Returns a pre-cleared table from the internal pool to avoid unnecessary garbage
+		collector pressure during high-frequency serialization and delta-detection cycles.
+
+		Parameters:
+			None
+
+		Returns:
+			DataTable - A blank, ready-to-use table retrieved from the pool, or a freshly
+			allocated one if the pool is currently empty.
+
+		Core Behaviors:
+			* Pool Drain: Attempts table.remove from the PooledTables array first. This is
+			  an O(1) operation that avoids any heap allocation when a recycled table is available.
+			* Graceful Fallback: If the pool is exhausted, allocates and returns an empty table.
+	]]
+
+	local PooledTable = table.remove(PooledTables) -- O(1) execution same as table.remove(PooledTables, #PooledTables)
+
+	if PooledTable then
+		return PooledTable
+	end
+
+	return {}
+end
+
+-- Clears and returns a table to the pool if the pool has not reached its size limit.
+local function releaseTableToPool(Target: DataTable): ()
+
+	--[[
+		releaseTableToPool: The Table Pool Return Trigger.
+
+		Recycles a used table back into the internal object pool after it is no longer
+		needed. By reusing tables instead of discarding them, this function dramatically
+		reduces the frequency of garbage collection cycles during sustained serialization
+		operations.
+
+		Parameters:
+			Target : DataTable - The table to clear and return to the pool.
+
+		Returns:
+			None
+
+		Core Behaviors:
+			* Capacity Guard: Checks the current pool size against POOL_SIZE before accepting
+			  the table. If the pool is full, the table is simply discarded, preventing the
+			  pool itself from becoming a memory leak.
+			* In-Place Clearing: Calls table.clear on the target before inserting it, ensuring
+			  no stale references persist to previously-held data.
+	]]
+
+	if #PooledTables < POOL_SIZE then
+		table.clear(Target)
+		table.insert(PooledTables, Target)
+	end
+end
+
+-- Recursively releases every nested table in a delta tree back into the table pool.
+local function recursiveReleaseToPool(TargetTable: DataTable): ()
+
+	--[[
+		recursiveReleaseToPool: The Delta Tree Deallocator.
+
+		Walks a delta table produced by detectChangedFields and returns every nested
+		sub-table back into the object pool. Because detectChangedFields can produce
+		deeply nested structures for complex player data, a flat single-level release
+		would silently leak all inner tables.
+
+		Parameters:
+			TargetTable : DataTable - The root delta table to recursively release.
+
+		Returns:
+			None
+
+		Core Behaviors:
+			* Recursive Descent: Iterates each value in the table and recurses into any
+			  nested tables that are not tagged as serialized typed values (i.e., those
+			  without a __type key), ensuring the entire tree is processed.
+			* Typed Value Skip: Tables that carry a "__type" field are serialized Roblox
+			  type wrappers (e.g., Vector3, CFrame) and must not be pooled, as they may
+			  still be referenced by the serialized output.
+			* Leaf-Level Release: Passes each visited table to releaseTableToPool after
+			  its children are processed, ensuring a clean bottom-up deallocation order.
+	]]
+
+	for _, Value in TargetTable do
+		if type(Value) == "table" and Value.__type == nil then
+			recursiveReleaseToPool(Value)
+		end
+	end
+
+	releaseTableToPool(TargetTable)
+end
+
+-- Builds the composite string key used to look up a serialization cache entry.
+local function generateCacheKey(MemoryLocation: string, UserId: string): string
+	return MemoryLocation .. "_" .. UserId
+end
+
+-- Recursively compares CurrentData against CachedData and returns a delta table of changes, or nil if identical.
+local function detectChangedFields(CurrentData: any, CachedData: any, VisitedTables: VisitedTable?): DeltaChanges
+
+	--[[
+		detectChangedFields: The Incremental Delta Computer.
+
+		Performs a deep structural comparison between the current live data (CurrentData)
+		and its previously cached snapshot (CachedData), returning a minimal delta table
+		that contains only the fields that have changed. This delta is then applied to the
+		existing serialized cache rather than re-serializing the entire data structure from
+		scratch on every save tick, dramatically reducing CPU usage.
+
+		Parameters:
+			CurrentData   : any          - The current live data table from the server's RAM cache.
+			CachedData    : any          - The cached snapshot stored at the last serialization tick.
+			VisitedTables : VisitedTable? - A cycle-detection map. Must not be provided manually.
+
+		Returns:
+			DeltaChanges - A sparse table containing only the changed fields, or nil if the
+			two inputs are structurally identical. Deleted keys are represented by the
+			sentinel string "__DELETED__".
+
+		Core Behaviors:
+			* Primitive Bypass: If either input is not a table, a direct equality check is
+			  performed. Returns the new value if different, or nil if unchanged.
+			* Circular Reference Guard: Tracks visited tables and returns nil immediately if
+			  a cycle is detected, preventing infinite recursion on self-referencing structures.
+			* New Key Detection: Any key present in CurrentData but absent from CachedData
+			  is added to the delta in full.
+			* Recursive Nesting: For nested tables, detectChangedFields recurses to produce
+			  a sub-delta, which is only included if it is non-nil (i.e., contains changes).
+			* Deletion Propagation: Keys present in CachedData but absent from CurrentData
+			  are written into the delta as the sentinel value "__DELETED__" so the apply
+			  phase knows to explicitly clean them out on the serialized copy.
+			* Pool Efficiency: Delta tables are acquired from the object pool and immediately
+			  released back if no changes are found, minimizing allocation pressure.
+			* Metadata Shield: Keys present in IGNORED_KEYS are silently skipped on both
+			  sides of the comparison.
+	]]
+
+	local Visited: VisitedTable = VisitedTables or {}
+
+	-- Direct comparison for non-table values
+	if typeof(CurrentData) ~= "table" or typeof(CachedData) ~= "table" then
+		if CurrentData ~= CachedData then
+			return CurrentData
+		end
+
+		return nil
+	end
+
+	if Visited[CurrentData] then
+		return nil -- Skip already visited tables
+	end
+
+	Visited[CurrentData] = true
+
+	local Changes: DataTable = acquireTableFromPool()
+	local HasChanges: boolean = false
+
+	for FieldKey: any, FieldValue: any in CurrentData do
+		if IGNORED_KEYS[FieldKey :: string] then
+			continue -- Ignore framework's trackers
+		end
+
+		local CachedFieldValue: any = CachedData[FieldKey]
+
+		if CachedFieldValue == nil then -- Add newly detected fields
+			Changes[FieldKey] = FieldValue
+			HasChanges = true
+
+		elseif typeof(FieldValue) == "table" then -- Recurse table fields
+			local NestedChanges: DeltaChanges = detectChangedFields(FieldValue, CachedFieldValue, Visited)
+
+			if NestedChanges ~= nil then -- Add newly detected fields
+				Changes[FieldKey] = NestedChanges
+				HasChanges = true
+			end
+
+		elseif FieldValue ~= CachedFieldValue then -- Existed field but changed
+			Changes[FieldKey] = FieldValue
+			HasChanges = true
+		end
+	end
+
+	-- Cleanup for fields marked as deleted
+	for CachedKey: any in CachedData do
+		if IGNORED_KEYS[CachedKey :: string] then
+			continue
+		end
+
+		if CurrentData[CachedKey] == nil then
+			Changes[CachedKey] = "__DELETED__"
+			HasChanges = true
+		end
+	end
+
+	if HasChanges then
+		return Changes
+	end
+
+	releaseTableToPool(Changes)
+
+	return nil
+end
+
+-- Encodes raw buffer bytes into a Base64 string using the module-level character table.
+local function encodeBufferToBase64(BufferData: buffer): string
+
+	--[[
+		encodeBufferToBase64: The Binary-to-Text Encoder.
+
+		Converts a raw Luau buffer of arbitrary bytes into a Base64-encoded string so
+		that packed binary representations of Roblox types (Vector3, CFrame, etc.) can be
+		safely stored inside DataStore and MemoryStore, both of which require text-safe
+		payloads.
+
+		Parameters:
+			BufferData : buffer - The raw bytes to encode, typically packed by the Serializers
+								  dispatchers (dispatches Roblox types to binary representation).
+
+		Returns:
+			string - The Base64-encoded representation of the input buffer, including
+					 padding characters where required by the encoding specification.
+
+		Core Behaviors:
+			* 3-Byte Grouping: Processes the buffer in 3-byte chunks, packing each group
+			  into a 24-bit integer and splitting it into four 6-bit Base64 indices.
+			* Padding Injection: Writes "=" padding characters for the second and third
+			  output positions when the final group contains fewer than 3 bytes, ensuring
+			  the output length is always a multiple of 4.
+			* Pool-Backed Accumulation: Collects output characters into a pooled table of
+			  string chunks and joins them at the end via table.concat, avoiding repeated
+			  string concatenation overhead which is O(n²) in Lua.
+	]]
+
+	local BufferLength: number = buffer.len(BufferData)
+	local ResultChunks: { string } = acquireTableFromPool()
+
+	-- Process the buffer in chunks of 3 bytes (24 bits)
+	for ByteIndex = 0, BufferLength - 1, 3 do
+		-- Safely read the next 3 bytes. Fallback to 0 if hit the end of the buffer early
+		local Byte1 = buffer.readu8(BufferData, ByteIndex)
+		local Byte2 = if (ByteIndex + 1 < BufferLength) then buffer.readu8(BufferData, ByteIndex + 1) else 0
+		local Byte3 = if (ByteIndex + 2 < BufferLength) then buffer.readu8(BufferData, ByteIndex + 2) else 0
+
+		local Combined = bit32.bor(bit32.lshift(Byte1, 16), bit32.lshift(Byte2, 8), Byte3) -- Merge the 3 bytes (8 bits each) into a single 24-bit integer
+
+		-- Slice the 24-bit integer into four 6-bit indices (adding +1 for Lua's 1-based string indexing)
+		local C1 = bit32.rshift(Combined, 18) % 64 + 1 -- Character 1
+		local C2 = bit32.rshift(Combined, 12) % 64 + 1 -- Character 2
+
+		-- The first two Base64 characters are always guaranteed to exist if there is at least 1 byte (there are actually data present)
+		table.insert(ResultChunks, string.sub(BASE64_CHARS, C1, C1))
+		table.insert(ResultChunks, string.sub(BASE64_CHARS, C2, C2))
+
+		-- Determine the 3rd character: Requires the 2nd source byte to actually exist
+		if ByteIndex + 1 < BufferLength then
+			local C3 = bit32.rshift(Combined, 6) % 64 + 1 -- Character 3
+
+			table.insert(ResultChunks, string.sub(BASE64_CHARS, C3, C3))
+		else -- The chunk fell short (only 1 byte provided), pad the 3rd slot
+			table.insert(ResultChunks, "=")
+		end
+
+		-- Determine the 4th character: Requires the 3rd source byte to actually exist
+		if ByteIndex + 2 < BufferLength then
+			local C4 = Combined % 64 + 1 -- Character 4
+
+			table.insert(ResultChunks, string.sub(BASE64_CHARS, C4, C4))
+		else -- The chunk fell short (only 1 or 2 bytes provided), pad the 4th slot
+			table.insert(ResultChunks, "=")
+		end
+	end
+
+	--[[
+		Base64 Encoding: Terminal Padding Logic
+		=======================================
+		Illustrates how the final chunk of the buffer is formatted.
+		
+		Trailing Bytes | Output Signature
+		---------------|---------------------------
+		1 Byte         | "AA==" (2 chars, 2 pads)
+		2 Bytes        | "AAB=" (3 chars, 1 pad)
+		3 Bytes        | "ABCD" (Perfect fit, 0 pads)
+		
+		Note: While actual DataStore/MemoryStore payloads are massive
+		strings spanning thousands of characters, their final padding
+		is entirely determined by these last 1 to 3 leftover bytes.
+	]]
+
+	local EncodedString = table.concat(ResultChunks) -- Concatenate an array of string/number table into one whole string ({"A", "A", "B", "B", "C", "C"} -> "AABBCC")
+
+	releaseTableToPool(ResultChunks)
+
+	return EncodedString
+end
+
+-- Decodes a Base64 string back into a raw buffer.
+local function decodeBase64ToBuffer(EncodedString: string): buffer
+
+	--[[
+		decodeBase64ToBuffer: The Text-to-Binary Decoder.
+
+		Reverses the encoding performed by encodeBufferToBase64, reconstructing a raw
+		Luau buffer from a Base64 string. This is called by every Deserializer entry
+		in the Deserializers dispatch table to recover the packed binary representation
+		of a serialized Roblox type before reading individual component values.
+
+		Parameters:
+			EncodedString : string - A valid Base64 string, optionally containing "=" padding.
+
+		Returns:
+			buffer - The reconstructed raw byte buffer containing the original packed values.
+
+		Core Behaviors:
+			* Padding Removal: Strips all "=" padding characters before processing, as they
+			  are structural metadata that would corrupt the Base64Lookup index arithmetic.
+			* Pre-Allocated Buffer: Computes the exact output byte count from the cleaned
+			  string length upfront and allocates a single fixed-size buffer, avoiding any
+			  reallocations during the decode loop.
+			* Lookup Table Decoding: Translates each Base64 character back to its 6-bit
+			  value using the module-level Base64Lookup table (populated at initialization),
+			  which is O(1) per character via direct byte-keyed indexing.
+			* 4-to-3 Unpacking: Combines every group of four 6-bit values into three 8-bit
+			  output bytes using bit shift and OR operations, writing each byte only if
+			  the corresponding source character exists in the cleaned input.
+	]]
+
+	-- Strip all "=" padding characters, as they are just metadata and not actual data values
+	local Cleaned = string.gsub(EncodedString, "=", "")
+	local StringLength = #Cleaned
+
+	-- Calculate exact memory needed. Every 4 valid Base64 characters equals exactly 3 bytes of raw data
+	local BufferLength = math.floor(StringLength * 3 / 4)
+	local ResultBuffer = buffer.create(BufferLength)
+	local BufferIndex = 0
+
+	-- Process the cleaned string in chunks of 4 characters
+	for CharIndex = 1, StringLength, 4 do
+
+		-- Grab the ASCII byte value of up to 4 characters. Fallback to 0 if we hit the end of the string
+		local B1 = string.byte(Cleaned, CharIndex) -- Byte 1
+		local B2 = if CharIndex + 1 <= StringLength then string.byte(Cleaned, CharIndex + 1) else 0 -- Byte 2
+		local B3 = if CharIndex + 2 <= StringLength then string.byte(Cleaned, CharIndex + 2) else 0 -- Byte 3
+		local B4 = if CharIndex + 3 <= StringLength then string.byte(Cleaned, CharIndex + 3) else 0 -- Byte 4
+
+		-- Translate the ASCII bytes back into their actual 6-bit Base64 integer values using the lookup table (example "A" -> 000000)
+		local V1 = Base64Lookup[B1] or 0 -- Value 1
+		local V2 = Base64Lookup[B2] or 0 -- Value 2
+		local V3 = Base64Lookup[B3] or 0 -- Value 3
+		local V4 = Base64Lookup[B4] or 0 -- Value 4
+
+		--[[
+			4-to-3 Bitwise Unpacking Logic:
+			Reconstructs three 8-bit bytes from four 6-bit Base64 values.
+			
+			* Byte 1: Takes all 6 bits of V1 and the top 2 bits of V2.
+			* Byte 2: Takes the bottom 4 bits of V2 and the top 4 bits of V3.
+			* Byte 3: Takes the bottom 2 bits of V3 and all 6 bits of V4.
+		]]
+
+		-- Reconstruct Byte 1 (Always guaranteed to exist if there's at least 2 characters)
+		buffer.writeu8(ResultBuffer, BufferIndex, bit32.bor(bit32.lshift(V1, 2), bit32.rshift(V2, 4)))
+
+		-- Reconstruct Byte 2. Requires the 3rd character to exist
+		if CharIndex + 2 <= StringLength then
+			buffer.writeu8(ResultBuffer, BufferIndex + 1, bit32.bor(bit32.lshift(bit32.band(V2, 0x0F), 4), bit32.rshift(V3, 2)))
+		end
+
+		-- Reconstruct Byte 3. Requires the 4th character to exist
+		if CharIndex + 3 <= StringLength then
+			buffer.writeu8(ResultBuffer, BufferIndex + 2, bit32.bor(bit32.lshift(bit32.band(V3, 0x03), 6), V4))
+		end
+
+		-- Advance the buffer cursor by 3 bytes for the next chunk
+		BufferIndex += 3
+	end
+
+	return ResultBuffer
+end
+
+-- Generates the daily-rotating MemoryStore hash map key for the shared string-to-ID registry.
+local function getDailyRegistryKey(): string
+
+	--[[
+		getDailyRegistryKey: The Daily Rotating Registry Key Retriever.
+
+		Produces a unique, date-stamped key used to identify the shared MemoryStore
+		hash map that holds the server-wide string-to-integer ID dictionary. Because
+		MemoryStore entries have a maximum TTL of 45 days, using a daily-rotating key
+		(e.g., "Diary_Registry_2026_5_4") ensures the registry automatically expires
+		and is rebuilt without manual cleanup, preventing stale ID mappings from
+		accumulating across long-running games.
+
+		Parameters:
+			None
+
+		Returns:
+			string - A UTC date-stamped key in the format "Diary_Registry_YYYY_M_D".
+
+		Core Behaviors:
+			* UTC Anchoring: Always derives the date from UTC time to ensure all servers
+			  worldwide rotate to the same key simultaneously at midnight UTC, preventing
+			  split-brain scenarios where servers on different days hold different registries.
+			* Zero-Padding Omission: Intentionally omits zero-padding on month and day
+			  values to keep the key format minimal and consistent with Luau string interpolation.
+	]]
+
+	local UtcTime = DateTime.now():ToUniversalTime()
+
+	return `Diary_Registry_{UtcTime.Year}_{UtcTime.Month}_{UtcTime.Day}`
+end
+
+-- Searches workspace and ReplicatedStorage for instances matching each name in the list.
+local function findInstancesByNames(InstanceNames: { string }): { Instance }
+
+	--[[
+		findInstancesByNames: The Named Instance Locator.
+
+		Attempts to reconstruct the FilterDescendantsInstances list of a deserialized
+		RaycastParams or OverlapParams by searching workspace and ReplicatedStorage for
+		instances whose names match those recorded during serialization. Because Roblox
+		Instance references cannot be stored in DataStore or MemoryStore directly, this
+		function provides a best-effort reconstruction of the original filter list.
+
+		Parameters:
+			InstanceNames : { string } - An ordered list of instance names to search for,
+										 as recorded by the corresponding Serializer entry.
+
+		Returns:
+			{ Instance } - An array of found Instance objects. May be shorter than
+						   InstanceNames if some targets no longer exist in the game tree.
+
+		Core Behaviors:
+			* Dual-Scope Search: Checks both workspace and ReplicatedStorage for each name
+			  using FindFirstChild with recursive = true, covering the most common locations
+			  where filter geometry lives.
+			* Graceful Miss: If an instance is not found in either location, it is silently
+			  skipped rather than erroring, keeping the returned array valid even for partially
+			  reconstructed filter lists.
+	]]
+
+	local Found: { Instance } = {}
+
+	for _, Name in ipairs(InstanceNames or {}) do
+		local WorkspaceInstance = workspace:FindFirstChild(Name, true)
+		local StorageInstance = game.ReplicatedStorage:FindFirstChild(Name, true)
+		local FoundInstance = WorkspaceInstance or StorageInstance
+
+		if FoundInstance then
+			table.insert(Found, FoundInstance)
+		end
+	end
+
+	return Found
+end
+
+-- Falls back to CollectionService tag scanning when named-instance lookup returns nothing.
+local function getTaggedInstancesFallback(): { Instance }
+
+	--[[
+		getTaggedInstancesFallback: The CollectionService Tag Scanner Fallback.
+
+		Provides a last-resort filter list for deserialized RaycastParams and OverlapParams
+		when findInstancesByNames returns an empty result. Rather than leaving the filter
+		list blank (which would cause unintended raycast behavior), this function scans
+		CollectionService for instances tagged with common geometry tags and returns them
+		as a substitute filter population.
+
+		Parameters:
+			None
+
+		Returns:
+			{ Instance } - An array of all instances in the game tagged with any of the
+						   priority tags: "WorldGeometry", "RaycastSurface", "Collidable", 
+						   "Environment". Returns an empty array if no tagged instances exist.
+
+		Core Behaviors:
+			* Priority Tag Order: Iterates a fixed priority list of semantic geometry tags,
+			  inserting their tagged instances in order. The ordering matters for games where
+			  multiple tags may overlap on the same instance.
+			* Accumulation Pattern: All tagged instances from all priority tags are combined
+			  into a single flat array, giving the deserializer the broadest possible filter
+			  list with a single call.
+	]]
+
+	local TagPriority: { string } = { "WorldGeometry", "RaycastSurface", "Collidable", "Environment" }
+	local Tagged: { Instance } = {}
+
+	for _, Tag in ipairs(TagPriority) do
+		for _, TaggedInstance in ipairs(CollectionService:GetTagged(Tag)) do
+			table.insert(Tagged, TaggedInstance)
+		end
+	end
+
+	return Tagged
+end
+
+-- Lazily binds the single MULTIPLEX_GATEWAY SubscribeAsync listener that fans out demultiplexed packets.
+local function ensureMultiplexerIsListening(): ()
+
+	--[[
+		ensureMultiplexerIsListening: The Lazy Demultiplexer Binder.
+
+		Establishes the single, permanent SubscribeAsync listener on MULTIPLEX_GATEWAY
+		that is responsible for unpacking bundled payloads and routing each item to the
+		correct gateway's registered callbacks. This function is called only once, lazily,
+		on the first invocation of ListenStream, preventing unnecessary MessagingService
+		connections from being opened on servers that never register a listener.
+
+		Parameters:
+			None
+
+		Returns:
+			None
+
+		Core Behaviors:
+			* Single Subscription: Opens exactly one SubscribeAsync connection on
+			  MULTIPLEX_GATEWAY for the lifetime of the server. All inbound multiplexed
+			  traffic passes through this one connection regardless of how many custom
+			  gateways are registered.
+			* Tuple Unpacking: Extracts the three-element tuple [Gateway, Path, Data] from
+			  each item inside the Payloads array of the incoming MasterBox package.
+			* ID-to-String Resolution: Translates numeric Gateway and Path IDs back to their
+			  original string forms using IDsToString before routing, reconstructing the
+			  human-readable packet fields that were compressed on the sending side.
+			* Fault Tolerance: Wraps the entire SubscribeAsync call in pcall and emits a
+			  warning on failure rather than throwing, allowing the server to continue
+			  operating without cross-server messaging if MemoryStoreService is unavailable.
+	]]
+
+	local Success, Err = pcall(function()
+		MessagingService:SubscribeAsync(MULTIPLEX_GATEWAY, function(Message)
+			local MasterBox = Message.Data
+
+			if type(MasterBox) ~= "table" or not MasterBox.Payloads then
+				return
+			end
+
+			local SenderID = MasterBox.SenderServerID
+
+			-- Parsing the payload to get the Gateway, Path and the actual Data
+			for _, Item in ipairs(MasterBox.Payloads) do
+				local RawGateway = Item[1]
+				local RawPath = Item[2]
+				local RawData = Item[3]
+
+				local TargetGateway = (type(RawGateway) == "number") and IDsToString[RawGateway] or RawGateway -- Convert the path ID to string or use the raw value directly if it's already a string (probably due to delayed syncing)
+
+				if type(TargetGateway) ~= "string" then
+					continue -- Skip glitched payload
+				end
+
+				local Receivers = GatewayReceivers[TargetGateway]
+
+				if Receivers then
+					local TargetPath = (type(RawPath) == "number") and IDsToString[RawPath] or RawPath
+
+					if type(TargetPath) ~= "string" then
+						continue
+					end
+
+					local Packet = {
+						SenderServerID = SenderID,
+						Path = TargetPath,
+						Data = DependentServices.DeepDeserialize(RawData),
+					}
+
+					for _, Callback in ipairs(Receivers) do
+						Scheduler.Spawn(Callback, Packet)
+					end
+				end
+			end
+		end)
+	end)
+
+	if not Success then
+		warn("[DependentServices] Failed to bind Demultiplexer: " .. tostring(Err))
+	end
+end
+
+-- Heartbeat handler that ships one finalized package per dispatch interval to MessagingService.
+local function onMessageDispatcher(DeltaTime: number): ()
+
+	--[[
+		onMessageDispatcher: The Heartbeat-Driven Package Dispatcher.
+
+		The core outbound shipping loop for the messaging system, connected directly to
+		RunService.Heartbeat. On each tick it accumulates frame time and, once the
+		DISPATCH_INTERVAL threshold is crossed, attempts to ship exactly one finalized
+		package to MessagingService. This strict one-per-tick throttle ensures the server
+		never exceeds MessagingService's 80 publishes per minute quota regardless of how
+		many gateways are active.
+
+		Parameters:
+			DeltaTime : number - The time elapsed since the last Heartbeat frame, in seconds.
+
+		Returns:
+			None
+
+		Core Behaviors:
+			* Frame Accumulation: Adds DeltaTime to DispatcherAccumulator and returns
+			  immediately if the DISPATCH_INTERVAL threshold has not yet been crossed,
+			  making the function nearly free on the vast majority of frames.
+			* Three-Phase Priority: Evaluates shipping candidates in strict order:
+			  (1) SYSTEM_GATEWAY VIP queue is always checked first, guaranteeing that
+			  session-validation traffic is never delayed by user-defined gateway backlog.
+			  (2) Custom gateways are served next via a ring-buffer pointer, providing
+			  aggressive drain round-robin fairness across all registered user gateways.
+			  (3) If all FinalizedPackages queues are empty, the multiplexer failsafe
+			  sweeps the ActivePackages conveyor belts and bundles whatever partial payloads
+			  are waiting into a single MasterBox for bulk dispatch.
+			* Requeue on Failure: If a pcall to PublishAsync fails (e.g., due to a temporary
+			  MessagingService outage), the package is re-inserted at the front of its queue
+			  so it is retried on the next dispatch tick rather than silently dropped.
+			* Throttle Reset: DispatcherAccumulator is reset to zero only when a package is
+			  actually shipped, ensuring the next dispatch attempt is correctly delayed by the
+			  full DISPATCH_INTERVAL regardless of how many frames the dispatcher was idle.
+			* 900-Byte Guard: The multiplexer failsafe stops adding payloads to the MasterBox
+			  once the estimated encoded size reaches 900 bytes, leaving headroom below the
+			  1 KB MessagingService payload limit.
+	]]
+
+	DispatcherAccumulator += DeltaTime
+
+	-- Skips this frame if the accumulated time is below the dispatch interval
+	if DispatcherAccumulator < DISPATCH_INTERVAL then
+		return
+	end
+
+	-- Flag to ensure the accumulator is only reset if an API publish attempt was actually made this tick
+	local PublishedThisTick = false 
+
+	-- Phase 1: The Absolute System Check (VIP Override)
+	local SystemQueue = FinalizedPackages[SYSTEM_GATEWAY]
+
+	if SystemQueue and #SystemQueue > 0 then
+		-- Remove from index 1 to guarantee chronological message order
+		local PackageToShip = table.remove(SystemQueue, 1) 
+
+		local Success, Err = pcall(function()
+			MessagingService:PublishAsync(SYSTEM_GATEWAY, PackageToShip)
+		end)
+
+		if not Success then
+			table.insert(SystemQueue, 1, PackageToShip)
+
+			if IN_STUDIO then warn("[DependentServices] Failed to publish System package: " .. tostring(Err)) end
+		end
+
+		-- MUST reset the accumulator even on failure, because failed API calls still count toward Roblox limits
+		DispatcherAccumulator = 0
+
+		return
+	end
+
+	-- Phase 2: The Aggressive Drain (Ring-Buffer)
+	local CustomCount = #CustomGatewaysArray
+
+	if CustomCount > 0 then -- Check if there are actually declared custom gateways
+		local LoopCount = 0
+
+		while LoopCount < CustomCount do
+			local TargetGateway = CustomGatewaysArray[CurrentTargetIndex]
+			local CustomQueue = FinalizedPackages[TargetGateway]
+
+			if CustomQueue and #CustomQueue > 0 then
+				-- Maintain chronological order
+				local PackageToShip = table.remove(CustomQueue, 1) 
+				local Success, Err = pcall(function()
+					MessagingService:PublishAsync(TargetGateway, PackageToShip)
+				end)
+
+				if not Success then
+					table.insert(CustomQueue, 1, PackageToShip)
+					warn(string.format("[DependentServices] Failed to publish %s package: %s", TargetGateway, tostring(Err)))
+				end
+
+				-- Flag that an API call was consumed this tick
+				PublishedThisTick = true
+
+				break
+			else
+				-- Cycle the ring-buffer pointer to the next gateway
+				CurrentTargetIndex = (CurrentTargetIndex % CustomCount) + 1
+				LoopCount += 1
+			end
+		end
+	end
+
+	if PublishedThisTick then
+		DispatcherAccumulator = 0
+
+		return
+	end
+
+	-- Phase 3: The Multiplexer Failsafe (Active Packages Collection)
+	local MasterBox = {
+		SenderServerID = ModuleScriptTable["Diary"] and ModuleScriptTable["Diary"]._serverId or "unknown",
+		Payloads = {},
+	}
+
+	local MasterHasData = false -- Flag to verify the MasterBox actually contains payloads before publishing
+	local CurrentSize = 0
+	local SweepOrder = { SYSTEM_GATEWAY } -- Set the special system gateway as the priority first entry for active package collection
+
+	for i = 1, CustomCount do
+		local Index = ((CurrentTargetIndex + i - 2) % CustomCount) + 1
+
+		table.insert(SweepOrder, CustomGatewaysArray[Index])
+	end
+
+	for _, Gateway in ipairs(SweepOrder) do
+		local Active = ActivePackages[Gateway]
+
+		if Active and #Active.Payloads > 0 then -- Check if this gateway has pending unsealed payloads
+			local i = 1
+
+			local GatewayKey: string | number = StringsToIDs[Gateway]
+
+			if not GatewayKey then
+				GatewayKey = Gateway
+
+				-- If the gateway doesn't have an interned ID yet, queue it for the background worker
+				if not table.find(IDsToQuery, Gateway) then
+					table.insert(IDsToQuery, Gateway)
+				end
+			end
+
+			-- A single gateway can have multiple paths. Iterate through all active payloads and compress them into the MasterBox.
+			while i <= #Active.Payloads do
+				local PayloadTuple = Active.Payloads[i]
+				local PathKey = PayloadTuple[1]
+
+				if type(PathKey) == "string" then
+					local ResolvedID = StringsToIDs[PathKey]
+
+					if ResolvedID then
+						PathKey = ResolvedID
+					end
+				end
+
+				-- Transform into a minified single package tuple
+				local MinifiedTuple = { GatewayKey, PathKey, PayloadTuple[2] } 
+
+				table.insert(MasterBox.Payloads, MinifiedTuple)
+
+				CurrentSize = #DependentServices.Http:JSONEncode(MasterBox)
+
+				-- 1KB Strict Size Enforcement
+				if CurrentSize > 1024 then
+					table.remove(MasterBox.Payloads, #MasterBox.Payloads)
+					break -- The absolute limit is reached, stop adding to this MasterBox
+
+				else
+					table.remove(Active.Payloads, i)
+					MasterHasData = true
+
+					if CurrentSize >= 900 then
+						break -- Nearing the 1KB limit. Stop adding payloads to leave a safe byte buffer.
+					end
+				end
+			end
+		end
+
+		-- If the MasterBox is nearly full, abort checking any remaining gateways
+		if CurrentSize >= 900 then
+			break
+		end
+	end
+
+	if MasterHasData then
+		local Success, Err = pcall(function()
+			MessagingService:PublishAsync(MULTIPLEX_GATEWAY, MasterBox)
+		end)
+
+		if not Success then
+			-- Payloads lost to a failed MasterBox publish currently drop
+			if IN_STUDIO then warn("[DependentServices] Multiplexer publish failed: " .. tostring(Err)) end
+		end
+
+		DispatcherAccumulator = 0
+	end
+end
+
+-- Serializer dispatch table mapping Luau/Roblox type names to their serialization functions.
+local Serializers: { [string]: (DataValue: any) -> any } = {
+	["Vector3"] = function(DataValue)
+		local TypeBuffer = buffer.create(12)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.X)
+		buffer.writef32(TypeBuffer, 4, DataValue.Y)
+		buffer.writef32(TypeBuffer, 8, DataValue.Z)
+
+		return { 
+			__type = "Vector3", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["Vector2"] = function(DataValue)
+		local TypeBuffer = buffer.create(8)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.X)
+		buffer.writef32(TypeBuffer, 4, DataValue.Y)
+
+		return { 
+			__type = "Vector2", 
+			b64 = encodeBufferToBase64(TypeBuffer)
+		}
+	end,
+
+	["Vector3int16"] = function(DataValue)
+		local TypeBuffer = buffer.create(6)
+
+		buffer.writei16(TypeBuffer, 0, DataValue.X)
+		buffer.writei16(TypeBuffer, 2, DataValue.Y)
+		buffer.writei16(TypeBuffer, 4, DataValue.Z)
+
+		return { 
+			__type = "Vector3int16", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["CFrame"] = function(DataValue)
+		local TypeBuffer = buffer.create(48)
+		local Pos, RightVector, UpVector, LookVector = DataValue.Position, DataValue.RightVector, DataValue.UpVector, DataValue.LookVector
+
+		buffer.writef32(TypeBuffer, 0,  Pos.X)
+		buffer.writef32(TypeBuffer, 4,  Pos.Y)
+		buffer.writef32(TypeBuffer, 8,  Pos.Z)
+		buffer.writef32(TypeBuffer, 12, RightVector.X)
+		buffer.writef32(TypeBuffer, 16, UpVector.X)
+		buffer.writef32(TypeBuffer, 20, -LookVector.X)
+		buffer.writef32(TypeBuffer, 24, RightVector.Y)
+		buffer.writef32(TypeBuffer, 28, UpVector.Y)
+		buffer.writef32(TypeBuffer, 32, -LookVector.Y)
+		buffer.writef32(TypeBuffer, 36, RightVector.Z)
+		buffer.writef32(TypeBuffer, 40, UpVector.Z)
+		buffer.writef32(TypeBuffer, 44, -LookVector.Z)
+
+		return { 
+			__type = "CFrame", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["UDim"] = function(DataValue)
+		local TypeBuffer = buffer.create(8)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.Scale)
+		buffer.writei32(TypeBuffer, 4, DataValue.Offset)
+
+		return { 
+			__type = "UDim",
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["UDim2"] = function(DataValue)
+		local TypeBuffer = buffer.create(16)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.X.Scale)
+		buffer.writei32(TypeBuffer, 4,  DataValue.X.Offset)
+		buffer.writef32(TypeBuffer, 8, DataValue.Y.Scale)
+		buffer.writei32(TypeBuffer, 12, DataValue.Y.Offset)
+
+		return { 
+			__type = "UDim2", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["Rect"] = function(DataValue)
+		local TypeBuffer = buffer.create(16)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.Min.X)
+		buffer.writef32(TypeBuffer, 4,  DataValue.Min.Y)
+		buffer.writef32(TypeBuffer, 8, DataValue.Max.X)
+		buffer.writef32(TypeBuffer, 12, DataValue.Max.Y)
+
+		return { 
+			__type = "Rect", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["Color3"] = function(DataValue)
+		local TypeBuffer = buffer.create(12)
+
+		buffer.writef32(TypeBuffer, 0, DataValue.R)
+		buffer.writef32(TypeBuffer, 4, DataValue.G)
+		buffer.writef32(TypeBuffer, 8, DataValue.B)
+
+		return { 
+			__type = "Color3", 
+			b64 = encodeBufferToBase64(TypeBuffer) 
+		}
+	end,
+
+	["BrickColor"] = function(DataValue)
+		return { 
+			__type = "BrickColor", 
+			Name = DataValue.Name 
+		}
+	end,
+
+	["ColorSequence"] = function(DataValue)
+		local SerializedKeypoints = {}
+
+		for _, Keypoint in ipairs(DataValue.Keypoints :: { ColorSequenceKeypoint }) do
+			table.insert(SerializedKeypoints, { 
+				Time = Keypoint.Time, 
+				Value = { Keypoint.Value.R, Keypoint.Value.G, Keypoint.Value.B } 
+			})
+		end
+
+		return { 
+			__type = "ColorSequence",
+			Keypoints = SerializedKeypoints
+		}
+	end,
+
+	["NumberSequence"] = function(DataValue)
+		local SerializedKeypoints = {}
+
+		for _, Keypoint in ipairs(DataValue.Keypoints :: { NumberSequenceKeypoint }) do
+			table.insert(SerializedKeypoints, { 
+				Time = Keypoint.Time, 
+				Value = Keypoint.Value, 
+				Envelope = Keypoint.Envelope 
+			})
+		end
+
+		return { 
+			__type = "NumberSequence",
+			Keypoints = SerializedKeypoints 
+		}
+	end,
+
+	["Font"] = function(DataValue)
+		return {
+			__type = "Font",
+			Family = DataValue.Family,
+			Weight = DataValue.Weight.Name,
+			Style = DataValue.Style.Name,
+		}
+	end,
+
+	["PhysicalProperties"] = function(DataValue)
+		return {
+			__type = "PhysicalProperties",
+			Density = DataValue.Density,
+			Friction = DataValue.Friction,
+			Elasticity = DataValue.Elasticity,
+			FrictionWeight = DataValue.FrictionWeight,
+			ElasticityWeight = DataValue.ElasticityWeight,
+		}
+	end,
+
+	["RaycastParams"] = function(DataValue)
+		local InstanceNames = {}
+
+		for _, Instance_ in ipairs(DataValue.FilterDescendantsInstances or {}) do
+			table.insert(InstanceNames, Instance_.Name)
+		end
+
+		return {
+			__type = "RaycastParams",
+			FilterType = DataValue.FilterType.Name,
+			IgnoreWater = DataValue.IgnoreWater,
+			CollisionGroup = DataValue.CollisionGroup,
+			FilterNames = InstanceNames,
+		}
+	end,
+
+	["OverlapParams"] = function(DataValue)
+		local InstanceNames = {}
+
+		for _, Instance_ in ipairs(DataValue.FilterDescendantsInstances or {}) do
+			table.insert(InstanceNames, Instance_.Name)
+		end
+
+		return {
+			__type = "OverlapParams",
+			FilterType = DataValue.FilterType.Name,
+			MaxParts = DataValue.MaxParts,
+			CollisionGroup = DataValue.CollisionGroup,
+			FilterNames = InstanceNames,
+		}
+	end,
+
+	["PathWaypoint"] = function(DataValue)
+		return {
+			__type = "PathWaypoint",
+			Position = DependentServices.DeepSerialize(DataValue.Position),
+			Action = DataValue.Action.Name,
+		}
+	end,
+
+	["EnumItem"] = function(DataValue)
+		return { 
+			__type = "EnumItem",
+			Value = tostring(DataValue) 
+		}
+	end,
+
+	["TweenInfo"] = function(DataValue)
+		return {
+			__type = "TweenInfo",
+			Time = DataValue.Time,
+			EasingStyle = DataValue.EasingStyle.Name,
+			EasingDirection = DataValue.EasingDirection.Name,
+			RepeatCount = DataValue.RepeatCount,
+			Reverses = DataValue.Reverses,
+			DelayTime = DataValue.DelayTime,
+		}
+	end,
+
+	["DateTime"] = function(DataValue)
+		return { 
+			__type = "DateTime",
+			UnixTimestamp = DataValue.UnixTimestamp 
+		}
+	end,
+
+	["Instance"] = function(DataValue)
+		return { 
+			__type = "Instance", 
+			Name = DataValue.Name,
+			ClassName = DataValue.ClassName 
+		}
+	end,
+}
+
+-- Deserializer dispatch table mapping serialized __type tags back to their Luau/Roblox constructors.
+local Deserializers: { [string]: (InputData: any) -> any } = {
+	["Vector3"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return Vector3.new(buffer.readf32(DecodedBuffer, 0), 
+			buffer.readf32(DecodedBuffer, 4), 
+			buffer.readf32(DecodedBuffer, 8))
+	end,
+
+	["Vector2"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return Vector2.new(buffer.readf32(DecodedBuffer, 0), 
+			buffer.readf32(DecodedBuffer, 4))
+	end,
+
+	["Vector3int16"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return Vector3int16.new(buffer.readi16(DecodedBuffer, 0), 
+			buffer.readi16(DecodedBuffer, 2), 
+			buffer.readi16(DecodedBuffer, 4))
+	end,
+
+	["CFrame"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return CFrame.new(buffer.readf32(DecodedBuffer, 0), 
+			buffer.readf32(DecodedBuffer, 4), 
+			buffer.readf32(DecodedBuffer, 8),
+			buffer.readf32(DecodedBuffer, 12), 
+			buffer.readf32(DecodedBuffer, 16), 
+			buffer.readf32(DecodedBuffer, 20),
+			buffer.readf32(DecodedBuffer, 24), 
+			buffer.readf32(DecodedBuffer, 28), 
+			buffer.readf32(DecodedBuffer, 32),
+			buffer.readf32(DecodedBuffer, 36), 
+			buffer.readf32(DecodedBuffer, 40), 
+			buffer.readf32(DecodedBuffer, 44))
+	end,
+
+	["UDim"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return UDim.new(buffer.readf32(DecodedBuffer, 0), 
+			buffer.readi32(DecodedBuffer, 4))
+	end,
+
+	["UDim2"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return UDim2.new(buffer.readf32(DecodedBuffer, 0), 
+			buffer.readi32(DecodedBuffer, 4),
+			buffer.readf32(DecodedBuffer, 8), 
+			buffer.readi32(DecodedBuffer, 12))
+	end,
+
+	["Rect"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return Rect.new(buffer.readf32(DecodedBuffer, 0),
+			buffer.readf32(DecodedBuffer, 4), 
+			buffer.readf32(DecodedBuffer, 8), 
+			buffer.readf32(DecodedBuffer, 12))
+	end,
+
+	["Color3"] = function(Input)
+		local DecodedBuffer = decodeBase64ToBuffer(Input.b64)
+
+		return Color3.new(buffer.readf32(DecodedBuffer, 0),
+			buffer.readf32(DecodedBuffer, 4),
+			buffer.readf32(DecodedBuffer, 8))
+	end,
+
+	["BrickColor"] = function(Input)
+		return BrickColor.new(Input.Name)
+	end,
+
+	["ColorSequence"] = function(Input)
+		local Keypoints = {}
+
+		for _, Keypoint in ipairs(Input.Keypoints) do
+			table.insert(Keypoints, ColorSequenceKeypoint.new(Keypoint.Time, Color3.new(Keypoint.Value[1], Keypoint.Value[2], Keypoint.Value[3])))
+		end
+
+		return ColorSequence.new(Keypoints)
+	end,
+
+	["NumberSequence"] = function(Input)
+		local Keypoints = {}
+
+		for _, Keypoint in ipairs(Input.Keypoints) do
+			table.insert(Keypoints, NumberSequenceKeypoint.new(Keypoint.Time, Keypoint.Value, Keypoint.Envelope))
+		end
+
+		return NumberSequence.new(Keypoints)
+	end,
+
+	["Font"] = function(Input)
+		return Font.new(Input.Family, 
+			Enum.FontWeight[Input.Weight], 
+			Enum.FontStyle[Input.Style])
+	end,
+
+	["PhysicalProperties"] = function(Input)
+		return PhysicalProperties.new(Input.Density, 
+			Input.Friction,
+			Input.Elasticity,
+			Input.FrictionWeight,
+			Input.ElasticityWeight)
+	end,
+
+	["RaycastParams"] = function(Input)
+		local RayParams = RaycastParams.new()
+
+		if Input.FilterType then
+			RayParams.FilterType = Enum.RaycastFilterType[Input.FilterType]
+		end
+
+		RayParams.IgnoreWater    = Input.IgnoreWater
+		RayParams.CollisionGroup = Input.CollisionGroup
+
+		local Found = findInstancesByNames(Input.FilterNames)
+
+		RayParams.FilterDescendantsInstances = #Found > 0 and Found or getTaggedInstancesFallback()
+
+		return RayParams
+	end,
+
+	["OverlapParams"] = function(Input)
+		local OverParams = OverlapParams.new()
+
+		if Input.FilterType then
+			OverParams.FilterType = Enum.RaycastFilterType[Input.FilterType]
+		end
+
+		OverParams.CollisionGroup = Input.CollisionGroup
+		OverParams.MaxParts = Input.MaxParts
+
+		local Found = findInstancesByNames(Input.FilterNames)
+
+		OverParams.FilterDescendantsInstances = #Found > 0 and Found or getTaggedInstancesFallback()
+
+		return OverParams
+	end,
+
+	["PathWaypoint"] = function(Input)
+		return PathWaypoint.new(DependentServices.DeepDeserialize(Input.Position), 
+			Enum.PathWaypointAction[Input.Action])
+	end,
+
+	["EnumItem"] = function(Input)
+		local EnumName, ItemName = string.match(Input.Value, "Enum%.(%w+)%.(%w+)")
+
+		return (EnumName and ItemName and Enum[EnumName]) and (Enum :: any)[EnumName][ItemName] or Input.Value
+	end,
+
+	["TweenInfo"] = function(Input)
+		return TweenInfo.new(Input.Time,
+			Enum.EasingStyle[Input.EasingStyle],
+			Enum.EasingDirection[Input.EasingDirection],
+			Input.RepeatCount, 
+			Input.Reverses,
+			Input.DelayTime)
+	end,
+
+	["DateTime"] = function(Input)
+		return DateTime.fromUnixTimestamp(Input.UnixTimestamp)
+	end,
+
+	["Instance"] = function(Input)
+		return string.format("[Instance:%s]", Input.Name or "?")
+	end,
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Background Worker Section
+----------------------------------------------------------
+
+-- Continuously synchronizes the local string-to-ID registry with the shared MemoryStore hash map.
+local function runBackgroundIDWorker(): ()
+
+	--[[
+		runBackgroundIDWorker: The String Interning Synchronization Worker.
+
+		A persistent background thread responsible for maintaining a shared, server-wide
+		string-to-integer dictionary stored in MemoryStore. By replacing frequently-repeated
+		string values (gateway names, path names) with compact integers before transmission,
+		the system significantly reduces the byte footprint of each MessagingService payload,
+		leaving more room for actual data within the 1 KB per-message limit.
+
+		Parameters:
+			None
+
+		Returns:
+			None (runs indefinitely)
+
+		Core Behaviors:
+			* Warm-Up Hydration: On first start, immediately performs a GetAsync to populate
+			  the local StringsToIDs and IDsToString maps from the existing registry before
+			  any other code begins queueing strings for registration.
+			* Daily Key Rotation: Re-derives the MemoryStore map name on every loop iteration
+			  using getDailyRegistryKey(), automatically migrating to the new day's registry
+			  at UTC midnight without requiring a server restart.
+			* Batched Registration (Scenario A): When IDsToQuery contains pending strings,
+			  uses UpdateAsync with a transform function to atomically assign new integer IDs
+			  to all pending strings in a single network round trip. On success, immediately
+			  hydrates the local maps with all current registry entries. On failure, the
+			  unprocessed strings are re-queued at the front of IDsToQuery for the next cycle.
+			* Passive Sync (Scenario B): When IDsToQuery is empty, performs a lightweight
+			  GetAsync to pull any new entries registered by other servers into the local maps,
+			  ensuring the demultiplexer always has the latest ID-to-string mappings.
+			* Fault Recovery: If the MemoryStore map cannot be located (e.g., during a
+			  transient MemoryStoreService outage), the worker emits a warning and retries
+			  after a short delay rather than crashing the coroutine.
+			* 30-Second Cycle: Sleeps for exactly 30 seconds between synchronization passes,
+			  balancing registry freshness against MemoryStore API quota consumption.
+	]]
+
+	Scheduler.Wait(5)
+
+	local DailyMapName = getDailyRegistryKey()
+
+	local Success, RegistryMap = pcall(function()
+		return MemoryStoreService:GetHashMap(DailyMapName)
+	end)
+
+	if Success and RegistryMap then
+		local ReadSuccess, CurrentDictionary = pcall(function()
+			return RegistryMap:GetAsync("MasterDictionary")
+		end)
+
+		-- Sync the local maps with the current registry on server bootup
+		if ReadSuccess and CurrentDictionary then
+			for Key, Value in CurrentDictionary do
+				if type(Key) == "string" and type(Value) == "number" and Key ~= "__CurrentMaxID" then
+					StringsToIDs[Key]  = Value
+					IDsToString[Value] = Key
+				end
+			end
+		end
+	end
+
+	while true do
+		DailyMapName = getDailyRegistryKey()
+
+		Success, RegistryMap = pcall(function()
+			return MemoryStoreService:GetHashMap(DailyMapName)
+		end)
+
+		if not Success or not RegistryMap then
+			if IN_STUDIO then warn("[DependentServices] ID Worker failed to locate MemoryStore Map.") end
+
+			Scheduler.Wait(5)
+
+			continue
+		end
+
+		local StringsToProcess = {}
+
+		-- Pull in any new entries from the registry to get an ID or assign an ID
+		while #IDsToQuery > 0 do
+			local QueuedString = table.remove(IDsToQuery, 1) :: string
+
+			if not StringsToIDs[QueuedString] then
+				table.insert(StringsToProcess, QueuedString)
+			end
+		end
+
+		if #StringsToProcess > 0 then
+			-- Register new strings via atomic UpdateAsync.
+			local UpdateSuccess, UpdatedDictionary = pcall(function()
+				return RegistryMap:UpdateAsync("MasterDictionary", function(CurrentData: any)
+					CurrentData = CurrentData or { 
+						__CurrentMaxID = 0 
+					}
+
+					for _, TargetString in ipairs(StringsToProcess) do
+						-- If there is no current ID for the string, assign one
+						if not CurrentData[TargetString] then
+							CurrentData.__CurrentMaxID  += 1
+							CurrentData[TargetString] = CurrentData.__CurrentMaxID
+						end
+					end
+
+					return CurrentData
+				end, 172800) -- 48-hour TTL
+			end)
+
+			-- Sync the local map with the updated registry
+			if UpdateSuccess and UpdatedDictionary then
+				for Key, Value in UpdatedDictionary do
+					if type(Key) == "string" and type(Value) == "number" and Key ~= "__CurrentMaxID" then
+						StringsToIDs[Key]  = Value
+						IDsToString[Value] = Key
+					end
+				end
+
+			else -- If the UpdateAsync failed, restore the strings back to the queue
+				for i = #StringsToProcess, 1, -1 do
+					table.insert(IDsToQuery, 1, StringsToProcess[i])
+				end
+			end
+
+		else
+			-- Queue is empty, perform a passive sync using GetAsync
+			local ReadSuccess, CurrentDictionary = pcall(function()
+				return RegistryMap:GetAsync("MasterDictionary")
+			end)
+
+			if ReadSuccess and CurrentDictionary then
+				for Key, Value in CurrentDictionary do
+					if type(Key) == "string" and type(Value) == "number" and Key ~= "__CurrentMaxID" then
+						StringsToIDs[Key]  = Value
+						IDsToString[Value] = Key
+					end
+				end
+			end
+		end
+
+		Scheduler.Wait(30)
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Event Binding Section
+----------------------------------------------------------
+
+Scheduler.Defer(runBackgroundIDWorker)
+RunService.Heartbeat:Connect(onMessageDispatcher)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- DependentServices Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Recursively serializes any Luau/Roblox value into a DataStore-safe table representation. Supports delta caching when MemoryLocation and UserId are provided.
+
+	Params:
+	    DataValue      : any           -- The value to serialize.
+	    VisitedTables  : VisitedTable? -- Cycle-detection map. Pass nil on the first call.
+	    MemoryLocation : string?       -- Cache key component; required to enable delta caching.
+	    UserId         : string?       -- Cache key component; required to enable delta caching.
+
+	Returns:
+	    SerializedValue -- The serialized form safe for DataStore storage.
+]]
+function DependentServices.DeepSerialize(DataValue: any, VisitedTables: VisitedTable?, MemoryLocation: string?, UserId: string?): SerializedValue
+
+	--[[
+		DependentServices.DeepSerialize: The Universal Serialization Engine.
+
+		Recursively transforms any Luau or Roblox value into a representation that can
+		be safely stored inside DataStore or MemoryStore, both of which only accept
+		JSON-compatible primitives and tables. When a MemoryLocation and UserId are
+		provided, the function switches into delta-caching mode, comparing the input
+		against a previously stored snapshot and producing only a sparse diff rather
+		than a full re-serialization, dramatically reducing the computational cost of
+		repeated save ticks for large, mostly-unchanged data structures.
+
+		Parameters:
+			DataValue      : any           - The Luau or Roblox-typed value to serialize.
+			VisitedTables  : VisitedTable? - A cycle-detection map shared across recursive calls. Pass nil on the first call.
+			MemoryLocation : string?       - The DataStore/MemoryStore key. Required together with UserId to activate the delta serialization cache.
+			UserId         : string?       - The stringified player UserId. Required together with MemoryLocation to activate the delta serialization cache.
+
+		Returns:
+			SerializedValue - A DataStore-safe representation of the input, structured as a plain
+			                  table with a __type discriminant field for non-primitive Roblox types.
+
+		Core Behaviors:
+			* Primitive Passthrough: Strings, numbers, and booleans are returned as-is with
+			  zero overhead since they are already DataStore-safe.
+			* Dispatcher Routing: For Roblox-typed values (Vector3, CFrame, etc.), looks up
+			  and invokes the matching entry in the Serializers dispatch table. Falls back to
+			  tostring() for unsupported types with a warning.
+			* Delta Caching (Cache Hit): If a prior serialized snapshot exists for the given
+			  CacheKey, detectChangedFields is called to compute a minimal delta. The delta is
+			  applied to a clone of the cached serialized state, and only the updated clone is
+			  stored back, avoiding a full re-traversal of the entire data structure.
+			* Delta Caching (Cache Miss): On the first serialization of a given CacheKey, a
+			  full traversal is performed, the result is stored as the baseline, and a deep
+			  clone of the input is saved as the cached snapshot for future delta computation.
+			* Metadata Exclusion: All keys present in IGNORED_KEYS are silently skipped during
+			  table traversal, preventing internal Diary framework flags from being written to
+			  the cloud.
+			* Circular Reference Guard: Tracks visited tables across recursive calls and returns
+			  nil if a cycle is detected, preventing infinite recursion.
+	]]
+
+	local Visited: VisitedTable = VisitedTables or {}
+	local ValueType: string = typeof(DataValue)
+
+	if DataValue == nil then
+		return nil :: any
+	end
+
+	-- Primitive types are passed through as is
+	if ValueType == "string" or ValueType == "number" or ValueType == "boolean" then
+		return DataValue
+	end
+
+	-- Traverse nested tables
+	if ValueType == "table" then
+		if Visited[DataValue] then
+			return nil :: any
+		end
+
+		Visited[DataValue] = true
+
+		-- Delta serialization mode (UserID and MemoryLocation are both present)
+		if MemoryLocation and UserId then
+			local CacheKey = generateCacheKey(MemoryLocation, UserId)
+			local CacheEntry = SerializationCacheStore[CacheKey]
+
+			if CacheEntry and CacheEntry.cachedData and CacheEntry.serializedData then -- Check against the cache if there is a present cache of the memory location
+				local Delta: DeltaChanges = detectChangedFields(DataValue, CacheEntry.cachedData, nil)
+
+				if Delta == nil then
+					return CacheEntry.serializedData :: any
+				end
+
+				local SerializedDelta: DataTable = {}
+
+				-- Perform serialization only to those fields that were actually changed
+				for ChangeKey: any, ChangeValue: any in Delta do
+					SerializedDelta[ChangeKey] = DependentServices.DeepSerialize(ChangeValue, Visited)
+				end
+
+				recursiveReleaseToPool(Delta)
+
+				local NewSerializedState = table.clone(CacheEntry.serializedData)
+
+				-- Sanitization phase. Apply new fields while also remove deleted fields
+				local function applyDelta(Target: any, DeltaTable: any): ()
+					for Key, Value in DeltaTable do
+						if Value == "__DELETED__" then -- Cleanup deleted fields
+							Target[Key] = nil
+
+						elseif typeof(Value) == "table" and typeof(Target[Key]) == "table" and Value.__type == nil then -- Add new discovered fields
+							applyDelta(Target[Key], Value)
+
+						else -- Keep exeisting fields
+							Target[Key] = Value
+						end
+					end
+				end
+
+				applyDelta(NewSerializedState, SerializedDelta)
+
+				-- Update the cache
+				SerializationCacheStore[CacheKey] = {
+					cachedData = deepCloneForCache(DataValue) :: DataTable,
+					serializedData = NewSerializedState,
+				}
+
+				return NewSerializedState :: any
+			else -- No active cache for this memory location, create one
+				local FullSerialized: DataTable = {}
+
+				for Key: any, Value: any in DataValue do
+					if IGNORED_KEYS[Key :: string] then
+						continue
+					end
+
+					FullSerialized[Key] = DependentServices.DeepSerialize(Value, Visited)
+				end
+
+				SerializationCacheStore[CacheKey] = {
+					cachedData = deepCloneForCache(DataValue) :: DataTable,
+					serializedData = FullSerialized,
+				}
+
+				CacheCount += 1
+
+				return FullSerialized :: any
+			end
+		end
+
+		local SerializedTable: DataTable = {}
+
+		for Key: any, Value: any in DataValue do
+			if IGNORED_KEYS[Key :: string] then
+				continue
+			end
+
+			SerializedTable[Key] = DependentServices.DeepSerialize(Value, Visited)
+		end
+
+		return SerializedTable :: any
+	end
+
+	local SerializerFunc = Serializers[ValueType]
+
+	if SerializerFunc then
+		return SerializerFunc(DataValue) :: any
+	end
+
+	warn(string.format("[Serializer] Unsupported type: %s", ValueType))
+
+	return tostring(DataValue) :: any
+end
+
+--[[
+	Removes serialization cache entries for a specific player, optionally scoped to one memory location.
+
+	Params:
+	    UserId         : string  -- The player's UserId as a string.
+	    MemoryLocation : string? -- If provided, clears only the entry for this location.
+
+	Returns:
+	    nil
+]]
+function DependentServices.ClearSerializationCache(UserId: string, MemoryLocation: string?): ()
+
+	--[[
+		DependentServices.ClearSerializationCache: The Serialization Cache Cleanup Utility.
+
+		Removes one or all serialization cache entries associated with a specific player from
+		the SerializationCacheStore. This must be called during player cleanup to prevent
+		stale baseline snapshots from persisting in RAM after the player has left the server
+		and their data has been written to the cloud.
+
+		Parameters:
+			UserId         : string  - The stringified UserId of the player whose cache entries should be cleared.
+			MemoryLocation : string? - (Optional) The specific memory location to clear. If omitted, all cache entries for the given UserId are removed.
+
+		Returns:
+			None
+
+		Core Behaviors:
+			* Targeted Cleanup: When MemoryLocation is provided, constructs the exact composite
+			  key via generateCacheKey and removes only that single entry, leaving all other
+			  memory locations for the same player intact.
+			* Full Sweep: When MemoryLocation is nil, scans the entire SerializationCacheStore
+			  for any key whose suffix matches the player's UserId string and removes all matches,
+			  performing a complete player eviction.
+	]]
+
+	local UserIdSuffix = "_" .. UserId
+
+	if MemoryLocation then -- Specific memory location cleanup
+		local CacheKey = generateCacheKey(MemoryLocation, UserId)
+
+		if SerializationCacheStore[CacheKey] then
+			SerializationCacheStore[CacheKey] = nil
+			CacheCount -= 1
+		end
+
+	else -- Full player cache cleanup
+		for CacheKey in SerializationCacheStore do
+			if string.sub(CacheKey, -#UserIdSuffix) == UserIdSuffix then
+				SerializationCacheStore[CacheKey] = nil
+				CacheCount -= 1
+			end
+		end
+	end
+end
+
+--[[
+	Recursively deserializes a value produced by DeepSerialize back into its original Luau/Roblox type.
+
+	Params:
+	    InputData : SerializedValue -- The serialized value to reconstruct.
+
+	Returns:
+	    any -- The reconstructed Luau/Roblox value.
+]]
+function DependentServices.DeepDeserialize(InputData: SerializedValue): any
+
+	--[[
+		DependentServices.DeepDeserialize: The Universal Deserialization Engine.
+
+		The exact inverse of DeepSerialize. Recursively traverses a DataStore-retrieved
+		table structure and reconstructs every serialized Roblox type back into its native
+		Luau form. Any table tagged with a __type discriminant is dispatched to the
+		matching entry in the Deserializers table; plain tables are recursively traversed
+		and their values individually deserialized.
+
+		Parameters:
+			InputData : SerializedValue - A value previously produced by DeepSerialize.
+			Supports all types that DeepSerialize can produce, including nested tables.
+
+		Returns:
+			any - The fully reconstructed native Luau or Roblox-typed value. Returns the
+			input unchanged for primitives (strings, numbers, booleans).
+
+		Core Behaviors:
+			* Primitive Passthrough: Any non-table value is returned immediately without
+			  any processing, mirroring DeepSerialize's primitive passthrough behavior.
+			* Type Discriminant Dispatch: Tables containing a __type field are routed to
+			  the corresponding Deserializers entry (e.g., "Vector3" → Vector3.new(...)).
+			  If no deserializer is registered for the given __type, the raw table is
+			  returned as-is to prevent data loss.
+			* Recursive Table Rebuild: Tables without a __type field are treated as plain
+			  data dictionaries. Each key-value pair is recursively deserialized and
+			  assembled into a fresh output table, correctly restoring nested data hierarchies.
+	]]
+
+	-- If the data is a basic string/number/boolean, return it immediately.
+	if typeof(InputData) ~= "table" then 
+		return InputData
+	end
+
+	local TypeMetadata: string? = (InputData :: any).__type
+
+	-- Plain Table Rebuild: If there is no __type tag, treat it as a standard dictionary/array
+	if not TypeMetadata then 
+		local DeserializedTable: DataTable = {}
+
+		-- Recursively traverse and deserialize every nested value inside this plain table
+		for Key: any, Value: any in InputData :: DataTable do
+			DeserializedTable[Key] = DependentServices.DeepDeserialize(Value)
+		end
+
+		return DeserializedTable
+	end
+
+	local DeserializerFunc = Deserializers[TypeMetadata]
+
+	-- Roblox Type Rebuild: If a __type tag exists, route it to the specific constructor
+	if DeserializerFunc then
+		return DeserializerFunc(InputData)
+	end
+
+	-- If the __type tag is unknown, return the raw table to prevent data loss
+	return InputData
+end
+
+--[[
+	Returns the current number of active serialization cache entries.
+
+	Params:
+	    nil
+
+	Returns:
+	    number -- Total live cache entry count.
+]]
+function DependentServices.GetSerializationCacheSize(): number
+	return CacheCount
+end
+
+--[[
+	Internal wiring API. Must not be used.
+]]
+function DependentServices.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ModuleName == "Assignment" then
+		local Module = ModuleTableObject
+
+		Scheduler.Spawn  = function(...) return Module.Spawn(...)  end
+		Scheduler.Defer  = function(...) return Module.Defer(...)  end
+		Scheduler.Delay  = function(...) return Module.Delay(...)  end
+		Scheduler.Wait   = function(...) return Module.Wait(...)   end
+		Scheduler.Cancel = function(...) return Module.Cancel(...) end
+
+	elseif ModuleName == "Diary" then
+		ModuleScriptTable[ModuleName]           = {}
+		ModuleScriptTable[ModuleName]._serverId = ModuleTableObject._serverId
+	end
+end
+
+DependentServices.Messaging = {
+	--[[
+		Serializes and stages a payload for delivery to the given gateway and path via MessagingService.
+
+		Params:
+		    Gateway : string -- The logical channel name to send the payload through.
+		    Path    : string -- The sub-route discriminant used to route the packet on the receiving end.
+		    Payload : any    -- The data to serialize and transmit.
+
+		Returns:
+		    boolean -- true if the payload was successfully staged; false if staging failed.
+	]]
+	RelayStream = function(Gateway: string, Path: string, Payload: any): boolean
+
+		--[[
+			DependentServices.Messaging.RelayStream: The Outbound Eager Packer.
+
+			Serializes a payload and stages it inside the active package for the specified
+			gateway, applying opportunistic string interning and byte-size enforcement to
+			maximize the number of payloads that fit within MessagingService's 1 KB per-message
+			limit. If adding the new payload would push the active package over the 1 KB ceiling,
+			the current active package is sealed and moved to the FinalizedPackages queue, and
+			a fresh active package is opened for the new payload.
+
+			Parameters:
+				Gateway : string - The logical channel name (e.g., "SystemValidation") identifying
+				                   which receiving servers' ListenStream callbacks should be invoked.
+				Path    : string - The sub-route discriminant (e.g., "SessionRequest") used by the
+				                   receiving server to route the packet to the correct handler.
+				Payload : any    - The data to transmit. Will be passed through DeepSerialize before
+				                   staging, converting all Roblox types to DataStore-safe representations.
+
+			Returns:
+				boolean - true if the payload was successfully staged in the active package or a fresh
+						  one. false if serialization failed or the payload alone exceeds 1 KB.
+
+			Core Behaviors:
+				* Eager Serialization: Immediately calls DeepSerialize on the payload at staging time
+				  rather than at dispatch time, so the dispatcher heartbeat has no serialization work
+				  to do and can ship packages with minimal per-frame overhead.
+				* String Interning: Checks StringsToIDs for a pre-registered integer ID for both the
+				  Gateway and Path strings. If found, the integer is used in the tuple instead of the
+				  full string, shrinking the encoded payload size. Unresolved strings are queued in
+				  IDsToQuery for the background ID worker to register asynchronously.
+				* Opportunistic JIT Swap: Before inserting a new payload, checks the last item already
+				  in the active package. If its Path is still a raw string that has since been resolved
+				  by the ID worker, it is swapped to the integer ID in-place at zero cost.
+				* Sealed Package Promotion: When the active package would exceed 1 KB with the new
+				  payload, the existing payloads are moved to FinalizedPackages for dispatch, and the
+				  new payload seeds a fresh active package. The fresh package is validated against the
+				  1 KB limit in isolation; if it still exceeds the limit the relay is aborted.
+				* Custom Gateway Registration: Registers newly seen non-system gateway names into
+				  CustomGatewaysArray and CustomGatewaysLookup on first use, making them eligible
+				  for the ring-buffer dispatch cycle.
+		]]
+
+		-- Convert all Roblox-native types into JSON-safe structures
+		local SerializedPayload: any = DependentServices.DeepSerialize(Payload)
+		local Active = ActivePackages[Gateway]
+
+		-- If there is no active package for this gateway, create one
+		if not Active then
+			Active = {
+				SenderServerID = ModuleScriptTable["Diary"] and ModuleScriptTable["Diary"]._serverId or "unknown",
+				Payloads = {},
+			}
+
+			ActivePackages[Gateway] = Active
+
+			-- Register custom user-defined gateways into the Round-Robin dispatcher queue
+			if Gateway ~= SYSTEM_GATEWAY and Gateway ~= MULTIPLEX_GATEWAY then
+				if not CustomGatewaysLookup[Gateway] then
+					CustomGatewaysLookup[Gateway] = true
+					table.insert(CustomGatewaysArray, Gateway)
+				end
+			end
+		end
+
+		--[[
+			Opportunistic JIT Swap: Memory Optimization
+			If the background worker resolved the last payload's string ID moments after it was staged, swap the heavy string for a lightweight integer right now before calculating the box's size.
+		]]
+		local LastIndex = #Active.Payloads
+
+		if LastIndex > 0 then
+			local LastPayload = Active.Payloads[LastIndex]
+
+			if type(LastPayload[1]) == "string" then
+				local ResolvedID = StringsToIDs[LastPayload[1]]
+
+				if ResolvedID then
+					LastPayload[1] = ResolvedID -- Convert to ID in place
+				end
+			end
+		end
+
+		-- Current Payload Interning. Try to compress the current Path into an integer
+		local PathKey: number | string = StringsToIDs[Path :: string]
+
+		if not PathKey then
+			PathKey = Path
+
+			-- If the path is unrecognized, queue it so the background worker can map an ID for future use
+			if not table.find(IDsToQuery, Path) then
+				table.insert(IDsToQuery, Path)
+			end
+		end
+
+		-- Stage the minified tuple into the open box
+		local NewTuple = { PathKey, SerializedPayload }
+
+		table.insert(Active.Payloads, NewTuple)
+
+		-- Measure the physical byte size of the entire box
+		local Success, EncodedString = pcall(function()
+			return DependentServices.Http:JSONEncode(Active)
+		end)
+
+		if not Success or not EncodedString then
+			-- Failsafe: If serialization crashes, remove the corrupt payload to save the rest of the box
+			table.remove(Active.Payloads, #Active.Payloads)
+
+			if IN_STUDIO then warn("[DependentServices] RelayStream: Serialization failed for Gateway: " .. Gateway) end
+
+			return false
+		end
+
+		-- The 1KB Hard Limit Rollover
+		if #EncodedString > 1024 then
+			-- The box is over the limit. Remove the new payload that just added
+			table.remove(Active.Payloads, #Active.Payloads)
+
+			--[[
+				If the box still has older payloads in it, tape it shut and move it to the shipping queue.
+				
+				Note: Payloads that individually exceed the 1KB limit are permanently dropped.
+			]]
+			if #Active.Payloads > 0 then
+				FinalizedPackages[Gateway] = FinalizedPackages[Gateway] or {}
+				table.insert(FinalizedPackages[Gateway], Active)
+			end
+
+			-- Open a brand new box specifically for the payload that caused the overflow
+			local FreshPackage = {
+				SenderServerID = ModuleScriptTable["Diary"] and ModuleScriptTable["Diary"]._serverId or "unknown",
+				Payloads = { NewTuple },
+			}
+
+			local FreshSuccess, FreshEncoded = pcall(function()
+				return DependentServices.Http:JSONEncode(FreshPackage)
+			end)
+
+			-- Verify this single payload isn't massive enough to break the 1KB limit completely on its own
+			if FreshSuccess and FreshEncoded and #FreshEncoded <= 1024 then
+				ActivePackages[Gateway] = FreshPackage
+			else
+				-- Total Failure: The payload itself is too massive to ever be sent via MessagingService
+				ActivePackages[Gateway] = nil
+
+				if IN_STUDIO then warn("[DependentServices] RelayStream: Payload exceeded 1KB on Gateway: " .. Gateway) end
+
+				return false
+			end
+		end
+
+		return true
+	end,
+
+	--[[
+		Lazily opens a SubscribeAsync listener on the given gateway and registers a callback for inbound packets.
+
+		Params:
+		    Gateway          : string                    -- The logical channel name to listen on.
+		    CallbackFunction : (packet: DiaryPacket) -> () -- The function invoked for each received packet.
+
+		Returns:
+		    SubscriptionConnection? -- A disconnect handle, or nil if subscription failed.
+	]]
+	ListenStream = function(Gateway: string, CallbackFunction: (packet: DiaryPacket) -> ()): SubscriptionConnection?
+
+		--[[
+			DependentServices.Messaging.ListenStream: The Lazy Inbound Subscription Binder.
+
+			Registers a callback to be invoked whenever a packet arrives on the specified
+			gateway. On the very first call to ListenStream for any gateway, it bootstraps
+			the shared MULTIPLEX_GATEWAY demultiplexer via ensureMultiplexerIsListening. For
+			the first listener on a specific gateway, it also opens a dedicated SubscribeAsync
+			connection on that gateway to handle packets that were shipped as standalone
+			finalized packages (as opposed to multiplexed bundles).
+
+			Parameters:
+				Gateway          : string                      - The logical channel name to subscribe to.
+				CallbackFunction : (packet: DiaryPacket) -> () - The handler invoked for each inbound packet.
+				                   								 Receives a DiaryPacket containing SenderServerID, 
+				                   								 Path, and the deserialized Data payload.
+
+			Returns:
+				SubscriptionConnection? - A table containing a Disconnect method to unregister the
+										  callback, or nil if the SubscribeAsync call failed.
+
+			Core Behaviors:
+				* Lazy Multiplexer Bootstrap: Calls ensureMultiplexerIsListening the first time
+				  any gateway registers a listener, activating the shared inbound demultiplexer
+				  without opening it prematurely for servers that never receive messages.
+				* Single Direct Connection: Opens exactly one SubscribeAsync on each unique gateway
+				  string on the first listener registration. Subsequent listeners on the same gateway
+				  share the same underlying connection and are dispatched via GatewayReceivers fan-out.
+				* Tuple Unpacking: Extracts the two-element tuple [Path, Data] from each item in the
+				  inbound package's Payloads array, applying ID-to-string resolution on the Path
+				  before reconstructing the full DiaryPacket for delivery to callbacks.
+				* Deserialization on Receipt: Passes RawData through DeepDeserialize before handing
+				  the packet to any callback, restoring all Roblox-typed values to their native forms.
+				* Asynchronous Fan-Out: Spawns each callback invocation with Scheduler.Spawn to
+				  prevent a slow or erroring callback from blocking the SubscribeAsync thread.
+				* Clean Disconnection: The returned SubscriptionConnection.Disconnect removes only
+				  the specific CallbackFunction from GatewayReceivers, leaving other listeners on
+				  the same gateway unaffected.
+		]]
+
+		-- If this is the very first time ANY script has called ListenStream, initialize the background demultiplexer to listen for heavily bundled payload boxes
+		if not MultiplexerInitialized then
+			ensureMultiplexerIsListening()
+			MultiplexerInitialized = true
+		end
+
+		-- Local Registry & Single-Connection Guarantee
+		local IsFirstListener = false
+
+		if not GatewayReceivers[Gateway] then
+			GatewayReceivers[Gateway] = {}
+			IsFirstListener = true
+		end
+
+		-- Add this specific script's callback to the local mailing list for this gateway
+		table.insert(GatewayReceivers[Gateway], CallbackFunction)
+
+		-- Inbound Network Listener (Opens ONLY for the first listener on this gateway)
+		if IsFirstListener then
+			local Success, Err = pcall(function()
+				-- SubscribeAsync handles payloads that were shipped as standalone FinalizedPackages (meaning they were too big for the Multiplexer, or hit the 1KB limit early)
+				MessagingService:SubscribeAsync(Gateway, function(Message)
+					local Package = Message.Data
+
+					if type(Package) ~= "table" or not Package.Payloads then
+						return
+					end
+
+					local SenderID = Package.SenderServerID
+					local Receivers = GatewayReceivers[Gateway]
+
+					if Receivers then
+						for _, Item in ipairs(Package.Payloads) do
+							-- Tuple Unpacking & Decompression
+							local RawPath = Item[1]
+							local RawData = Item[2]
+
+							-- If the Path was compressed into an integer ID, translate it back to a string
+							local TargetPath = (type(RawPath) == "number") and IDsToString[RawPath] or RawPath
+
+							-- Failsafe: If the ID hasn't synced to this server yet, drop the packet to prevent errors (though this rare likely to happen)
+							if type(TargetPath) ~= "string" then
+								continue
+							end
+
+							-- Reconstruct the full packet and deserialize the data back into native Roblox types
+							local Packet = {
+								SenderServerID = SenderID,
+								Path = TargetPath,
+								Data = DependentServices.DeepDeserialize(RawData),
+							}
+
+							--[[
+								Asynchronous Fan-Out:
+								
+								- Fire EVERY callback registered to this gateway on its own separate thread. This prevents a single slow/broken script from crashing the entire network listener
+							]]
+							for _, Callback in ipairs(Receivers) do
+								Scheduler.Spawn(Callback, Packet)
+							end
+						end
+					end
+				end)
+			end)
+
+			if not Success then
+				warn("[DependentServices] Failed to subscribe to gateway " .. Gateway .. ": " .. tostring(Err))
+				return nil
+			end
+		end
+
+		-- Return a disconnect function for this specific listener
+		return {
+			Disconnect = function()
+				local Receivers = GatewayReceivers[Gateway]
+
+				if Receivers then
+					local Index = table.find(Receivers, CallbackFunction)
+
+					if Index then
+						table.remove(Receivers, Index)
+					end
+				end
+			end,
+		}
+	end,
+} :: MessagingInterface
+
+----------------------------------------------------------
+return DependentServices -- DependentServices module version 1.3.24
+----------------------------------------------------------
