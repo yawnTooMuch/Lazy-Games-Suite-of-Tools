@@ -243,8 +243,9 @@ end)
 **Scenario C — Cleaning an existing protected gateway**
 
 ```luau
--- Setting the value to nil will clear the registry and makes the gateway public again
-ByteWave.SetGatewayWhitelist("AdminRoom", nil)
+-- Passing an empty table clears the whitelist and makes the gateway public again.
+-- Do not pass nil — this raises an error in strict mode.
+ByteWave.SetGatewayWhitelist("AdminRoom", {})
 ```
 
 ---

@@ -3,8 +3,6 @@
 **Type:** Framework  
 _A binary-batching networking framework for Roblox that replaces raw RemoteEvents with structured, high-throughput packet routing, scoped state replication, and built-in anti-spam protection._
 
-[Distribution:]() `Private Framework, exclusive only within Lazy Games usage.`
-
 ---
 
 ## Overview
@@ -34,7 +32,7 @@ This segregation happens invisibly — you call `Send` and ByteWave decides the 
 
 ### Auto Compression of Packets
 
-Before any packet leaves the outbound buffer, ByteWave will inspect the serialized byte representation and apply format-appropriate compression automatically. The developer never calls a compression function — the pipeline detects payload size and type, selects the most compact encoding strategy for that class of data, and compresses before transmission. On the receiving end, the reverse step is applied transparently before the decoded value is delivered to any listener or state callback. From the developer's perspective, values go in and values come out — the compression round-trip is completely invisible.
+Before any packet leaves the outbound buffer, ByteWave selects the most compact binary representation for that value's type. Integers are written in the smallest integer width that fits the value — a small counter costs one or two bytes rather than a full eight-byte float. Native Roblox types such as `Vector3`, `CFrame`, and `Color3` are encoded into fixed-width binary layouts rather than being serialized as Lua tables. String payloads travel through a dedicated lane using a two-byte length prefix rather than null terminators or padding. The developer never calls a serialization function — the pipeline inspects the value's type, selects the correct binary encoding for that class of data, and writes it directly into the outbound buffer. On the receiving end, the reverse step is applied transparently before the decoded value is delivered to any listener or state callback. From the developer's perspective, values go in and values come out — the encoding round-trip is completely invisible.
 
 ### String Named Routing Mechanism
 

@@ -15,7 +15,7 @@ Passed to middleware functions. Represents a fully-decoded inbound packet before
 |:---|:---|:---|
 | `Player` | `Player` | The player who sent the packet. |
 | `Gateway` | `string` | The gateway the packet arrived on. |
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 
 #### `InboundPacket`
@@ -24,7 +24,7 @@ Passed to gateway listeners on the server. Identical to `ByteWavePacket` but wit
 | Field | Type | Description |
 |:---|:---|:---|
 | `Player` | `Player` | The player who sent the packet. |
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 
 #### `SendConfig` *(server)*
@@ -143,6 +143,8 @@ Require this on the server. All public APIs are described below.
 | **[SetRequestHandler](#setrequesthandler)** | `void` | Registers a server-side handler for client RPC requests on a named gateway. |
 | **[AttachMiddleware](#attachmiddleware)** | `void` | Attaches a custom function that intercepts every inbound packet before listeners receive it. |
 | **[PlayerAdded](#playeradded)** | `void` | Registers a callback that fires when a player completes the connection handshake. |
+| **[Pack](#pack)** | `number` | Compresses up to three 16-bit integers into a single 64-bit numeric value. |
+| **[Unpack](#unpack)** | `number, number, number` | Decompresses a value created by `Pack` back into its three component integers. |
 | **[Inject](#inject-server)** | `void` | Injects an external library from the Lazy Games Suite of Tools into the ByteWave suite. |
 
 ---
@@ -156,7 +158,7 @@ Queues a packet to be sent to a specific player or broadcast to all players on t
 | Name | Type | Description |
 |:---|:---|:---|
 | `Gateway` | `string` | The gateway the packet arrived on. |
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Options` | `SendConfig?` | (Optional) Controls target player, reliability, and string interning. |
 
@@ -185,7 +187,7 @@ Registers a callback to receive all packets arriving on the named gateway from a
 **Returns:** `DisconnectObject`
 
 !!! warning "Side Effect"
-    Registering a listener on `"System"` is permitted but receives internal handshake and synchronization packets. These are not player data. The returned `DisconnectObject` for `"System"` is inert — the listener cannot be removed.
+    Registering a listener on `"System"` is permitted but the callback will **never be invoked**. Internal System traffic is routed exclusively through ByteWave's own handler table and never reaches `GatewayReceivers`. The returned `DisconnectObject` for `"System"` is also inert — calling `Disconnect()` on it has no effect.
 
 !!! tip "Lifetime management"
     Pass `{ ____BindTo = someInstance }` to have the listener removed automatically when `someInstance` is destroyed, with no manual `Disconnect()` call needed.
@@ -201,7 +203,7 @@ Queues a packet for delivery to every player currently within the specified radi
 | Name | Type | Description |
 |:---|:---|:---|
 | `Gateway` | `string` | The gateway the packet arrived on. |
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Anchor` | `BasePart | Model | Attachment` | The world position to measure distance. |
 | `Options` | `SpatialConfig` | Required. Must include `____Radius`. |
@@ -228,12 +230,12 @@ Restricts access to a gateway so that only clients whose UserId appears in the l
 | Name | Type | Description |
 |:---|:---|:---|
 | `Gateway` | `string` | The gateway the packet arrived on. |
-| `AllowedUserIds` | `{ number }` | Array of UserIds permitted to send on this gateway. |
+| `AllowedUserIds` | `{ number? }` | Array of UserIds permitted to send on this gateway. |
 
 **Returns:** `void`
 
 !!! warning "Side Effect"
-    Calling this replaces any existing whitelist for the gateway entirely. There is no additive mode.
+    Calling this replaces any existing whitelist for the gateway entirely. There is no additive mode. To remove a whitelist and make the gateway public again, pass an empty table `{}` — passing `nil` will raise an error in strict mode.
 
 ---
 
@@ -271,7 +273,7 @@ Attaches a function that is called for every inbound packet, before any gateway 
 **Returns:** `void`
 
 !!! info "Order of evaluation"
-    Middleware functions run in the order they were attached. ByteWave's built-in anti-spam protection is always the first middleware in the pipeline.
+    Middleware functions run in the order they were attached. ByteWave's built-in anti-spam protection is installed during the deferred initialization phase. Any middleware attached before that phase completes will run **before** the built-in layer; any middleware attached after will run after it. For guaranteed ordering relative to the defense layer, attach middleware inside `ByteWave.PlayerAdded` or after the first frame has elapsed.
 
 !!! warning "System packets are exempt"
     Packets on the `"System"` gateway (handshake, time sync, RPC responses) bypass all middleware, including the built-in anti-spam layer.
@@ -295,6 +297,43 @@ Registers a callback that fires once for each player after they have completed B
 
 ---
 
+<a id="pack"></a>
+#### `Pack`
+Compresses up to three 16-bit integers into a single 64-bit numeric value. Useful for grouping multiple small IDs into one payload to reduce buffer space.
+
+**Parameters:**
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `...` | `number` | Up to three 16-bit integer values (0–65,535) to compress. |
+
+**Returns:** `number` — the combined packed value.
+
+!!! warning "16-bit ceiling"
+    The first two arguments must be in the range 0–65,535. The third argument has a wider range. Passing values outside these bounds or decimal numbers logs a warning in Studio. Results for out-of-range inputs are undefined.
+
+!!! danger "Argument limit"
+    Passing more than three arguments raises an error in Studio.
+
+---
+
+<a id="unpack"></a>
+#### `Unpack`
+Decompresses a value previously created by `Pack` back into its three original component integers.
+
+**Parameters:**
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `PackedValue` | `number` | The packed numeric value previously generated by `Pack`. |
+
+**Returns:** `number, number, number` — the three extracted integers in their original order.
+
+!!! warning "Decimal inputs"
+    Passing a non-integer packed value logs a warning in Studio. Results may be imprecise if the input was not produced by `Pack`.
+
+---
+
 <a id="inject-server"></a>
 #### `Inject` *(server)*
 Injects an external library/framework within the Lazy Games Suite of Tools environment. Currently supports the **Assignment** and **Twin** library.
@@ -303,8 +342,8 @@ Injects an external library/framework within the Lazy Games Suite of Tools envir
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `moduleName` | `string` | The name of the ModuleScript file. |
-| `moduleTableObject` | `any` | The module table to inject. |
+| `ModuleName` | `string` | The name of the ModuleScript file. |
+| `ModuleTableObject` | `any` | The module table to inject. |
 
 **Returns:** `void`
 
@@ -340,7 +379,7 @@ Queues a packet to be sent to the server on the next Heartbeat flush.
 | Name | Type | Description |
 |:---|:---|:---|
 | `Gateway` | `string` | The gateway the packet arrived on. |
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Options` | `SendConfig?` | (Optional) Control channel via `____IsReliable`. |
 
@@ -410,8 +449,8 @@ Injects an external library within the Lazy Games Suite of Tools environment. Cu
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `moduleName` | `string` | The name of the ModuleScript file. |
-| `moduleTableObject` | `any` | The module table to inject. |
+| `ModuleName` | `string` | The name of the ModuleScript file. |
+| `ModuleTableObject` | `any` | The module table to inject. |
 
 **Returns:** `void`
 
@@ -431,7 +470,6 @@ Injects an external library within the Lazy Games Suite of Tools environment. Cu
 | **[CreateState](#createstate)** | `StateObject` | Creates and registers a new replicated state object. |
 | **[GetState](#getstate-server)** | `StateObject?` | Returns the StateObject for a given ID, or nil if it does not exist. |
 | **[GetActiveStates](#getactivestates)** | `{ [string]: StateObject }` | Returns the full dictionary of all currently registered states. |
-| **[SetSpatialRoot](#setspatialroot)** | `void` | Overrides the workspace root used for spatial overlap queries. |
 
 ---
 
@@ -449,7 +487,7 @@ Creates, registers, and immediately replicates a new StateObject with the given 
 | `OwnerOrFilter` | `(Player | { Player })?` | A single Player (for Private scopes) or an array of Players (for Filtered scopes). |
 | `Anchor` | `BasePart | Model?` | Required for Spatial scopes. The world object whose position determines discovery. |
 | `Radius` | `number?` | Discovery radius in studs for Spatial scopes. Defaults to `150`. |
-| `HierarchyInfo` | `{ Parent: StateObject? }?` | (Optional) Links this state as a child of another. Children inherit their parent's scope and owner/filter when not specified. |
+| `HierarchyInfo` | `{ ____Parent: StateObject? }?` | (Optional) Links this state as a child of another. Children inherit their parent's scope and owner/filter when not specified. |
 
 **Returns:** `StateObject`
 
@@ -485,23 +523,6 @@ Returns the complete dictionary of all currently registered states, keyed by the
 
 !!! warning "Side Effect"
     The returned table is a direct reference to the live registry. Do not modify it.
-
----
-
-<a id="setspatialroot"></a>
-#### `SetSpatialRoot`
-Overrides the workspace scope used for all spatial overlap queries. By default queries search the entire workspace. After calling this, queries are restricted to descendants of the specified folder.
-
-**Parameters:**
-
-| Name | Type | Description |
-|:---|:---|:---|
-| `Folder` | `Instance` | The root Instance to scope all spatial queries within. |
-
-**Returns:** `void`
-
-!!! warning "Must be called before creating Spatial states"
-    This setting is applied once at startup. Calling it after Spatial states have already been created will not retroactively narrow their search scope.
 
 ---
 
@@ -571,7 +592,7 @@ Adds a player to this state's allow-list. The player immediately receives a full
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `player` | `Player` | The player to add. |
+| `Player` | `Player` | The player to add. |
 
 **Returns:** `void`
 
@@ -588,7 +609,7 @@ Removes a player from this state's allow-list and sends a destroy signal to that
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `player` | `Player` | The player to remove. |
+| `Player` | `Player` | The player to remove. |
 
 **Returns:** `void`
 
