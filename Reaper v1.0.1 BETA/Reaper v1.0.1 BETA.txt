@@ -1,0 +1,2338 @@
+--[[
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Reaper - Surface Garbage Collector Framework					 						 						 000
+	000 Version: 1.0.1 Beta Release													  			 						 000
+	000 Platform: Roblox													  											 000
+	000 License: Apache 2.0												  	  					 						 000
+	000																		  					 						 000
+	000																		  					 						 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					 						 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			 						 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/reaper-memory-leak-is-no-longer-a-nightmare/4585654 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Reaper_ReadOnly 					 	 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/reaper/ 						 000
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Configuration Section
+----------------------------------------------------------
+
+local ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE: boolean = game:GetService("RunService"):IsStudio() -- Enables parameter validation in Studio only
+
+local GENERAL_CHECK_INTERVAL: number = 30                                                            -- Seconds between general registry sweeps
+local GENERAL_BATCH_SIZE: number = 500                                                               -- Max items to process per frame during a general registry sweep
+local PRIMARY_SWEEP_FRAME_INTERVAL: number = 5                                                       -- Run primary list sweep every N heartbeat frames
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Type Structures Section
+----------------------------------------------------------
+
+-- The foundation of the engine's tracking capabilities. It explicitly defines every data type that the Reaper framework natively knows how to monitor and tear down.
+type Reapable = Instance | RBXScriptConnection | thread | (() -> ()) | { [any]: any }
+
+-- Syntactic sugar for a .Cancel() call.
+type Handle = {
+	_cancelled : boolean,
+	Break      : (self: Handle) -> (),
+}
+
+-- The main classifications that Reaper assigns to items that it tracks.
+export type Classification = "Instance" | "Connection" | "Thread" | "Function" | "Table" | "Scope" | "Unknown"
+
+-- The master state object that wraps a raw item. It holds the item's hierarchical pointers, its background polling frequency, and its exact O(1) array location.
+export type TrackObject = {
+	Item           : Reapable, 					-- The raw physical item being monitored.
+	AssignID       : string?,  					-- An optional string ID allowing cross-script retrieval (e.g., Reaper.Get("PlayerUI")).
+	Frequency      : number?,					-- The background polling interval. 0 means it sits in the manual, unpolled tier.
+	IsProtected    : boolean,					-- If true, the object is simply un-tracked rather than physically destroyed when it dies naturally.
+	_DeathListener : RBXScriptConnection?,		-- A dedicated connection for tracking Instance.AncestryChanged events natively.
+	_LastCheck     : number,					-- Temporal tracking for the background sweeper loop.
+	_Children      : { [Reapable]: number }?,	-- Hierarchical Memory Graph: Stores subordinate items and their specific class IDs.
+	_BoundScopes   : { [string]: true }?,		-- Cascading Scope Pointers.
+	
+	-- Explicit teardown overrides (e.g., calling object:CustomCleanup() instead of object:Destroy()).
+	_CustomMethod  : string?,
+	_ChildMethods  : { [Reapable]: string }?,
+	
+	-- O(1) Self-Aware Array Pointers: The object knows exactly where it lives in RAM.
+	_CurrentList   : { TrackObject },
+	_CurrentMap    : { [any]: number },
+	
+	-- State Flags: Prevents double-free errors and infinite teardown recursion.
+	_Cleaned       : boolean,
+	_Evicted       : boolean,
+	
+	-- Engine routing metadata.
+	Classification : Classification,
+	_ClassID       : number,
+	
+	-- Public API Methods
+	Configure      : (self: TrackObject, AssignID: string, Frequency: number) -> TrackObject,
+	Chain          : (self: TrackObject, ChildItem: Reapable, CustomMethod: string?) -> TrackObject,
+	HandleScope    : (self: TrackObject, Scope: string | ScopeObject) -> TrackObject,
+	Destroy        : (self: TrackObject) -> (),
+}
+
+--[[
+	An extension of the TrackObject specifically designed to act as a parent container. 
+	It includes powerful syntactic sugar for seamlessly capturing custom scheduler 
+	tasks (Assignment library) and native events, automatically appending them to 
+	its internal memory graph.
+]]
+export type ScopeObject = TrackObject & {
+	-- Public API Methods
+	Unchain     : (self: ScopeObject, ChildItem: Reapable) -> ScopeObject,
+	CleanChild  : (self: ScopeObject, ChildItem: Reapable) -> ScopeObject,
+	BindToTrack : (self: ScopeObject, Track: TrackObject) -> ScopeObject,
+	
+	-- Seamless integration wrappers: Captures the output and instantly chains it to the Scope.
+	Connect     : (self: ScopeObject, Signal: any, Callback: any) -> RBXScriptConnection,
+	Spawn       : (self: ScopeObject, Callback: (...any) -> (), ...any) -> thread,
+	Defer       : (self: ScopeObject, Callback: (...any) -> (), ...any) -> any,
+	Delay       : (self: ScopeObject, TimeDelay: number, Callback: (...any) -> (), ...any) -> any,
+	Repeat      : (self: ScopeObject, Count: number, Interval: number?, Callback: (...any) -> (), ...any) -> any,
+}
+
+-- These types allow Reaper to interface cleanly with the Relay and Assignment libraries with strict type safety.
+------------------------------------------------------------------------------------------------------------------
+export type ConnectionObject = {
+	_cancelled  : boolean,
+	Disconnect  : (self: ConnectionObject) -> (),
+	IsConnected : (self: ConnectionObject) -> boolean,
+	BindTo      : (self: ConnectionObject, TieTarget: any) -> ConnectionObject,
+}
+export type ListenerSignal<T...> = {
+	Connect : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Once    : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Wait    : (self: ListenerSignal<T...>) -> T...,
+}
+export type ReaperSignals = {
+	OnTracked : ListenerSignal<(any, Classification, string?)>,
+	OnCleaned : ListenerSignal<(any, Classification)>,
+	OnRemoved : ListenerSignal<(any, Classification)>,
+}
+------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Imported Services Section
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Internal States Section
+----------------------------------------------------------
+
+local Reaper = {}
+local Loaded: any = nil
+local RelayInjected: boolean = false
+local AssignmentInjected: boolean = false
+
+-- Dynamic Task Scheduler
+local Scheduler = {
+	Spawn = task.spawn,
+	Defer = task.defer,
+	Delay = task.delay,
+	Wait = task.wait,
+	Cancel = task.cancel,
+	Repeat = function(_Count: number, _Interval: number?, _TaskFunction: (number, Handle, ...any) -> (), ...: any) end,
+}
+
+--[[
+	Tri-Tiered Memory Arrays:
+	
+	Flat arrays utilized for O(1) Pop-and-Swap iteration during sweeps.
+]]
+local PrimaryList: { TrackObject } = {} -- Objects with custom polling frequencies.
+local GeneralList: { TrackObject } = {} -- Objects polled during the 30-second batched sweep.
+local ManualList: { TrackObject } = {}  -- Objects exempt from polling (event-driven or Scope-bound).
+
+--[[
+	O(1) Array Pointers:
+	
+	Companion dictionaries that map an object (or AssignID) to its exact integer index within the Lists above, enabling instant O(1) memory erasure.
+]]
+local PrimaryMap: { [string]: number } = {}
+local GeneralMap: { [Reapable]: number } = {}
+local ManualMap: { [any]: number } = {}
+
+--[[
+	Global Registries and Hierarchical State:
+	
+	GlobalItemRegistry ensures an item is only ever tracked once. ObjectOwnershipMap enforces 'Last Call Supremacy', preventing infinite loops 
+	if multiple Scopes attempt to claim ownership of the exact same object.
+]]
+local GlobalItemRegistry: { [Reapable]: TrackObject } = {}
+local ObjectOwnershipMap: { [Reapable]: TrackObject } = {}
+
+-- Sweeper State Variables for the throttled General Sweep.
+local GeneralAccumulator: number = 0
+local FrameCounter: number = 0
+local GeneralSweepActive: boolean = false
+local GeneralSweepIndex: number = 1
+
+--[[
+	Classification Constants:
+	
+	Integer mapping is utilized over raw strings during high-frequency Heartbeat sweeps to minimize string-hashing overhead in the Luau VM.
+]]
+--------------------------------------------------------------------------------------------------------------------------------------------
+local CLASS_INSTANCE = 1
+local CLASS_CONNECTION = 2
+local CLASS_THREAD = 3
+local CLASS_FUNCTION = 4
+local CLASS_TABLE = 5
+local CLASS_SCOPE = 6
+local CLASS_UNKNOWN = 7
+
+local ClassifierGraph: { [string]: number } = {
+	["Instance"] = CLASS_INSTANCE,
+	["RBXScriptConnection"] = CLASS_CONNECTION,
+	["thread"] = CLASS_THREAD,
+	["function"] = CLASS_FUNCTION,
+	["table"] = CLASS_TABLE,
+}
+local ExplicitClassGraph: { [string]: number } = {
+	["Instance"] = CLASS_INSTANCE,
+	["Connection"] = CLASS_CONNECTION,
+	["Thread"] = CLASS_THREAD,
+	["Function"] = CLASS_FUNCTION,
+	["Table"] = CLASS_TABLE,
+	["Scope"] = CLASS_SCOPE,
+	["Unknown"] = CLASS_UNKNOWN,
+}
+local ClassIDToString: { [number]: string } = {
+	[CLASS_INSTANCE] = "Instance",
+	[CLASS_CONNECTION] = "Connection",
+	[CLASS_THREAD] = "Thread",
+	[CLASS_FUNCTION] = "Function",
+	[CLASS_TABLE] = "Table",
+	[CLASS_SCOPE] = "Scope",
+	[CLASS_UNKNOWN] = "Unknown",
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+--[[
+	The Polymorphic Dead-Check Graph:
+	
+	An O(1) dispatch table that executes the correct "Is Dead" query based on object type.
+	For example, an Instance is dead if it leaves the DataModel (game), while a thread 
+	is dead if its coroutine status returns "dead".
+]]
+local DeadCheckGraph: { [number]: (any) -> boolean } = {
+	[CLASS_INSTANCE] = function(Item: any)
+		return not (Item :: Instance):IsDescendantOf(game)
+	end,
+
+	[CLASS_CONNECTION] = function(Item: any)
+		return not (Item :: RBXScriptConnection).Connected
+	end,
+
+	[CLASS_THREAD] = function(Item: any)
+		return coroutine.status(Item :: thread) == "dead"
+	end,
+
+	-- Tables, Functions, and Scopes do not have native engine "dead states". They rely entirely on manual removal, parent-scope teardown, or custom events.
+	--------------------------------------------------------------------------------------------------------------------------------------------------------
+	[CLASS_FUNCTION] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_TABLE] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_SCOPE] = function(_Item: any)
+		return false
+	end,
+
+	[CLASS_UNKNOWN] = function(_Item: any)
+		return false
+	end,
+	--------------------------------------------------------------------------------------------------------------------------------------------------------
+}
+
+--[[
+	The Polymorphic Teardown Graph:
+	
+	An O(1) dispatch table that executes the correct physical destruction logic. It seamlessly abstracts native API differences (:Destroy vs :Disconnect vs .cancel).
+]]
+local TeardownGraph: { [number]: (any) -> () } = {
+	[CLASS_INSTANCE] = function(Item: any)
+		(Item :: Instance):Destroy()
+	end,
+
+	[CLASS_CONNECTION] = function(Item: any)
+		(Item :: RBXScriptConnection):Disconnect()
+	end,
+
+	[CLASS_THREAD] = function(Item: any)
+		task.cancel(Item :: thread)
+	end,
+
+	[CLASS_FUNCTION] = function(Item: any)
+		(Item :: (() -> ()))() -- Fires the function as a teardown callback.
+	end,
+
+	-- Intelligent interface sniffing for custom objects or external library handles.
+	[CLASS_TABLE] = function(Item: any)
+		if type(Item.Destroy) == "function" then
+			Item:Destroy()
+			
+		elseif type(Item.Disconnect) == "function" then
+			Item:Disconnect()
+			
+		elseif type(Item._cancelled) == "boolean" then
+			Scheduler.Cancel(Item)
+		end
+	end,
+
+	[CLASS_SCOPE] = function(_Item: any)
+		return
+	end,
+
+	[CLASS_UNKNOWN] = function(_Item: any)
+		return
+	end,
+}
+
+Reaper.Signals = {} :: ReaperSignals
+Reaper.Classifications = {
+	Instance = "Instance",
+	Connection = "Connection",
+	Thread = "Thread",
+	Function = "Function",
+	Table = "Table",
+	Scope = "Scope",
+	Unknown = "Unknown",
+}
+
+--[[
+	Dummy Signal Initialization (Zero-Dependency Resilience):
+	
+	If the developer has not injected the 'Relay' library, we pre-fill the Signals table 
+	with harmless, Non-Operational (No-Op) objects. This guarantees that calling 
+	Reaper.Signals.OnCleaned:Connect() will never error and break the server, it will 
+	simply warn the developer in Studio and return a dummy connection.
+]]
+do
+	local DummyConnection: ConnectionObject = {
+		_cancelled = true,
+		Disconnect = function()
+		end,
+
+		IsConnected = function()
+			return false
+		end,
+
+		BindTo = function(Self)
+			return Self
+		end,
+	} :: any
+
+	-- Creates a no-op signal that warns when Relay has not been injected
+	local function createDummySignal(SignalName: string): any
+		return {
+			Connect = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. This connection will never fire.", SignalName))
+				end
+				
+				return DummyConnection
+			end,
+
+			Once = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. This connection will never fire.", SignalName))
+				end
+				
+				return DummyConnection
+			end,
+
+			Wait = function()
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					warn(string.format("[Reaper] %s Warning: 'Relay' is not injected. Yielding forever.", SignalName))
+				end
+				
+				return coroutine.yield()
+			end,
+
+			GetConnectionCount = function()
+				return 0
+			end,
+
+			Fire = function()
+			end,
+		}
+	end
+
+	Reaper.Signals.OnTracked = createDummySignal("OnTracked")
+	Reaper.Signals.OnCleaned = createDummySignal("OnCleaned")
+	Reaper.Signals.OnRemoved = createDummySignal("OnRemoved")
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Local Function Section
+----------------------------------------------------------
+
+-- Returns the Classification string for any value based on its runtime type
+local function autoClassify(Item: any): (Classification, number)
+	
+	--[[
+		autoClassify: The O(1) Type Translation Layer.
+
+		The primary ingestion pipeline for unclassified items. It evaluates the raw 
+		object, validates its existence, and mathematically maps its Luau type string 
+		to the engine's internal integer-based execution graphs.
+
+		Params:
+		    Item : any -- The raw object to classify (Instance, thread, table, etc.).
+
+		Returns:
+		    Classification -- The standardized string classification (e.g., "Instance").
+		    number         -- The highly optimized internal ClassID integer (e.g., 1).
+
+		Core Behaviors:
+		    * Fail-Fast Integrity: Instantly terminates execution and throws a stack trace if a nil item is detected, preventing phantom memory pollution.
+		    * O(1) Dictionary Mapping: Uses the pre-compiled ClassifierGraph to instantly resolve the integer ID without iterating through if/elseif chains.
+		    * Type Homogenization: Converts varied external types into a strictly predictable internal format, ensuring safe routing to the Teardown and DeadCheck graphs.
+	]]
+	
+	if Item == nil then
+		error("[Reaper] Track Error: Cannot classify a nil item.\n" .. debug.traceback(), 2)
+	end
+
+	local ClassID = ClassifierGraph[typeof(Item)] or CLASS_UNKNOWN
+
+	-- Return the human-readable string (for developer APIs) and the integer ID (for internal engine routing).
+	return ClassIDToString[ClassID] :: Classification, ClassID
+end
+
+-- Removes an entry from a list and its map in O(1) by swapping with the tail element
+local function popAndSwap(List: { TrackObject }, Map: { [any]: number }, Index: number, MapKey: any): ()
+	
+	--[[
+		popAndSwap: The O(1) Array Compactor.
+
+		A hyper-optimized memory erasure function. It deletes an item from the engine's 
+		tracking arrays by swapping it with the tail element, completely bypassing the 
+		massive CPU overhead of standard O(N) array shifting (table.remove).
+
+		Params:
+		    List   : { TrackObject }    -- The specific array tier (Primary, General, or Manual).
+		    Map    : { [any]: number }  -- The companion dictionary containing O(1) index pointers.
+		    Index  : number             -- The exact array index of the object being destroyed.
+		    MapKey : any                -- The dictionary key (AssignID or Item) of the object being destroyed.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * O(1) Gap Filling: Moves the tail element into the deleted element's slot, perfectly compressing the array without a single table shift.
+		    * Pointer Synchronization: Instantly rewrites the moved tail element's map pointer, guaranteeing that subsequent Reaper.Get() queries remain perfectly accurate.
+		    * Context-Aware Key Routing: Intelligently determines whether the tail element is tracked by its physical Item pointer or its string AssignID based on its resident tier.
+	]]
+	
+	-- Cache the total length of the array (which is also the index of the tail element).
+	local LastIndex = #List
+
+	-- If the item being deleted is ALREADY the last item in the array, we skip the swap completely and just erase it.
+	if Index ~= LastIndex then
+		-- Grab the object currently sitting at the very end of the array.
+		local LastItem = List[LastIndex]
+
+		-- Move the tail object into the slot of the object we are deleting.
+		List[Index] = LastItem
+
+		-- We must figure out what dictionary key this moved object uses so we can update its pointer.
+		local NewKey: any
+
+		if List == GeneralList then
+			-- The General tier strictly maps by raw physical item references.
+			NewKey = LastItem.Item
+
+		else
+			-- The Primary and Manual tiers map by the developer's custom string ID, falling back to the item reference if no string ID was configured.
+			NewKey = LastItem.AssignID or LastItem.Item
+		end
+
+		-- Update the O(1) dictionary so the engine knows the moved object's new array location.
+		Map[NewKey] = Index
+	end
+	
+	-- Destroy the old tail slot (which was either swapped or is the item itself) and erase the dead object's pointer from the dictionary to free the memory.
+	List[LastIndex] = nil
+	Map[MapKey] = nil
+end
+
+-- Static teardown logic executed without closure captures
+local function safeTeardownLogic(Item: any, ClassID: number, CustomMethod: string?, Tracker: TrackObject?): ()
+	
+	--[[
+		safeTeardownLogic: The Static Teardown Pipeline.
+
+		The physical execution layer for memory destruction. It operates as a pure, 
+		static function to guarantee zero closure-allocation overhead, safely routing 
+		destruction logic through custom developer overrides or the engine's O(1) 
+		polymorphic graphs.
+
+		Params:
+		    Item         : any          -- The raw physical item to destroy.
+		    ClassID      : number       -- The O(1) integer classification of the item.
+		    CustomMethod : string?      -- (Optional) An explicit method name to call instead of the default.
+		    Tracker      : TrackObject? -- (Optional) The engine's internal tracker wrapper.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Static Execution: Exists entirely outside of object scopes, explicitly requiring all parameters to completely eliminate Luau closure allocations.
+		    * Internal Pruning: Proactively disconnects the engine's own internal RBXScriptConnections (like AncestryChanged) to ensure the Reaper framework never leaks its own memory.
+		    * Polymorphic Execution: Prioritizes explicit developer overrides, gracefully falling back to the highly optimized, O(1) TeardownGraph for native Engine destruction.
+	]]
+	
+	-- If this object was tracking its own native death (e.g., an Instance listening to AncestryChanged), we must sever that connection immediately. Otherwise, the Reaper framework itself will leak memory.
+	if Tracker and Tracker._DeathListener then
+		Tracker._DeathListener:Disconnect()
+		Tracker._DeathListener = nil
+	end
+
+	-- If the developer specified a custom teardown method (e.g., "Dispose" or "Clear")...
+	if CustomMethod then
+		-- Validate that the item is a table and actually possesses the requested method.
+		if type(Item) == "table" and type(Item[CustomMethod]) == "function" then
+			-- Execute the custom method natively.
+			Item[CustomMethod](Item)
+
+		else
+			-- The developer provided a CustomMethod string, but the object does not have that function. Warn them immediately, because this object is now officially leaking memory.
+			warn(string.format("[Reaper] Teardown Warning: Custom method '%s' not found on object. Memory may leak.", CustomMethod))
+		end
+
+		-- Abort execution so we don't accidentally run native engine destruction on an object that was meant to be handled customly.
+		return
+	end
+
+	-- Route the integer ClassID through the execution graph. 
+	local TeardownAction = TeardownGraph[ClassID]
+
+	-- If a valid C-side action exists for this type (e.g., :Destroy(), :Disconnect()), fire it.
+	if TeardownAction then
+		TeardownAction(Item)
+	end
+end
+
+-- Executes the appropriate teardown action for an item and fires OnCleaned if connected
+local function executeTeardown(Item: any, ClassID: number, CustomMethod: string?, Tracker: TrackObject?): ()
+	
+	--[[
+		executeTeardown: The Protected Execution and Observability Pipeline.
+
+		The master wrapper for memory destruction. It manages environment-specific error 
+		handling, ensures the sweeper loop survives catastrophic developer teardown errors 
+		in Studio, and broadcasts precise lifecycle state changes to the external Relay bus.
+
+		Params:
+		    Item         : any          -- The raw physical item to destroy.
+		    ClassID      : number       -- The O(1) integer classification of the item.
+		    CustomMethod : string?      -- (Optional) An explicit method name to call instead of the default.
+		    Tracker      : TrackObject? -- (Optional) The engine's internal tracker wrapper.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Environment-Aware Fast-Pathing: Dynamically toggles pcall allocations based on Studio/Production environments to maximize live-server frame rates.
+		    * Zero-Cost Observability: Broadcasts the OnCleaned signal strictly if external listeners exist, bypassing event-firing overhead for unmonitored systems.
+		    * Engine Blast Shield: Traps and formats fatal execution errors during custom teardown routines, guaranteeing the master Janitor sweep is never halted by a single bad object.
+	]]
+	
+	-- Silently absorb nil items to prevent execution faults during recursive cascades.
+	if Item == nil then return end
+
+	local Success: boolean?, ErrorMessage: any = nil, nil
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		-- Studio/Debug Mode: Wrap the teardown in a protected call. This catches errors caused by broken CustomMethods, preventing the underlying Heartbeat loop from crashing.
+		Success, ErrorMessage = pcall(safeTeardownLogic, Item, ClassID, CustomMethod, Tracker) :: boolean, string
+
+	else
+		-- Production Mode: The pcall is stripped out entirely. The engine executes raw C-side teardowns at absolute maximum velocity.
+		safeTeardownLogic(Item, ClassID, CustomMethod, Tracker)
+	end
+
+	if RelayInjected and Reaper.Signals.OnCleaned then
+		-- Only construct and fire the signal if a downstream script is actually listening.
+		if (Reaper.Signals.OnCleaned :: any):GetConnectionCount() > 0 then
+			(Reaper.Signals.OnCleaned :: any):Fire(Item, ClassIDToString[ClassID])
+		end
+
+		-- Developer Warning: Relay is missing, but they are in Strict mode.
+	elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+		warn("[Reaper] OnCleaned Warning: 'Relay' library is needed to use this signal.")
+	end
+
+	-- If the protected call failed in Studio, the engine intercepted the crash.
+	if not Success then
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			-- Throw a highly detailed, non-fatal warning to the developer console. This pinpoints the exact object type and line of failure without stopping the rest of the array from being swept.
+			warn(string.format("[Reaper] Teardown Error: Failed to teardown item on %s!\nError: %s\n%s", ClassIDToString[ClassID] or "Unknown", tostring(ErrorMessage), debug.traceback()))
+		end
+	end
+end
+
+-- Evaluates whether a tracked item is dead and runs teardown if so; returns true if cleaned
+local function checkAndClean(ReaperObject: TrackObject): boolean
+	
+	--[[
+		checkAndClean: The Hierarchical Cascade Trigger.
+
+		The evaluation core for the sweep loop. It checks the dead-state of a given 
+		object using O(1) polymorphic graphs. If the object has died naturally, it executes 
+		the physical teardown and initiates a recursive memory cascade to destroy all 
+		owned children and bound scopes.
+
+		Params:
+		    ReaperObject : TrackObject -- The tracking handle to evaluate.
+
+		Returns:
+		    boolean -- true if the object was dead and has been cleaned; false if still alive.
+
+		Core Behaviors:
+		    * O(1) State Polling: Bypasses complex type-checking by routing the object directly into the integer-based DeadCheckGraph.
+		    * Smart Downward Cascade: Intelligently routes child teardowns, using full Reaper.Clean() for globally registered items and fast-path executeTeardown() for raw items.
+		    * Lateral Scope Execution: Recursively triggers the destruction of fully bound ScopeObjects, ensuring massive memory trees collapse perfectly when the root dies.
+	]]
+	
+	-- Extract raw physical pointers for the O(1) graph.
+	local Item = ReaperObject.Item
+	local ClassID = ReaperObject._ClassID
+
+	-- O(1) Dead-State Evaluation
+	local IsDead = DeadCheckGraph[ClassID](Item)
+
+	-- If the object is still alive, abort and return false. The Janitor will check again later.
+	if IsDead then
+		-- Lock the state to prevent infinite recursion during circular teardowns.
+		ReaperObject._Cleaned = true
+
+		-- Physically destroy the root item.
+		executeTeardown(Item, ClassID, ReaperObject._CustomMethod, ReaperObject)
+
+		-- The Downward Cascade (Chained Children)
+		if ReaperObject._Children then
+			for Child, ChildClassID in ReaperObject._Children do
+				-- Relinquish engine ownership of this child so it doesn't trigger "Last Call Supremacy" warnings during its own destruction.
+				ObjectOwnershipMap[Child] = nil
+
+				-- Check if the child has a dedicated tracking handle in the global registry.
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					-- The child is fully tracked. Route it through the master clean function so its O(1) array pointers are properly erased.
+					Reaper.Clean(ChildTracker)
+
+				else
+					-- The child is a raw, anonymously chained item. 
+					-- Fetch any custom method the developer applied specifically to this child, and forcefully destroy it via the fast-path execution layer.
+					local ChildMethod = ReaperObject._ChildMethods and ReaperObject._ChildMethods[Child]
+					
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			-- Sever the internal dictionaries to assist the Luau Garbage Collector.
+			ReaperObject._Children = nil
+			ReaperObject._ChildMethods = nil
+		end
+
+		-- The Lateral Cascade (Bound Scopes)
+		if ReaperObject._BoundScopes then
+			for ScopeID in ReaperObject._BoundScopes do
+				-- Recursively trigger the master clean function for every bound scope, collapsing massive memory trees instantly.
+				Reaper.Clean(ScopeID)
+			end
+
+			-- Sever the internal dictionary.
+			ReaperObject._BoundScopes = nil
+		end
+	end
+
+	-- Return the dead-state so the Janitor loop knows whether to pop this object from the array.
+	return IsDead
+end
+
+-- Resolves any identifier form (string, item reference, or TrackObject) to its registry entry
+local function resolveIdentifier(Identifier: any): (TrackObject?, number?, { TrackObject }?, { [any]: number }?, any)
+	
+	--[[
+		resolveIdentifier: The Polymorphic Pointer Extractor.
+
+		A highly optimized O(1) router that accepts any valid developer input (String ID, 
+		Raw Item, or TrackObject handle) and resolves it into the exact physical array 
+		and dictionary pointers required for memory manipulation.
+
+		Params:
+		    Identifier : any -- The developer's target (AssignID string, Item, or Handle).
+
+		Returns:
+		    TrackObject?      -- The live tracker wrapper.
+		    number?           -- The O(1) integer index where the object currently resides in its list.
+		    { TrackObject }?  -- A direct pointer to the array list currently holding the object.
+		    { [any]: number }?-- A direct pointer to the dictionary map tracking the object.
+		    any               -- The exact key used in the dictionary (String or Raw Item).
+
+		Core Behaviors:
+		    * Input Normalization: Instantly strips TrackObject wrappers down to their raw identifier keys.
+		    * Tier-Aware Traversal: Intelligently routes string lookups away from the General tier, optimizing map queries.
+		    * Pointer Packing: Returns a fully populated tuple, giving downstream functions everything they need for instant array compaction.
+	]]
+	
+	-- If the developer passed a live TrackObject handle, extract its core identifier. We prefer the string AssignID if it exists, falling back to the raw Item pointer.
+	if type(Identifier) == "table" and Identifier.Item ~= nil and type(Identifier.Classification) == "string" then
+		Identifier = Identifier.AssignID or Identifier.Item
+	end
+
+	local Object: TrackObject?
+	local MapKey: any = Identifier
+
+	-- Polymorphic Route A: String ID Lookup
+	if type(Identifier) == "string" then
+		-- Strings only exist in the Primary and Manual tiers. Query the PrimaryMap first (O(1)).
+		local Index = PrimaryMap[Identifier]
+
+		if Index then
+			Object = PrimaryList[Index]
+
+		else
+			-- If not in Primary, query the ManualMap (O(1)).
+			Index = ManualMap[Identifier]
+
+			if Index then
+				Object = ManualList[Index]
+			end
+		end
+
+		-- If the object was found, pack its location data and return the tuple.
+		if Object then
+			return Object, Index, Object._CurrentList, Object._CurrentMap, MapKey
+		end
+
+	else -- Polymorphic Route B: Raw Item Lookup
+		Object = GlobalItemRegistry[Identifier] -- The identifier is a raw physical item (e.g., an Instance or thread). Query the Global registry which holds absolute pointers for all items.
+
+		if Object then
+			-- We found the object. Now we must extract its specific MapKey, because even if the user passed a raw item, the engine might be tracking it under an AssignID string internally.
+			MapKey = Object.AssignID or Object.Item
+
+			-- Extract the integer index using the object's self-aware map pointer.
+			local Index = Object._CurrentMap[MapKey]
+
+			return Object, Index, Object._CurrentList, Object._CurrentMap, MapKey
+		end
+	end
+
+	-- The identifier does not exist in any registry. It may have been a typo, or the object was already cleaned/evicted. Return nil implicitly.
+	return
+end
+
+-- Formats an identifier into a human-readable label for warning messages
+local function formatIdentifierLabel(Identifier: any): string
+	if type(Identifier) == "string" then
+		return Identifier
+
+	elseif type(Identifier) == "table" and type((Identifier :: any).AssignID) == "string" then
+		return (Identifier :: any).AssignID
+	end
+
+	return "Item<" .. tostring(Identifier) .. ">"
+end
+
+--[[
+	Assigns a unique string identifier and a dead-state check interval to this handle, making it reachable by name from any script. A Frequency of 0 places the handle in the manual tier with no background polling; any positive value places eligible item types in the frequency-polled tier and schedules checks at that interval in seconds. Configuration is a one-time operation; calling :Configure() on an already-configured handle throws in Studio.
+
+	Params:
+		AssignID: string  -- Unique identifier used for cross-script retrieval and teardown. Must not already be in use.
+		Frequency: number -- Dead-state check interval in seconds. 0 opts out of all background polling.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectConfigure(Self: TrackObject, AssignID: string, Frequency: number): TrackObject
+	
+	--[[
+		trackObjectConfigure: The Tier Migration and Identity Pipeline.
+
+		Upgrades an anonymous tracked item into a named, explicitly managed object. 
+		It assigns a global string identifier for cross-script retrieval and dynamically 
+		migrates the object between execution tiers based on its requested polling frequency.
+
+		Core Behaviors:
+		    * Immutable Identity: Enforces one-time configuration, throwing fatal errors if a script attempts to rename an already configured item.
+		    * O(1) Tier Migration: Seamlessly extracts the object from the General background pool and promotes it to the Primary or Manual tiers.
+		    * Self-Aware Pointer Updates: Rewrites the object's internal _CurrentList and _CurrentMap pointers so the engine always knows exactly where it resides in memory.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Configure Error: Cannot configure an object that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if Self.AssignID ~= nil then
+			error(string.format("[Reaper] Configure Error: Item is already configured as '%s'. Re-configuration is not permitted.\n", Self.AssignID) .. debug.traceback(), 2)
+		end
+
+		if type(AssignID) ~= "string" or #AssignID == 0 then
+			error("[Reaper] Configure Error: AssignID must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Frequency) ~= "number" or Frequency < 0 then
+			error("[Reaper] Configure Error: Frequency must be a positive number or 0 (Manual).\n" .. debug.traceback(), 2)
+		end
+
+		if PrimaryMap[AssignID] or ManualMap[AssignID] then
+			error(string.format("[Reaper] Configure Error: AssignID '%s' already in use!\n", AssignID) .. debug.traceback(), 2)
+		end
+	end
+
+	-- Bind the identity.
+	Self.AssignID = AssignID
+
+	-- If the item is inherently manual (e.g., an Instance), it must stay in the ManualList regardless of the requested frequency. We just update its dictionary key.
+	if Self._CurrentList == ManualList then
+		Self.Frequency = 0
+
+		-- Swap the dictionary mapping from the raw memory pointer to the new AssignID.
+		local CurrentIndex = ManualMap[Self.Item]
+
+		if CurrentIndex then
+			ManualMap[Self.Item] = nil
+			ManualMap[AssignID] = CurrentIndex
+		end
+
+		return Self
+	end
+	
+	-- Store the defined frequency.
+	Self.Frequency = Frequency
+
+	-- The item is currently sitting in the anonymous GeneralList. Clean it out instantly using O(1) array compaction.
+	local GeneralIndex = GeneralMap[Self.Item]
+
+	if GeneralIndex then
+		popAndSwap(GeneralList, GeneralMap, GeneralIndex, Self.Item)
+	end
+
+	-- The Insertion Phase (Tier Migration)
+	if Frequency == 0 then
+		-- The developer explicitly requested 0. Route to the unpolled Manual tier.
+		table.insert(ManualList, Self)
+
+		-- Update dictionary and internal tracking pointers.
+		ManualMap[AssignID] = #ManualList
+		Self._CurrentList = ManualList
+		Self._CurrentMap = ManualMap
+
+	else
+		-- The developer requested a custom interval. Route to the high-priority Primary tier.
+		table.insert(PrimaryList, Self)
+
+		-- Update dictionary and internal tracking pointers.
+		PrimaryMap[AssignID] = #PrimaryList
+		Self._CurrentList = PrimaryList
+		Self._CurrentMap = PrimaryMap
+	end
+
+	return Self -- Return the handle for method chaining.
+end
+
+-- Safely and instantly evicts an item from whoever is currently managing it in O(1) time
+local function evictFromCurrentManager(Item: Reapable): ()
+	
+	--[[
+		evictFromCurrentManager: The Single-Ownership Enforcer.
+
+		Executes "Last Call Supremacy". Before an item can be chained to a new Scope, 
+		this function guarantees it is completely severed from any previous managers or 
+		global registries, mathematically eliminating the risk of double-free teardown crashes.
+
+		Params:
+		    Item : Reapable -- The physical memory item being reassigned.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Absolute Single Ownership: Prevents overlapping memory graphs by forcefully stealing items from previous parents when a new parent claims them.
+		    * Global Downgrade: If a globally polled object is chained to a Scope, it is evicted from the master Janitor loops to save CPU cycles, relying entirely on the Scope's lifespan.
+		    * Silent Severance: Mutates the previous owner's internal _Children or _BoundScopes dictionaries instantly, severing the connection without triggering physical teardown.
+	]]
+	
+	-- Check if this raw item is actively being polled by the global engine.
+	local GlobalTracker = GlobalItemRegistry[Item]
+
+	-- We exempt Scopes here because a Scope is uniquely designed to act as an independent master container, even if it is simultaneously bound to another parent's lifecycle.
+	if GlobalTracker and GlobalTracker.Classification ~= "Scope" then
+		-- Anti-Pattern Alert: Warn the developer that they are actively hijacking an item that already has a global tracking handle, effectively invalidating it.
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn("[Reaper] Last Call Suppremacy: Item evicted from Global Registry to a new one of Reaper's internal manager.")
+		end
+
+		-- Pull the object entirely out of the active polling lists (Primary/General) and global dictionaries without physically destroying the item itself.
+		Reaper.Remove(Item)
+
+		return
+	end
+
+	-- The item isn't tracked globally, but it might belong to another Scope. Query the ownership map to instantly locate the current parent.
+	local CurrentParent = ObjectOwnershipMap[Item]
+
+	if CurrentParent then
+		-- Engine Blast Shield: Warn the developer of the ownership transfer.
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn(string.format("[Reaper] Last Call Suppremacy: Item stolen from Parent '%s' by a new one of Reaper's internal manager.", CurrentParent.AssignID or "Unknown"))
+		end
+
+		--[[
+			Memory Graph Mutation:
+		
+			The engine must figure out exactly HOW the previous parent was holding this item.
+		]]
+
+		-- Scenario A: It was chained as a standard child.
+		if CurrentParent._Children and CurrentParent._Children[Item] then
+			-- Sever the pointer.
+			CurrentParent._Children[Item] = nil
+
+			-- Scenario B: It was bound as an entire Scope.
+		elseif CurrentParent._BoundScopes then
+			-- Iterate through the bound scopes to find the specific ID matching this item.
+			for ScopeID, _ in CurrentParent._BoundScopes do
+				local Resolved = resolveIdentifier(ScopeID)
+
+				if Resolved and Resolved.Item == Item then
+					-- Sever the pointer and break the loop early.
+					CurrentParent._BoundScopes[ScopeID] = nil
+					
+					break
+				end
+			end
+		end
+
+		-- The item is now effectively orphaned and ready to be claimed by its new master.
+		ObjectOwnershipMap[Item] = nil
+		
+		return
+	end
+end
+
+--[[
+	Subordinates a raw item to this handle so it is destroyed alongside it when this handle is cleaned. The item's type is auto-detected and the correct teardown action is stored. If the item currently belongs to another owner, it is released from that owner before being registered here — Last Call Supremacy. Returns self for fluent chaining.
+	
+	Params:
+		ChildItem: Reapable   -- The raw item to subordinate. Must not be nil, the handle's own item, or a TrackObject/ScopeObject wrapper.
+		CustomMethod: string? -- (Optional) Explicit teardown method name to call on the child instead of the default.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectChain(Self: TrackObject, ChildItem: Reapable, CustomMethod: string?): TrackObject
+	
+	--[[
+		trackObjectChain: The Hierarchy Builder.
+
+		Subordinates a raw physical item to this tracking handle. When this handle is 
+		cleaned, the chained item is automatically torn down alongside it. It enforces 
+		single-ownership rules and caches execution parameters for O(1) destruction.
+
+		Core Behaviors:
+		    * Abstraction Gatekeeping: Explicitly rejects nested TrackObjects or Scopes, forcing developers to chain the raw physical items to prevent abstraction bloat.
+		    * Lazy Memory Allocation: Delays the allocation of the _Children and _ChildMethods dictionaries until the absolute last millisecond, minimizing the engine's memory footprint.
+		    * Pre-Computed Execution: Resolves and caches the child's integer ClassID immediately upon chaining, ensuring O(1) speed during the eventual teardown cascade.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Chain Error: Cannot add items to a scope or object that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if ChildItem == nil then
+			error("[Reaper] Chain Error: Cannot chain a nil item.\n" .. debug.traceback(), 2)
+		end
+
+		if Self.Item == ChildItem then
+			error("[Reaper] Chain Error: Cannot chain an item to itself.\n" .. debug.traceback(), 2)
+		end
+
+		if Reaper.Is(ChildItem) then
+			if (ChildItem :: any).Classification == "Scope" then
+				error("[Reaper] Chain Error: You cannot :Chain() a ScopeObject. Use :HandleScope() or Scope:BindToTrack() instead.\n" .. debug.traceback(), 2)
+				
+			else
+				error("[Reaper] Chain Error: You passed a TrackObject wrapper into :Chain(). You should chain the raw item itself, not its Tracker.\n" .. debug.traceback(), 2)
+			end
+		end
+	end
+
+	--[[
+		Last Call Supremacy:
+	
+		Forcefully sever this item from any previous managers before claiming it.
+	]]
+	evictFromCurrentManager(ChildItem)
+
+	-- Lazy Instantiation (Children Graph)
+	local Children = Self._Children
+
+	-- If this is the first item chained to this handle, allocate the dictionary.
+	if not Children then
+		Children = {} :: { [Reapable]: Classification }
+		Self._Children = Children
+	end
+
+	-- Extract the integer ClassID and cache it inside the dictionary alongside the item.
+	local _, ChildClassID = autoClassify(ChildItem)
+
+	Children[ChildItem] = ChildClassID
+
+	-- Lazy Instantiation (Overrides Graph)
+	if CustomMethod then
+		local ChildMethods = Self._ChildMethods
+
+		-- If this is the first custom override for this handle, allocate the dictionary.
+		if not ChildMethods then
+			ChildMethods = {}
+			Self._ChildMethods = ChildMethods
+		end
+
+		ChildMethods[ChildItem] = CustomMethod
+	end
+
+	-- Log this handle as the absolute owner of the child item.
+	ObjectOwnershipMap[ChildItem] = Self
+
+	return Self -- For chaining methods
+end
+
+--[[
+	Immediately destroys this handle and everything it owns — equivalent to calling Reaper.Clean with this handle. All chained children are torn down and all bound Scopes are cleaned in the same cascade.
+	
+	Params:
+		nil
+		
+	Return:
+		nil
+]]
+local function trackObjectDestroy(Self: TrackObject): ()
+	Reaper.Clean(Self)
+end
+
+--[[
+	Removes a chained item from this Scope without destroying it. The item is de-registered from this Scope's ownership but is left fully intact.
+	
+	Params:
+		ChildItem: Reapable -- The physical item to remove from this Scope's child list.
+		
+	Returns:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeUnchain(Self: ScopeObject, ChildItem: Reapable): ScopeObject
+	
+	--[[
+		scopeUnchain: The Non-Destructive Severance Protocol.
+
+		Removes an item from the Scope's memory graph without physically destroying it. 
+
+		Core Behaviors:
+		    * Non-Destructive Release: Alters engine pointers only, never triggers the TeardownGraph or physical destruction APIs.
+		    * Global Ownership Update: Instantly frees the item from the ObjectOwnershipMap, safely returning it to an orphaned state.
+		    * Shell Deallocation: Proactively destroys internal dictionary structures if they become empty, preventing heap-memory bloat from hollow tables.
+	]]
+	
+	if ChildItem == nil then
+		error("[Reaper] Unchain Error: Cannot unchain a nil item.\n" .. debug.traceback(), 2)
+	end
+
+	-- Prevent operations on a ghost Scope. If it's already cleaned, the item is already dead.
+	if Self._Cleaned then
+		error("[Reaper] Unchain Error: Cannot unchain from a scope that has been destroyed.\n" .. debug.traceback(), 2)
+	end
+
+	-- Ensure the Scope actually owns this item before attempting to mutate dictionaries.
+	if Self._Children and Self._Children[ChildItem] then
+		-- Un-register this Scope as the absolute master of the item.
+		ObjectOwnershipMap[ChildItem] = nil
+
+		-- Erase the item from the Scope's internal teardown graph.
+		Self._Children[ChildItem] = nil
+		-- If this was the last item in the dictionary, the table is now an empty shell. Nil the entire reference to allow the Luau GC to reclaim the table's memory allocation.
+		if next(Self._Children) == nil then
+			Self._Children = nil
+		end
+
+		-- Perform the exact same pointer severance and shell cleanup for the Custom Methods graph.
+		if Self._ChildMethods and Self._ChildMethods[ChildItem] then
+			Self._ChildMethods[ChildItem] = nil
+
+			if next(Self._ChildMethods) == nil then
+				Self._ChildMethods = nil
+			end
+		end
+	end
+
+	return Self -- Method chaining
+end
+
+--[[
+	Immediately destroys a specific item currently chained to this Scope, removing it from the Scope's child list. The Scope itself remains alive and continues owning any other chained items. If the item has its own independent tracking handle, that handle is also cleaned.
+	
+	Params:
+		ChildItem: Reapable -- The physical item to tear down and remove from this Scope.
+		
+	Returns:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeCleanChild(Self: ScopeObject, ChildItem: Reapable): ScopeObject
+	
+	--[[
+		scopeCleanChild: The Targeted Memory Cleanup Protocol.
+
+		Physically destroys a single item chained to this Scope, severing its pointers 
+		and executing its teardown graph without affecting the parent Scope or any other 
+		chained siblings.
+
+		Core Behaviors:
+		    * Precision Teardown: Extracts the item from the Scope's internal graph and routes it to the physical execution layer.
+		    * Shell Deallocation: Proactively nils out internal dictionaries if they become empty after the child's removal.
+		    * Smart Routing: Intelligently routes fully tracked items through Reaper.Clean() and raw items through the fast-path executeTeardown().
+	]]
+	
+	if ChildItem == nil then
+		error("[Reaper] CleanChild Error: Cannot clean a nil item.\n" .. debug.traceback(), 2)
+	end
+
+	if Self._Cleaned then
+		error("[Reaper] CleanChild Error: Cannot clean from a scope that has been destroyed.\n" .. debug.traceback(), 2)
+	end
+
+	-- Ensure the Scope actually owns this item before attempting to destroy it.
+	if Self._Children and Self._Children[ChildItem] then
+		-- Relinquish global ownership so the engine doesn't throw warnings during teardown.
+		ObjectOwnershipMap[ChildItem] = nil
+
+		-- Extract the pre-computed integer ClassID for O(1) execution routing.
+		local ChildClassID = Self._Children[ChildItem]
+
+		-- Erase the pointer from the Scope's primary memory graph.
+		Self._Children[ChildItem] = nil
+
+		-- If the table is now an empty shell, destroy the reference to free heap memory.
+		if next(Self._Children) == nil then
+			Self._Children = nil
+		end
+
+		-- Extract any custom teardown override the developer applied specifically to this child.
+		local ChildMethod = Self._ChildMethods and Self._ChildMethods[ChildItem]
+
+		-- Proactive Dictionary Deallocation (Overrides)
+		if Self._ChildMethods and Self._ChildMethods[ChildItem] then
+			Self._ChildMethods[ChildItem] = nil
+
+			if next(Self._ChildMethods) == nil then
+				Self._ChildMethods = nil
+			end
+		end
+
+		-- Query the global registry to see if this child has its own dedicated tracking wrapper.
+		local ChildTracker = GlobalItemRegistry[ChildItem]
+
+		if ChildTracker then
+			-- The child is fully tracked. Route it through the master clean function so its O(1) array pointers are properly erased from the polling lists.
+			Reaper.Clean(ChildTracker)
+
+		else
+			-- The child is a raw, anonymously chained item. Forcefully destroy it via the fast-path C-side execution layer.
+			executeTeardown(ChildItem, ChildClassID, ChildMethod, nil)
+		end
+	end
+
+	return Self -- Method Chaining
+end
+
+--[[
+	Connects a callback to a signal and automatically adds the resulting connection to this Scope's child list. When the Scope is cleaned, the connection is automatically disconnected. Accepts RBXScriptSignal instances or any table with a :Connect() method.
+	
+	Params:
+		Signal: any -- The event or signal to connect to. Must be an RBXScriptSignal or a table with a :Connect() function.
+		Callback: function -- The function to execute when the signal fires.
+		
+	Returns:
+		RBXScriptConnection -- The generated connection, also owned by this Scope.
+]]
+local function scopeConnect(Self: ScopeObject, Signal: any, Callback: any): RBXScriptConnection
+	
+	--[[
+		scopeConnect: The Polymorphic Event Binder.
+
+		A highly optimized wrapper that connects a callback to an event and instantly 
+		subordinates the resulting connection handle to the Scope's memory tree. It 
+		completely eliminates the boilerplate of manually tracking connections.
+
+		Core Behaviors:
+		    * RAII Automation: Instantly routes the newly created connection through the Scope's :Chain() method to guarantee automated teardown.
+		    * Polymorphic Ingestion: Natively supports both Roblox C-side events and custom Luau Signal libraries by sniffing for the :Connect interface.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Connect Error: Cannot connect to a scope that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if Signal == nil then
+			error("[Reaper] Connect Error: signal cannot be nil.\n" .. debug.traceback(), 2)
+		end
+
+		if typeof(Signal) ~= "RBXScriptSignal" and not (type(Signal) == "table" and type(Signal.Connect) == "function") then
+			error("[Reaper] Connect Error: signal must be a connectable object (RBXScriptSignal or table with :Connect).\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Connect Error: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Execute the connection via the signal's native API.
+	local Connection = Signal:Connect(Callback)
+
+	-- Instantly route the raw connection handle through the O(1) Hierarchy Builder.
+	Self:Chain(Connection)
+
+	-- Return the handle back to the developer.
+	return Connection
+end
+
+--[[
+	Launches a coroutine and automatically adds it to this Scope's child list, cancelling it if the Scope is cleaned. The coroutine is registered to this Scope before it begins executing, so teardown is safe even if the Scope is cleaned from within the spawned function. Any arguments after Callback are forwarded to the coroutine on its first resume.
+	
+	Params:
+		Callback: function -- The function to run in the new coroutine.
+		...: any -- Variadic arguments forwarded to the callback on resume.
+		
+	Returns:
+		thread -- The spawned coroutine.
+]]
+local function scopeSpawn(Self: ScopeObject, Callback: any, ...: any): thread
+	
+	--[[
+		scopeSpawn: The RAII-Protected Asynchronous Execution Pipeline.
+
+		Generates a new coroutine, instantly subordinates it to the Scope's memory tree, 
+		and executes it. If the Scope is destroyed, the thread is forcefully cancelled 
+		in memory, completely eradicating "ghost thread" execution errors.
+
+		Core Behaviors:
+		    * Pre-Emptive Tracking: Chains the thread into the RAII memory graph while it is suspended, mathematically guaranteeing it cannot escape tracking during execution.
+		    * Automated task.cancel: Binds the thread's lifespan to the Scope. If the Scope dies, the thread is instantly killed.
+		    * Scheduler Integration: Routes execution through the agnostic Scheduler table, seamlessly supporting both native task.spawn and the Assignment library's zero-allocation pools.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Spawn Error: Cannot spawn into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Spawn Error: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- DO NOT use task.spawn here. We must create the thread in a suspended state so we can secure its pointer before it begins executing.
+	local Thread = coroutine.create(Callback)
+
+	-- Inject the suspended thread into the Scope's O(1) teardown graph. From this exact microsecond forward, the thread is fully protected.
+	Self:Chain(Thread)
+
+	-- Hand the tracked thread to the active Scheduler to resume execution, unpacking and forwarding any variadic arguments provided by the developer.
+	Scheduler.Spawn(Thread, ...)
+
+	-- Return the raw thread token to the developer in case they need to manually cancel it before the Scope itself dies.
+	return Thread
+end
+
+--[[
+	Schedules a callback to run at the end of the current frame and adds the scheduled task to this Scope's child list. If the Scope is cleaned before the deferred task executes, the task is cancelled and never runs.
+	
+	Params:
+		Callback: function -- The function to defer.
+		...: any -- Variadic arguments forwarded to the callback when it executes.
+		
+	Returns:
+		any -- The handle returned by the scheduler, usable for manual cancellation if needed.
+]]
+local function scopeDefer(Self: ScopeObject, Callback: any, ...: any): any
+	
+	--[[
+		scopeDefer: The Frame-Boundary RAII Protector.
+
+		Schedules a callback to execute at the end of the current frame (or next frame, 
+		if using Assignment), while instantly subordinating the task to the Scope's 
+		memory tree. If the Scope dies before the task executes, the task is silently
+		intercepted and cancelled.
+
+		Core Behaviors:
+		    * Race-Condition Eradication: Mathematically prevents deferred tasks from executing if their owning context is destroyed during the same frame.
+		    * Scheduler Integration: Flawlessly bridges the Reaper memory manager with the Assignment zero-allocation timing wheel.
+		    * Variadic Forwarding: Passes arguments natively to the scheduler, completely eliminating the need for expensive Luau closure allocations.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Defer Error: Cannot defer into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Defer Error: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Hand the payload to the active Scheduler. This creates the temporal task but delays its actual execution.
+	local DeferHandle = Scheduler.Defer(Callback, ...)
+
+	-- Instantly route the temporal handle through the O(1) Hierarchy Builder. If the Scope is destroyed via Reaper.Clean(Scope) before the scheduler fires this task, the TeardownGraph will automatically trigger Handle:Break().
+	Self:Chain(DeferHandle)
+
+	-- Return the temporal handle to the developer in case they need to manually abort the deferral before the frame ends.
+	return DeferHandle
+end
+
+--[[
+	Schedules a callback to run after a set number of seconds and adds the task to this Scope's child list. If the Scope is cleaned before the delay elapses, the task is cancelled and never runs.
+	
+	Params:
+		TimeDelay: number -- Seconds to wait before executing the callback.
+		Callback: function -- The function to run after the delay.
+		...: any -- Variadic arguments forwarded to the callback when it executes.
+		
+	Returns:
+		any -- The handle returned by the scheduler, usable for manual cancellation if needed.
+]]
+local function scopeDelay(Self: ScopeObject, TimeDelay: number, Callback: any, ...: any): any
+	
+	--[[
+		scopeDelay: The Temporal RAII Protector.
+
+		Schedules a callback to execute after a set number of seconds, while instantly 
+		subordinating the temporal task to the Scope's memory tree. If the Scope dies 
+		before the countdown elapses, the task is silently intercepted and aborted.
+
+		Core Behaviors:
+		    * Ghost-Task Eradication: Mathematically prevents delayed functions from waking up and executing in a destroyed context, eliminating asynchronous memory errors.
+		    * Engine Synchronization: Flawlessly bridges the Reaper memory manager with the Assignment engine's O(1) Hashed Timing Wheel.
+		    * Variadic Forwarding: Passes arguments natively to the scheduler, completely eliminating the need for expensive Luau closure allocations.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Delay Error: Cannot delay into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if type(TimeDelay) ~= "number" then
+			error("[Reaper] Delay Error: timeDelay must be a number.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Delay Error: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Hand the payload to the active Scheduler. This initiates the temporal countdown and returns a handle that can be used to abort it.
+	local DelayHandle = Scheduler.Delay(TimeDelay, Callback, ...)
+
+	-- Instantly route the temporal handle through the O(1) Hierarchy Builder. If the Scope is destroyed via Reaper.Clean(Scope) before the countdown finishes, the TeardownGraph will automatically trigger Handle:Break() or task.cancel().
+	Self:Chain(DelayHandle)
+
+	-- Return the temporal handle to the developer in case they need to manually abort the delay before the Scope itself dies.
+	return DelayHandle
+end
+
+--[[
+	Schedules a callback to repeat a fixed number of times and adds the task to this Scope's child list. Each repetition is separated by Interval seconds. When the Scope is cleaned, any remaining repetitions are cancelled.
+	
+	Params:
+		Count: number -- Total number of times to execute the callback.
+		Interval: number? -- (Optional) Seconds between repetitions. Behaviour when omitted is defined by the injected Assignment scheduler.
+		Callback: function -- The function to repeat.
+		...: any -- Variadic arguments forwarded to the callback on each execution.
+		
+	Returns:
+		any -- The handle returned by the Assignment scheduler.
+]]
+local function scopeRepeat(Self: ScopeObject, Count: number, Interval: number?, Callback: any, ...: any): any
+	
+	--[[
+		scopeRepeat: The RAII-Protected Stateful Execution Loop.
+
+		Schedules a callback to repeat a fixed number of times (or infinitely) at a set interval, 
+		while instantly subordinating the loop's lifecycle to the Scope's memory tree. If the 
+		Scope dies, the loop is instantly shattered and garbage-collected.
+
+		Core Behaviors:
+		    * Orphan-Loop Eradication: Mathematically guarantees that infinite loops will terminate the exact microsecond their parent memory Scope is destroyed.
+		    * Engine Synchronization: Flawlessly bridges Reaper with the Assignment engine's O(1) state-machine loop architecture, avoiding native coroutine bloat.
+		    * Variadic Forwarding: Passes arguments natively to the scheduler, completely eliminating the need for expensive Luau closure allocations per loop iteration.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] Repeat Error: Cannot repeat into a scope that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Count) ~= "number" then
+			error("[Reaper] Repeat Error: Count must be a number.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Reaper] Repeat Error: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+		
+		if not AssignmentInjected then
+			error("[Reaper] Repeat Error: 'Assignment' library must be injected before using Scope:Repeat().\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Hand the payload to the active Scheduler. If the Assignment library is injected, this creates a hyper-efficient closure in the zero-allocation thread pool.
+	local RepeatHandle = Scheduler.Repeat(Count, Interval, Callback, ...) :: any
+
+	-- Instantly route the loop's control handle through the O(1) Hierarchy Builder. If Reaper.Clean(Scope) is called, the TeardownGraph automatically executes Handle:Break(), shattering the loop instantly.
+	Self:Chain(RepeatHandle)
+
+	-- Return the loop control handle to the developer so they retain the ability to manually shatter the loop before the master Scope dies.
+	return RepeatHandle
+end
+
+--[[
+	Subordinates an entire Scope to this handle so it is cleaned when this handle is cleaned. When teardown cascades to the Scope, the Scope's full child teardown runs in turn. Accepts either the live ScopeObject or its string ScopeID. If the Scope is currently owned by another manager, it is released first - Last Call Suppremacy.
+	
+	Params:
+		Scope: string | ScopeObject -- The ScopeObject to subordinate, or its string ScopeID.
+		
+	Return:
+		TrackObject -- Returns self for method chaining.
+]]
+local function trackObjectHandleScope(Self: TrackObject, Scope: string | ScopeObject): TrackObject
+	
+	--[[
+		trackObjectHandleScope: The Lateral Memory Tree Builder.
+
+		Subordinates an entire ScopeObject to this tracking handle. When this handle 
+		is destroyed, the teardown sequence will laterally cascade into the bound Scope, 
+		triggering its full destruction sequence. This enables the creation of complex, 
+		multi-layered memory graphs.
+
+		Core Behaviors:
+		    * Anti-Recursion Gates: Mathematically prevents cyclic memory graphs (e.g., self-binding) to eliminate infinite teardown loops.
+		    * Macro-Level Eviction: Applies absolute single-ownership rules to entire Scopes, severing them from previous trees before adoption.
+		    * Polymorphic Routing: Seamlessly resolves string-based ScopeIDs into raw physical pointers using the O(1) pointer extractor.
+	]]
+	
+	local ScopeID: string
+	local ScopeItem: any
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error("[Reaper] HandleScope Error: Cannot bind a scope to an object that has been cleaned or evicted.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Scope) == "table" then
+			if Scope.Classification ~= "Scope" then
+				error(string.format("[Reaper] HandleScope Error: Expected a ScopeObject, but received a '%s'. Tracks cannot handle Tracks.", tostring(Scope.Classification or typeof(Scope))), 2)
+			end
+
+			if Scope.AssignID == Self.AssignID then
+				warn(string.format("[Reaper] HandleScope Warning: Attempted to bind Scope '%s' to itself. Ignored to prevent infinite recursion.", Scope.AssignID :: string))
+				
+				return Self
+			end
+
+		elseif type(Scope) ~= "string" or #Scope == 0 then
+			error("[Reaper] HandleScope Error: Target must be a non-empty string or a valid ScopeObject.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Polymorphic Identifier Resolution
+	if type(Scope) == "table" then
+		-- The developer passed the live ScopeObject wrapper.
+		ScopeID = Scope.AssignID :: string
+		ScopeItem = Scope.Item
+
+	else
+		-- The developer passed a string ID. We must query the engine to find the physical pointers.
+		ScopeID = Scope
+		local Resolved = resolveIdentifier(Scope)
+
+		if Resolved then
+			ScopeItem = Resolved.Item
+		end
+	end
+
+	--[[
+		Last Call Supremacy:
+	
+		If the Scope is physically active, sever it from any previous memory trees before allowing this parent to adopt it.
+	]]
+	if ScopeItem then
+		evictFromCurrentManager(ScopeItem)
+	end
+
+	-- Lazy Instantiation (Lateral Graph)
+	local BoundScopes = Self._BoundScopes
+
+	-- Allocate the dictionary strictly if this is the first lateral binding.
+	if not BoundScopes then
+		BoundScopes = {}
+		Self._BoundScopes = BoundScopes
+	end
+
+	-- Log the ScopeID into the teardown graph.
+	if not BoundScopes[ScopeID] then
+		BoundScopes[ScopeID] = true
+	end
+
+	-- Register this parent TrackObject as the absolute master of the Scope's core item.
+	if ScopeItem then
+		ObjectOwnershipMap[ScopeItem] = Self
+	end
+
+	return Self -- Method chaining
+end
+
+--[[
+	Submits this Scope to a Track so it is cleaned when the Track is cleaned. Achieves the same result as calling Track:HandleScope(self) but reads as the Scope declaring its own lifetime contract, which is preferred when the Scope is the acting module. The target Track must be configured with a string identifier before a Scope can bind to it.
+	
+	Params:
+		Track: TrackObject -- The parent Track to bind this Scope to. Must not be a ScopeObject and must have a configured identifier.
+		
+	Return:
+		ScopeObject -- Returns self for method chaining.
+]]
+local function scopeBindToTrack(Self: ScopeObject, Track: TrackObject): ScopeObject
+	
+	--[[
+		scopeBindToTrack: The Inverted Dependency Anchor.
+
+		Allows a Scope to autonomously subordinate itself to a master TrackObject. 
+		When the master Track dies, this Scope (and all its children) will be destroyed. 
+		This provides syntactic inversion for modular scripts that need to bind their 
+		own Scopes to external, globally managed items.
+
+		Core Behaviors:
+		    * Bottom-Up Binding: Reads as the Scope declaring its own lifecycle contract, which is semantically cleaner for self-contained modules.
+		    * Strict Anchor Enforcement: Mandates that the target Track must be explicitly configured with an AssignID, preventing Scopes from anchoring to anonymous, untrackable memory.
+		    * DRY Execution: Safely delegates the physical graph mutation and single-ownership validation directly to the lateral tree builder.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._Cleaned or Self._Evicted then
+			error(string.format("[Reaper] BindToTrack Error: Cannot bind Scope '%s' because it has already been cleaned or evicted.", Self.AssignID or "UNKNOWN"), 2)
+		end
+
+		if type(Track) ~= "table" or Track.Classification == "Scope" then
+			error(string.format("[Reaper] BindToTrack Error: Expected a TrackObject anchor, but received a '%s'. Scopes must bind to active Tracks.", tostring(type(Track) == "table" and Track.Classification or typeof(Track))), 2)
+		end
+
+		if not Track.AssignID then
+			error("[Reaper] BindToTrack Error: The target TrackObject must be configured with an AssignID before a Scope can bind to it.", 2)
+		end
+	end
+
+	-- Delegate the actual memory graph mutation (and Last Call Supremacy checks) to the master lateral tree builder, effectively telling the Track to adopt this Scope.
+	trackObjectHandleScope(Track, Self)
+
+	return Self -- Method chaining
+end
+
+-- Runs the Primary and General registry sweeps on their respective cadences each frame
+local function onHeartbeat(DeltaTime: number): ()
+	
+	--[[
+		onHeartbeat: The Master Janitor Engine.
+
+		The core background loop responsible for polling the active memory registries. 
+		It utilizes dual-tiered execution (Frequency vs. Time-Sliced) to evaluate the 
+		dead-state of thousands of tracked objects without causing CPU frame drops.
+
+		Params:
+		    DeltaTime : number -- The time elapsed since the last Heartbeat frame.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Temporal Amortization: Strictly throttles the General tier into micro-batches (GENERAL_BATCH_SIZE), preventing frame stutters during massive background sweeps.
+		    * Timestamp Throttling: Uses os.clock() to bypass high-priority items in the Primary tier unless their explicit polling Frequency has matured.
+		    * Swap-and-Stay Iteration: Synchronizes with the O(1) popAndSwap algorithm, perfectly halting the loop index during a deletion to instantly evaluate the newly swapped tail element.
+	]]
+	
+	-- Increment execution metrics.
+	FrameCounter += 1
+	GeneralAccumulator += DeltaTime
+
+	---------------------------------------------
+	-- TIER 1: HIGH-PRIORITY (PRIMARY LIST)
+	---------------------------------------------
+	
+	-- Only run the Primary sweep if the list has items and the frame interval has triggered.
+	if #PrimaryList > 0 and FrameCounter % PRIMARY_SWEEP_FRAME_INTERVAL == 0 then
+		local CurrentTime = os.clock()
+		local Index = 1
+
+		-- Iterate dynamically. A standard `for` loop cannot be used because the array length will mutate during execution via popAndSwap.
+		while Index <= #PrimaryList do
+			local Object = PrimaryList[Index]
+
+			-- Frequency Gate: Only evaluate the object if its specific interval has elapsed.
+			if Object.Frequency and (CurrentTime - Object._LastCheck >= Object.Frequency) then
+				Object._LastCheck = CurrentTime
+
+				-- O(1) Dead-State Evaluation
+				if checkAndClean(Object) then
+					-- The object died. Erase it from the master registry.
+					GlobalItemRegistry[Object.Item] = nil
+
+					-- Execute O(1) Array Compaction. The tail object has now been moved to Index.
+					popAndSwap(PrimaryList, PrimaryMap, Index, Object.AssignID)
+
+					-- Loop Synchronization: Skip the index increment. The loop will restart, evaluating the newly swapped tail object sitting in the current index slot.
+					continue
+				end
+			end
+
+			-- The object is still alive (or hasn't matured). Move to the next index.
+			Index += 1
+		end
+	end
+
+	---------------------------------------------
+	-- TIER 2: BACKGROUND (GENERAL LIST)
+	---------------------------------------------
+	
+	-- If a background sweep isn't already running, check if it's time to start one.
+	if not GeneralSweepActive then
+		if #GeneralList > 0 and GeneralAccumulator >= GENERAL_CHECK_INTERVAL then
+			-- Reset the accumulator and arm the sweep mechanism.
+			GeneralAccumulator = 0
+			GeneralSweepActive = true
+			GeneralSweepIndex = 1
+		end
+	end
+
+	-- If the sweep is armed, execute a time-sliced batch.
+	if GeneralSweepActive then
+		local ProcessedThisFrame = 0
+
+		-- Iterate until we hit the end of the list OR we hit the strict CPU safety quota.
+		while GeneralSweepIndex <= #GeneralList and ProcessedThisFrame < GENERAL_BATCH_SIZE do
+			local Object = GeneralList[GeneralSweepIndex]
+
+			-- O(1) Dead-State Evaluation
+			if checkAndClean(Object) then
+				-- The item died. Erase global tracking.
+				GlobalItemRegistry[Object.Item] = nil
+
+				-- Execute O(1) Array Compaction.
+				popAndSwap(GeneralList, GeneralMap, GeneralSweepIndex, Object.Item)
+
+				-- DO NOT increment GeneralSweepIndex here. We must evaluate the newly swapped tail item on the next iteration.
+			else
+				-- The item is still alive. Safely move to the next index.
+				GeneralSweepIndex += 1
+			end
+
+			-- Increment the quota counter regardless of whether the item lived or died.
+			ProcessedThisFrame += 1
+		end
+
+		-- Once the index surpasses the list size, the background sweep is complete. Disarm the sweep until the next GENERAL_CHECK_INTERVAL matures.
+		if GeneralSweepIndex > #GeneralList then
+			GeneralSweepActive = false
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Event Binding Section
+----------------------------------------------------------
+
+RunService.Heartbeat:Connect(onHeartbeat)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Reaper Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Returns true if a value is a live, uncleaned, un-evicted tracking handle — including both TrackObject and ScopeObject instances. Passing any other value — a raw Instance, a cleaned handle, a plain table, or nil — returns false.
+
+	Params:
+	    Value: any -- The value to inspect.
+
+	Returns:
+	    boolean -- true if Value is a live, valid TrackObject or ScopeObject; false otherwise.
+]]
+function Reaper.Is(Value: any): boolean
+	return type(Value) == "table"
+		and Value.Item ~= nil
+		and type(Value.Classification) == "string"
+		and type(Value.Configure) == "function"
+		and Value._Cleaned == false
+		and Value._Evicted == false
+end
+
+--[[
+	Returns true if a value is an uncleaned ScopeObject handle, regardless of its eviction state. Distinguishes a live ScopeObject from a plain TrackObject, a cleaned Scope, or any non-Reaper value. Unlike Reaper.Is(), this check does not require the handle to be un-evicted — an evicted Scope that has not been cleaned will still return true.
+
+	Params:
+	    Value: any -- The value to inspect.
+
+	Returns:
+	    boolean -- true if Value is a ScopeObject whose cleaned flag has not been set; false otherwise.
+]]
+function Reaper.IsCleanable(Value: any): boolean
+	return type(Value) == "table"
+		and Value.Item ~= nil
+		and Value.Classification == "Scope"
+		and type(Value.Configure) == "function"
+		and Value._Cleaned == false
+end
+
+--[[
+	Creates a named, managed container that accumulates items and tears them all down together when the Scope is cleaned. The returned ScopeObject is fully configured on creation and immediately reachable by its ID from any script via Reaper.Get() or Reaper.Clean().
+
+	Params:
+	    ScopeID: string -- Unique string identifier for this Scope. Used for cross-script retrieval and teardown. Must not already be in use.
+
+	Returns:
+	    ScopeObject -- The Scope handle.
+]]
+function Reaper.Scope(ScopeID: string): ScopeObject
+	
+	--[[
+		Reaper.Scope: The Macro-Container Pipeline.
+
+		Constructs a root-level ScopeObject. Scopes act as master lifecycle managers 
+		that can own thousands of raw items, nested threads, temporal tasks, and 
+		even other Scopes. When the Scope is cleaned, the entire memory tree collapses.
+
+		Core Behaviors:
+		    * Phantom Anchoring: Allocates an empty table to serve as a physical memory pointer, allowing conceptual Scopes to exist within the engine's physical registries.
+		    * Manual Tier Enforcement: Hardcodes the polling frequency to 0, completely shielding the Heartbeat loop from wasting cycles on polling conceptual containers.
+		    * Zero-Metatable Access: Bypasses standard OOP __index lookup overhead by injecting methods directly into the object dictionary, maximizing execution velocity.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ScopeID) ~= "string" or ScopeID == "" then
+			error("[Reaper] Scope Error: scopeID must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if ManualMap[ScopeID] then
+			error(string.format("[Reaper] Scope Error: A scope or item with ID '%s' already exists!\n", ScopeID) .. debug.traceback(), 2)
+		end
+	end
+
+	-- Create an empty table to act as the physical memory pointer for the Scope.
+	local ScopeAnchor = {}
+
+	-- Register the anchor into the core engine with a hardcoded "Scope" classification.
+	local TrackedObject = Reaper.Track(ScopeAnchor, "Scope")
+
+	-- Upgrade the anonymous TrackObject into a fully named handle, forcing its Frequency to 0 to route it into the unpolled ManualList.
+	TrackedObject:Configure(ScopeID, 0)
+
+	-- Cast the TrackObject into the ScopeObject interface.
+	local ScopeInstance = TrackedObject :: ScopeObject
+
+	-- Directly assign the Scope-exclusive functions to the object's dictionary. This completely circumvents Luau's __index metatable overhead, granting maximum execution speed when chaining massive arrays of items.
+	ScopeInstance.Unchain = scopeUnchain
+	ScopeInstance.CleanChild = scopeCleanChild
+	ScopeInstance.BindToTrack = scopeBindToTrack
+	ScopeInstance.Connect = scopeConnect
+	ScopeInstance.Spawn = scopeSpawn
+	ScopeInstance.Defer = scopeDefer
+	ScopeInstance.Delay = scopeDelay
+	ScopeInstance.Repeat = scopeRepeat
+
+	return ScopeInstance -- Return the scope handle for external use.
+end
+
+--[[
+	Registers a raw item into Reaper's memory system and returns a handle to manage its lifecycle. If the item is already registered, the existing handle is returned without creating a duplicate entry. The item's type is detected automatically unless ItemClassification is explicitly provided.
+
+	Params:
+	    Item:               Reapable        -- The Instance, RBXScriptConnection, thread, function, or table to register.
+	    ItemClassification: Classification? -- (Optional) Explicitly overrides auto-classification. Accepts "Instance", "Connection", "Thread", "Function", "Table", "Scope", or "Unknown".
+	    CustomMethod:       string?         -- (Optional) Name of the method to call on the item during teardown instead of the default (Destroy, Disconnect, or task.cancel).
+	    IsProtected:        boolean?        -- (Optional) If true, the item is released from the registry intact when its natural end-of-life is detected, allowing external poolers to reclaim it instead of destroying it.
+
+	Returns:
+	    TrackObject -- The tracking handle for the item. If the item was already registered, the existing handle is returned.
+]]
+function Reaper.Track(Item: Reapable, ItemClassification: Classification?, CustomMethod: string?, IsProtected: boolean?): TrackObject
+	
+	--[[
+		Reaper.Track: The Master Ingestion Pipeline.
+
+		Ingests a raw physical item, constructs its O(1) tracking wrapper, and routes 
+		it into the appropriate engine tier. It natively detects object types and 
+		automatically hooks into C-side death events when available to eliminate CPU polling.
+
+		Core Behaviors:
+		    * Idempotence: Returns the cached object if the item is already being tracked, preventing pointer duplication.
+		    * Event Hooking: Automatically binds to Instance.AncestryChanged or custom OnAbandoned signals, bypassing Heartbeat polling entirely.
+		    * Anti-Pattern Gates: Warns developers if they track immortal data types (Tables/Functions) anonymously, while whitelisting authorized Scope overrides.
+	]]
+	
+	-- If the developer passed an existing tracking wrapper, just return it.
+	if Reaper.Is(Item) then
+		return Item :: TrackObject
+	end
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Item == nil then
+			error("[Reaper] Track Error: Cannot track a nil item.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- If the raw item is already registered in the engine, return its active wrapper.
+	if GlobalItemRegistry[Item] then
+		return GlobalItemRegistry[Item]
+	end
+
+	-- Polymorphic Type Extraction and Override
+	local ResolvedClass: Classification
+	local ResolvedID: number
+	
+	-- if ItemClassification is provided, use it instead of auto-classification.
+	if ItemClassification then
+		ResolvedClass = ItemClassification
+		ResolvedID = ExplicitClassGraph[ItemClassification] or CLASS_UNKNOWN
+
+	else -- The ItemClassification is not provided, verify the classification of the item.
+		ResolvedClass, ResolvedID = autoClassify(Item)
+	end
+
+	-- Wrapper Allocation (Zero-Metatable)
+	local ReaperObject: TrackObject = {
+		Item = Item,
+		AssignID = nil :: string?,
+		Frequency = nil :: number?,
+		Classification = ResolvedClass,
+		_ClassID = ResolvedID,
+		_LastCheck = os.clock(),
+		_Cleaned = false,
+		_Evicted = false,
+		_Children = nil :: { [Reapable]: Classification }?,
+		_CustomMethod = CustomMethod,
+		_ChildMethods = nil :: { [Reapable]: string }?,
+		_BoundScopes = nil :: { [string]: true }?,
+		_CurrentList = nil :: any,
+		_CurrentMap = nil :: any,
+		IsProtected = (IsProtected == true),
+		_DeathListener = nil :: RBXScriptConnection?,
+
+		-- Flat method injection for absolute O(1) execution speed.
+		Configure = trackObjectConfigure,
+		Chain = trackObjectChain,
+		HandleScope = trackObjectHandleScope,
+		Destroy = trackObjectDestroy,
+	} :: TrackObject
+
+	-- Register the wrapper globally.
+	GlobalItemRegistry[Item] = ReaperObject
+
+	-- Tier Routing and Event Hooking
+	if ResolvedClass == "Instance" then
+		--[[
+			SCENARIO A - Native Roblox Instance:
+		
+			Instances die when they leave the DataModel. We hook this natively.
+		]]
+		local function Hook(): ()
+			if ReaperObject._Cleaned or ReaperObject._Evicted then return end
+			
+			-- If the item is not a descendant of the game, it's dead.
+			if not (Item :: Instance):IsDescendantOf(game) then
+				if ReaperObject.IsProtected then
+					Reaper.Remove(Item) -- Cleanup all of the framework's references to this item but keep the item itself intact.
+				else
+					Reaper.Clean(Item)  -- Cleanup all of the framework's references along with the item itself (if the item is not destroyed externally).
+				end
+			end
+		end
+
+		-- Bind the hook, force frequency to 0, and route to the unpolled Manual tier.
+		ReaperObject._DeathListener = (Item :: Instance).AncestryChanged:Connect(Hook)
+		ReaperObject.Frequency = 0
+
+		table.insert(ManualList, ReaperObject)
+		ManualMap[Item] = #ManualList
+		ReaperObject._CurrentList = ManualList
+		ReaperObject._CurrentMap = ManualMap
+
+	elseif type(Item) == "table" and type((Item :: any).Connect) == "function" and type((Item :: any).Signals) == "table" and (Item :: any).Signals.OnAbandoned then
+		--[[
+			SCENARIO B - Custom Signal Integration (Recognized Relay library):
+		
+			The engine recognizes advanced custom objects that broadcast their own deaths.
+		]]
+		ReaperObject.Frequency = 0
+
+		local function Hook(): ()
+			if ReaperObject.IsProtected then
+				Reaper.Remove(Item)
+			else
+				Reaper.Clean(Item)
+			end
+		end
+
+		(Item :: any).Signals.OnAbandoned:Connect(Hook)
+
+		table.insert(ManualList, ReaperObject)
+		ManualMap[Item] = #ManualList
+		ReaperObject._CurrentList = ManualList
+		ReaperObject._CurrentMap = ManualMap
+
+	else
+		-- SCENARIO C - Immortal Data vs. Polled Data
+		if ResolvedClass == "Table" or ResolvedClass == "Function" or ResolvedClass == "Scope" or ResolvedClass == "Unknown" then
+			-- These items have no dead state. They must be managed manually.
+			ReaperObject.Frequency = 0
+
+			table.insert(ManualList, ReaperObject)
+			ManualMap[Item] = #ManualList
+			ReaperObject._CurrentList = ManualList
+			ReaperObject._CurrentMap = ManualMap
+
+			-- Warn the developer they are leaking memory
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and ResolvedClass ~= "Scope" then
+				warn(string.format("[Reaper] Anti-Pattern Warning: Tracked a %s. It was routed to the ManualList because it has no native dead-state. You must chain it to a Scope or call Reaper.Clean() manually to prevent memory leaks.", ResolvedClass))
+			end
+
+		else
+			--[[
+				SCENARIO D - Actively Polled Data (Threads, Connections):
+				
+				Route to the General tier to be actively checked by the Heartbeat Janitor.
+			]]
+			table.insert(GeneralList, ReaperObject)
+			GeneralMap[Item] = #GeneralList
+			ReaperObject._CurrentList = GeneralList
+			ReaperObject._CurrentMap  = GeneralMap
+		end
+	end
+
+	-- Broadcast the ingestion event strictly if external monitors are listening.
+	if RelayInjected and Reaper.Signals.OnTracked then
+		if (Reaper.Signals.OnTracked :: any):GetConnectionCount() > 0 then
+			(Reaper.Signals.OnTracked :: any):Fire(Item, ResolvedClass, ReaperObject.AssignID)
+		end
+
+	elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+		warn("[Reaper] OnTracked Warning: 'Relay' library is needed to use this signal.")
+	end
+
+	return ReaperObject -- The controller of this particular Track event.
+end
+
+--[[
+	Immediately destroys one or more tracked items and cascades teardown to everything they own. For each identifier, Reaper resolves it to its tracking handle, destroys the primary item, then recursively destroys all chained children and cleans all bound Scopes. The item is then removed from the registry.
+
+	Params:
+	    ...: any -- Variadic list of identifiers. Each can be a string AssignID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    nil
+]]
+function Reaper.Clean(...: any): ()
+	
+	--[[
+		Reaper.Clean: The Master Teardown Pipeline.
+
+		Forcefully destroys one or more tracked items on demand. It initiates a total 
+		memory collapse, tearing down the root item, all chained children, and all 
+		bound scopes, before permanently erasing all global engine pointers.
+
+		Core Behaviors:
+		    * Polymorphic Batching: Accepts multiple items of varying types in a single call, resolving their exact memory locations instantly via the O(1) pointer router.
+		    * Forced Cascade: Manually triggers the downward and lateral RAII teardown graphs, ensuring entire memory trees are collapsed perfectly.
+		    * Total Pointer Erasure: Obliterates all global registry references and executes an O(1) popAndSwap array compaction to completely free the heap allocation.
+	]]
+	
+	-- Capture the variadic batch into an array.
+	local Identifiers = { ... }
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if #Identifiers == 0 then
+			warn("[Reaper] Clean Warning: Called with no arguments.")
+			
+			return
+		end
+	end
+
+	-- Batch Execution Loop
+	for _, Identifier in ipairs(Identifiers) do
+		if Identifier == nil and ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			error("[Reaper] Clean Error: Identifier cannot be nil.\n" .. debug.traceback(), 2)
+		end
+
+		-- Extract the exact physical arrays and indices required to destroy the object.
+		local Object, Index, List, Map, MapKey = resolveIdentifier(Identifier)
+
+		-- If the router returns nil, the object is a ghost. It was either already cleaned, evicted, or the developer typo'd the string ID.
+		if not Object or not Index or not List or not Map then
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				local Label = formatIdentifierLabel(Identifier)
+				
+				warn(string.format("[Reaper] Clean Warning: No tracked item found for '%s'. It may be already cleaned, evicted, or never registered.", Label))
+			end
+
+			continue
+		end
+		
+		-- Prevent re-firing cleanup.
+		if Object._Cleaned then 
+			continue
+		end
+		
+		-- Lock the state to prevent infinite recursion during circular teardowns.
+		Object._Cleaned = true
+
+		-- Physically destroy the root item.
+		executeTeardown(Object.Item, Object._ClassID, Object._CustomMethod, Object)
+
+		-- The Downward Cascade (Chained Children)
+		if Object._Children then
+			for Child, ChildClassID in Object._Children do
+				ObjectOwnershipMap[Child] = nil -- Remove the raw item child from the ownership map.
+				
+				-- Smart Routing: Check if the child is explicitly tracked globally.
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					-- The child is fully tracked. Recursively route it through Clean() so its global pointers and array indices are properly erased.
+					Reaper.Clean(ChildTracker)
+
+				else
+					-- The child is a raw, anonymously chained item. Forcefully destroy it via the fast-path C-side execution layer.
+					local ChildMethod = Object._ChildMethods and Object._ChildMethods[Child]
+					
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			-- Sever the internal dictionaries to assist the Luau Garbage Collector.
+			Object._Children = nil
+			Object._ChildMethods = nil
+		end
+
+		-- The Lateral Cascade (Bound Scopes)
+		if Object._BoundScopes then
+			for ScopeID in Object._BoundScopes do
+				-- Recursively trigger the master clean function for every bound scope, collapsing massive memory trees instantly.
+				Reaper.Clean(ScopeID)
+			end
+
+			-- Sever the internal dictionary.
+			Object._BoundScopes = nil
+		end
+		
+		-- Check if the cleaned item is a special table scope.
+		if Object.Classification == "Scope" then
+			local ParentTrack = ObjectOwnershipMap[Object.Item] -- Get the parent track object despite if this scope is bounded to a track.
+			
+			-- Because Reaper has a parent-child ownership feature, we need to remove this scope from its parent scope's bound registry.
+			if ParentTrack and ParentTrack._BoundScopes then
+				ParentTrack._BoundScopes[Object.AssignID :: string] = nil
+				
+				-- If this scope happens to be the only one left in the parent scope registry, totally clean the registry itself in the parent.
+				if next(ParentTrack._BoundScopes) == nil then
+					ParentTrack._BoundScopes = nil
+				end
+			end
+		end
+
+		-- Erase the item from all global tracking systems.
+		GlobalItemRegistry[Object.Item] = nil
+		ObjectOwnershipMap[Object.Item] = nil
+
+		-- Compress the execution array instantly using the "Pop and Swap" algorithm, completely bypassing O(N) table shifting.
+		popAndSwap(List, Map :: any, Index, MapKey)
+	end
+end
+
+--[[
+	Releases one or more items from Reaper's registry without destroying them, returning the raw items to the caller. The primary item itself is left intact and de-registered so it can be safely reclaimed by an external system (such as an Object Pool). Any event-based death listener attached to the primary item is disconnected. Any children chained to the item and any Scopes bound to it are destroyed, not released — only the root item is preserved.
+
+	Params:
+	    ...: any -- Variadic list of identifiers. Each can be a string AssignID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    { Reapable } -- An array of the raw primary items that were released, in the order they were processed.
+]]
+function Reaper.Remove(...: any): { Reapable }
+	
+	--[[
+		Reaper.Remove: The Root Preservation Pipeline.
+
+		Forcefully extracts one or more tracked items from the global memory registries 
+		WITHOUT destroying the physical root item. It ruthlessly destroys all chained 
+		dependencies (children and scopes) to prevent leaks, and returns the bare 
+		physical pointers so they can be safely recycled into Object Pools.
+
+		Core Behaviors:
+		    * Root Preservation: Bypasses the executeTeardown step for the master item, keeping the physical Instance or thread alive in memory.
+		    * Dependency Purge: Forcefully triggers the downward and lateral RAII cascades to strip the root item of any temporary chained memory before recycling.
+		    * Batch Extraction: Accepts multiple items, cleans their dependencies, and packs the fetched pointers into a clean array for downstream systems.
+	]]
+	
+	-- Capture the variadic batch.
+	local Identifiers = { ... }
+	-- Initialize the payload array that will hold the fetched physical items.
+	local RemovedItems = {}
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if #Identifiers == 0 then
+			warn("[Reaper] Remove Warning: Called with no arguments.")
+			
+			return RemovedItems
+		end
+	end
+
+	-- Batch Execution Loop
+	for _, Identifier in ipairs(Identifiers) do
+		if Identifier == nil and ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			error("[Reaper] Remove Error: Identifier cannot be nil.\n" .. debug.traceback(), 2)
+		end
+
+		-- Extract the exact physical arrays and indices required to extract the object.
+		local Object, Index, List, Map, MapKey = resolveIdentifier(Identifier)
+
+		-- If the item is a ghost, skip it.
+		if not Object or not Index or not List or not Map then
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				local Label = formatIdentifierLabel(Identifier)
+				
+				warn(string.format("[Reaper] Remove Warning: No tracked item found for '%s'. It may be already cleaned, evicted, or never registered.", Label))
+			end
+			
+			continue
+		end
+
+		-- Lock the state as Evicted (not Cleaned) to signal it was manually fetched.
+		Object._Evicted = true
+
+		-- If the engine was actively monitoring a C-side death event (like AncestryChanged), sever the connection so the Janitor officially goes blind to this item.
+		if Object._DeathListener then
+			Object._DeathListener:Disconnect()
+			Object._DeathListener = nil
+		end
+
+		-- The Ruthless Dependency Purge (Chained Children)
+		if Object._Children then
+			for Child, ChildClassID in Object._Children do
+				ObjectOwnershipMap[Child] = nil -- Remove the raw item child from the ownership map.
+				
+				-- Smart Routing: Check if the child is explicitly tracked globally.
+				local ChildTracker = GlobalItemRegistry[Child]
+
+				if ChildTracker then
+					-- Tracked children are fully destroyed via the master Clean pipeline.
+					Reaper.Clean(ChildTracker)
+					
+				else
+					-- Raw children are forcefully destroyed via the fast-path C-side pipeline.
+					local ChildMethod = Object._ChildMethods and Object._ChildMethods[Child]
+					
+					executeTeardown(Child, ChildClassID, ChildMethod, nil)
+				end
+			end
+
+			-- Sever the internal dictionaries.
+			Object._Children = nil
+			Object._ChildMethods = nil
+		end
+
+		-- The Lateral Cascade (Bound Scopes)
+		if Object._BoundScopes then
+			for ScopeID in Object._BoundScopes do
+				Reaper.Clean(ScopeID) -- Recursively trigger the master clean function for every bound scope.
+			end
+
+			-- Sever the internal dictionary.
+			Object._BoundScopes = nil
+		end
+
+		-- Total Pointer Erasure and Array Compaction
+		GlobalItemRegistry[Object.Item] = nil
+		ObjectOwnershipMap[Object.Item] = nil
+
+		-- Instantly pull the object out of the active Janitor polling lists.
+		popAndSwap(List, Map :: any, Index, MapKey)
+
+		-- Broadcast an explicit OnRemoved signal (as opposed to OnCleaned) to inform downstream systems that this memory was preserved, not destroyed.
+		if RelayInjected and Reaper.Signals.OnRemoved then
+			if (Reaper.Signals.OnRemoved :: any):GetConnectionCount() > 0 then
+				(Reaper.Signals.OnRemoved :: any):Fire(Object.Item, Object.Classification)
+			end
+
+		elseif ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE and not Loaded then
+			warn("[Reaper] OnRemoved Warning: 'Relay' library is needed to use this signal.")
+		end
+
+		-- Push the preserved physical item into the return array.
+		table.insert(RemovedItems, Object.Item)
+	end
+
+	return RemovedItems -- Return the array of preserved items back to the developer.
+end
+
+--[[
+	Returns the live tracking handle for an item or Scope registered under a given identifier, or nil if not found. String identifiers are resolved in constant time. Raw item references are also resolved in constant time via direct registry lookup. Returns nil if the identifier has never been registered, or if the object has already been cleaned or evicted.
+
+	Params:
+	    Identifier: any -- A string AssignID/ScopeID, a raw item reference, or a TrackObject.
+
+	Returns:
+	    TrackObject? -- The live TrackObject or ScopeObject, or nil if not found.
+]]
+function Reaper.Get(Identifier: any): TrackObject?
+	
+	--[[
+		Reaper.Get: The O(1) Global Retrieval Pipeline.
+
+		A universal access point for developers to retrieve live tracking wrappers 
+		from anywhere in the codebase. It supports polymorphic lookups (by String ID 
+		or raw physical pointer) and operates in strict O(1) time.
+
+		Core Behaviors:
+		    * Polymorphic Routing: Accepts both conceptual string names and raw memory pointers, seamlessly bridging cross-script communication.
+		    * Type Hygiene: Strictly rejects ambiguous queries (like numbers or booleans) to prevent silent registry lookup failures.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Identifier == nil then
+			error("[Reaper] Get Error: Identifier cannot be nil.\n" .. debug.traceback(), 2)
+		end
+
+		local Type = typeof(Identifier)
+
+		if Type == "boolean" or Type == "number" then
+			error(string.format("[Reaper] Get Error: Invalid identifier type '%s'. Expected a string ID, TrackObject, or raw item.\n", Type) .. debug.traceback(), 2)
+		end
+	end
+
+	-- Delegate the lookup to the master router.
+	local Object = resolveIdentifier(Identifier)
+
+	-- Return the wrapper to the developer. If the router returned nil, this will safely return nil, indicating the item is untracked or dead.
+	return Object
+end
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the Assignment and Relay libraries.
+
+	Params:
+	    ModuleName:        string -- The name of the ModuleScript file.
+	    ModuleTableObject: any    -- The required module table/object to inject.
+
+	Returns:
+	    nil
+]]
+function Reaper.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Reaper] Inject Error: 'moduleName' must be a non-empty string.")
+		end
+
+		if type(ModuleTableObject) ~= "table" then
+			error("[Reaper] Inject Error: 'moduleTableObject' must be a table.")
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn = ModuleTableObject.Spawn or task.spawn
+		Scheduler.Defer = ModuleTableObject.Defer or task.defer
+		Scheduler.Delay = ModuleTableObject.Delay or task.delay
+		Scheduler.Wait = ModuleTableObject.Wait or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+		Scheduler.Repeat = ModuleTableObject.Repeat
+		AssignmentInjected = true
+
+	elseif ModuleName == "Relay" then
+		RelayInjected = true
+		--[[
+			Fires immediately after an item is inserted into the registry. The callback receives the raw item, its resolved classification string, and its identifier if already configured — which is typically nil at the moment of tracking since :Configure() is usually called after Track().
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string, AssignID: string?).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnTracked = ModuleTableObject.Create("Reaper_OnTracked")
+		
+		--[[
+			Fires immediately after the physical teardown action has run on an item. The callback receives the raw item and its classification string. Fires for every item in a cascade, not just the root — including all chained children.
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnCleaned = ModuleTableObject.Create("Reaper_OnCleaned")
+		
+		--[[
+			Fires after an item has been released from the registry without being destroyed. The callback receives the raw item and its classification string. The item is still fully intact at the time this fires.
+			
+			Params:
+				Callback: function -- Receives (Item: any, Classification: string).
+				
+			Returns:
+				ConnectionObject -- A Relay connection handle.
+		]]
+		Reaper.Signals.OnRemoved = ModuleTableObject.Create("Reaper_OnRemoved")
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+	Loaded = true
+end
+
+return Reaper
+-------------------------------------------------------------------------------------------------------------
