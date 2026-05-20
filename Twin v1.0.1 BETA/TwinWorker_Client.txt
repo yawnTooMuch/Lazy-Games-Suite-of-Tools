@@ -1,0 +1,197 @@
+--!strict
+--!native
+--!optimize 2
+
+local WorkerActor = script:GetActor()
+if not WorkerActor then return end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Client Internal States Section
+----------------------------------------------------------
+
+local ReturnCallback: BindableEvent = WorkerActor:WaitForChild("TwinEngine_Bridge_4G") :: BindableEvent
+local BulkReturnCallback: BindableEvent = WorkerActor:WaitForChild("TwinEngine_Bridge_5G") :: BindableEvent
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Client Local Function Section
+----------------------------------------------------------
+
+-- Handles a single-job message: requires the module, runs the function in parallel, fires the result back.
+local function runSingleJob(WorkerId: number, UniqueId: string, Module: ModuleScript, FunctionName: string, Payload: any, Generation: number)
+
+	--[[
+		runSingleJob: The Parallel Execution Sandbox and Context Shifter.
+
+		The core execution kernel for Twin.Split() jobs. It safely compiles the target 
+		module on the serial thread, shifts execution to a background CPU core, sandboxes 
+		the developer's calculation, and shifts back to the serial thread to deliver 
+		the result.
+
+		Params:
+		    WorkerId     : number       -- The ID of this specific kernel (for O(1) free pool routing).
+		    UniqueId     : string       -- The monotonic ID of the job being processed.
+		    Module       : ModuleScript -- The physical module containing the function to execute.
+		    FunctionName : string       -- The string name of the target function.
+		    Payload      : any          -- The developer's arbitrary data to be processed.
+		    Generation   : number       -- The Watchdog authentication tag.
+
+		Returns:
+		    nil -- Results are delivered asynchronously via the 4G BindableEvent bridge.
+
+		Core Behaviors:
+		    * Serial Compilation: Executes require() on the safe serial timeline to prevent illegal parallel allocations.
+		    * Context Shifting: Utilizes task.desynchronize() and task.synchronize() to physically move execution across CPU cores.
+		    * Double-Sandboxing: Wraps compilation and execution in pcalls to guarantee a user error never fatally halts the kernel.
+	]]
+
+	-------------------------------------------------------------
+	-- PHASE 1: SERIAL PRE-FLIGHT COMPILATION
+	-------------------------------------------------------------
+
+	-- Require the target module. We do this BEFORE desynchronizing because loading new bytecode must occur safely on the main thread.
+	local LoadSuccess, LoadedModule = pcall(require, Module)
+
+	-- If the module contains a syntax error, abort the job immediately.
+	if not LoadSuccess then
+		warn(("[Twin Split] require failed '%s':\n%s"):format(Module.Name, tostring(LoadedModule)))
+
+		-- Fire a null result back to the 4G bridge to immediately unlock the worker and prevent a Watchdog timeout intervention.
+		ReturnCallback:Fire(WorkerId, UniqueId, nil, 0, Generation)
+
+		return
+	end
+
+	-- Start the precision execution timer.
+	local StartTime = os.clock()
+
+	-------------------------------------------------------------
+	-- PHASE 2: THE PARALLEL CONTEXT SHIFT
+	-------------------------------------------------------------
+
+	-- Physically detach this thread's execution from the main game loop and move it onto a background CPU core.
+	task.desynchronize()
+
+	-- Execute the developer's actual function inside a protected sandbox. If they pass bad data or crash their algorithm, the framework absorbs it.
+	local RunSuccess, Result = pcall(function()
+		return LoadedModule[FunctionName](Payload)
+	end)
+
+	-------------------------------------------------------------
+	-- PHASE 3: SERIAL RESYNCHRONIZATION and DELIVERY
+	-------------------------------------------------------------
+
+	-- We have finished the heavy math. We MUST step back onto the main thread's timeline to safely fire the BindableEvent to the master dispatcher.
+	task.synchronize()
+
+	-- Calculate the exact duration of the parallel compute phase.
+	local Elapsed = os.clock() - StartTime
+
+	-- If the sandbox caught a developer error, warn the console and nullify the result.
+	if not RunSuccess then
+		warn(("[Twin Split] error '%s.%s':\n%s"):format(Module.Name, FunctionName, tostring(Result)))
+		Result = nil
+	end
+
+	-- Fire the payload, timing, and authentication tag across the C-side boundary.
+	ReturnCallback:Fire(WorkerId, UniqueId, Result, Elapsed, Generation)
+end
+
+-- Handles a bulk-job message: requires the module, processes the slice in parallel, fires results back.
+local function runBulkJob(UniqueId: string, StartIndex: number, Length: number, Module: ModuleScript, FunctionName: string, Slice: { any }, SharedArgs: any?, Generation: number)
+
+	--[[
+		runBulkJob: The High-Bandwidth Parallel Batch Processor.
+
+		The heavy-duty execution kernel for Twin.BulkSplit() batches. It receives a 
+		mathematically precise array slice, shifts to a background CPU core, processes 
+		the data against shared contextual arguments, and returns the computed fragment 
+		alongside its master array coordinates for O(1) reassembly.
+
+		Params:
+		    _WorkerId    : number       -- Ignored. The 5G listener tracks the ID via closure on the main thread.
+		    UniqueId     : string       -- The monotonic ID of the master BulkEntry.
+		    StartIndex   : number       -- The absolute starting index of this slice within the master array.
+		    Length       : number       -- The exact number of items in this slice.
+		    Module       : ModuleScript -- The physical module containing the batch processor function.
+		    FunctionName : string       -- The string name of the target function.
+		    Slice        : { any }      -- The subset array of data to be processed.
+		    SharedArgs   : any?         -- Static context data shared across all parallel actors.
+		    Generation   : number       -- The Watchdog authentication tag.
+
+		Returns:
+		    nil -- Results are delivered asynchronously via the 5G BindableEvent bridge.
+
+		Core Behaviors:
+		    * Coordinate Echoing: Returns StartIndex and Length so the C-side dispatcher can seamlessly stitch the memory without sorting.
+		    * Dual-Parameter Execution: Injects both the unique array Slice and the global SharedArgs into the developer's function.
+		    * Context Shifting: Utilizes task.desynchronize() to unlock background CPU cores for heavy array iterations.
+		    * Fail-Safe Delivery: Guarantees that even if the developer's batch logic crashes, a sanitized null-response is returned to prevent engine stalling.
+	]]
+
+	-------------------------------------------------------------
+	-- PHASE 1: SERIAL PRE-FLIGHT COMPILATION
+	-------------------------------------------------------------
+
+	local LoadSuccess, LoadedModule = pcall(require, Module)
+
+	if not LoadSuccess then
+		warn(("[Twin BulkSplit] require failed '%s':\n%s"):format(Module.Name, tostring(LoadedModule)))
+
+		--[[
+			CRITICAL:
+			
+			We MUST fire the 5G bridge even on a pre-flight failure. If we don't, the master BulkEntry on the main thread will never reach Entry.Received == Entry.Total, and the engine will permanently hang.
+		]]
+		BulkReturnCallback:Fire(UniqueId, StartIndex, Length, nil, 0, Generation)
+
+		return
+	end
+
+	-- Start the precision execution timer.
+	local StartTime = os.clock()
+
+	-------------------------------------------------------------
+	-- PHASE 2: THE PARALLEL CONTEXT SHIFT
+	-------------------------------------------------------------
+
+	task.desynchronize()
+
+	-- Execute the batch processor.
+	local RunSuccess, Results = pcall(function()
+		return LoadedModule[FunctionName](Slice, SharedArgs)
+	end)
+
+	-------------------------------------------------------------
+	-- PHASE 3: SERIAL RESYNCHRONIZATION and DELIVERY
+	-------------------------------------------------------------
+
+	task.synchronize()
+
+	-- Calculate the exact duration of the parallel batch computation.
+	local Elapsed = os.clock() - StartTime
+
+	-- If the developer's loop failed (e.g., indexing a nil value), absorb the crash.
+	if not RunSuccess then
+		warn(("[Twin BulkSplit] error '%s.%s':\n%s"):format(Module.Name, FunctionName, tostring(Results)))
+		Results = nil
+	end
+
+	-- Fire the computed fragment, its assembly coordinates, and the authentication tag across the high-bandwidth 5G boundary.
+	BulkReturnCallback:Fire(UniqueId, StartIndex, Length, Results, Elapsed, Generation)
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- TwinWorker_Client Event Binding Section
+----------------------------------------------------------
+
+WorkerActor:BindToMessage("RunSingleJob", runSingleJob)
+WorkerActor:BindToMessage("RunBulkJob", runBulkJob)

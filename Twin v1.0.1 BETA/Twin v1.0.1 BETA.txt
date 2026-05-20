@@ -1,0 +1,2818 @@
+--[[
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Twin - Parallel Job Scheduler Framework					 						 				 000
+	000 Version: 1.0.1 Beta Release													  			 		 000
+	000 Platform: Roblox													  							 000
+	000 License: Apache 2.0												  	  					 		 000
+	000																		  					 		 000
+	000																		  					 		 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					 		 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			 		 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Twin_ReadOnly 		 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/twin/ 			 000
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Configuration Section
+----------------------------------------------------------
+
+local ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE = game:GetService("RunService"):IsStudio() -- enables parameter validation on every API call
+
+local SERVER_WORKER_COUNT = 3                                                               -- number of workers to use on the server
+local CLIENT_WORKER_COUNT = 7                                                               -- number of workers to use on the client
+local ENABLE_TYPO_POLICE = game:GetService("RunService"):IsStudio()                         -- master switch for the function name typo checking system
+local DEFAULT_MAX_WAIT = 0.050                                                              -- seconds before deadline dispatch
+local STARVATION_THRESHOLD = 10                                                             -- heavy single-job skip count before starvation promotion
+local BG_STARVATION_THRESHOLD = 50                                                          -- background bulk batch-skip count before forced dispatch
+local SPECULATIVE_THRESHOLD = 0.016                                                         -- avgExecTime above this marks a worker as "slow" for speculative dispatch
+local EMA_ALPHA = 0.25                                                                      -- exponential moving average smoothing factor for worker execution time
+local FRAME_BUDGET_SEC = 0.008                                                              -- 8ms: main-thread dispatch gate per frame
+
+local NODE_POOL_SIZE = 256                                                                  -- controls the maximum number of recycled "Nodes" used in Twin's internal linked-list queues
+local SINGLE_JOB_POOL_SIZE = 64                                                             -- number of recycled SingleJob structs available for Twin.Split()
+local BULK_ENTRY_POOL_SIZE = 16                                                             -- number of active Twin.BulkSplit() master requests allowed at once
+local BULK_BATCH_POOL_SIZE = 64                                                             -- number of bulk entries split into smaller "Batches" to send to workers
+local RESULT_BUFFER_POOL_SIZE = 16                                                          -- number of pre-allocated arrays ready to hold final BulkSplit results
+
+local MAX_BATCH_SIZE = 256                                                                  -- absolute maximum number of items Twin will allocate into a single chunk to send to an Actor
+local MAX_RESULT_ITEMS = 1024                                                               -- size allocation of the tables sitting inside RESULT_BUFFER_POOL_SIZE
+
+local TELEMETRY_ENABLED = game:GetService("RunService"):IsStudio()                          -- master switch — false eliminates all sampling overhead; Twin.Report() returns nil
+local TELEMETRY_FLUSH_INTERVAL = 10                                                         -- seconds between telemetry windows
+local TELEMETRY_MAX_DEFER_SEC = 30                                                          -- max seconds flush coroutine waits for a quiet moment before force-flushing
+local TELEMETRY_RING_SIZE = 600                                                             -- Heartbeat samples stored in the ring buffer (600 = 10s at 60fps)
+
+local POOL_WARN_RATIO = 0.50                                                                -- below this → "Warm"
+local POOL_CRIT_RATIO = 0.20                                                                -- below this → "Overloaded"
+
+local QUEUE_WARN_DEPTH = 10                                                                 -- peak depth above this → "Warm"
+local QUEUE_CRIT_DEPTH = 25                                                                 -- peak depth above this → "Overloaded"
+
+local WORKER_WARN_EXEC = 0.016                                                              -- above this → "Warm"
+local WORKER_CRIT_EXEC = 0.030                                                              -- above this → "Overloaded"
+
+local OVER_BUDGET_RATE_WARN = 0.05                                                          -- fraction of frames over budget → "Warm"
+local OVER_BUDGET_RATE_CRIT = 0.20                                                          -- fraction of frames over budget → "Overloaded"
+local ACTIVE_BULK_WARN = 1                                                                  -- activeBulkCount above this → "Warm"
+local ACTIVE_BULK_CRIT = 3                                                                  -- activeBulkCount above this → "Overloaded"
+
+local BG_SKIP_WARN = 20                                                                     -- background jobs skips threshold before it is flagged "Warm" (Problematic)
+local BG_SKIP_CRITICAL = 45                                                                 -- background jobs skips threshold before it is flagged "Overloaded" (Severe)
+local HEAVY_SKIP_WARN = 5                                                                   -- heavy jobs skips threshold before it is flagged "Warm" (Problematic)
+local HEAVY_SKIP_CRITICAL = 8                                                               -- heavy jobs skips threshold before it is flagged "Overloaded" (Severe)
+
+local WATCHDOG_ENABLED = true                                                               -- master switch for the worker timeout system
+local WATCHDOG_TIMEOUT = 5.0                                                                -- seconds before a worker is declared dead
+local WATCHDOG_INTERVAL = 1.0                                                               -- seconds between scans
+local WATCHDOG_INTERVENTIONS_WARN = 1                                                       -- interventions per window above this → "Warm"
+local WATCHDOG_INTERVENTIONS_CRITICAL = 3                                                   -- interventions per window above this → "Overloaded"
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Type Structures Section
+----------------------------------------------------------
+
+--[[
+	Control token returned by all dispatch methods (Split, BulkSplit, Sequence). It contains a single Disconnect method, allowing developers to mathematically abort 
+	a job or prevent a callback from firing if the game state changes before the worker finishes.
+]]
+export type Handle = {Disconnect: () -> ()}
+
+-- Standard function signatures for when single jobs or sequential chains complete.
+-----------------------------------------------------------------------------------
+export type SplitCallback = (Result: any) -> ()
+export type SequenceCallback = (Results: { any }) -> ()
+-----------------------------------------------------------------------------------
+
+--[[
+	The callback for bulk dispatches. Crucially, the Results array passed to this callback is a pooled memory buffer. The developer must read the data immediately. 
+	If they store the table reference, it will be overwritten by the engine microseconds later when the next bulk job fires.
+]]
+export type BulkCallback = (Results: { any }) -> ()
+
+-- Dictionary structures allowing developers to tune a job (e.g., assigning a heavy weight, setting a max wait deadline, or overriding batch sizes).
+----------------------------------------------------------------------------------------------------------------------------------------------------
+export type SplitOptions = {____Weight: ("light" | "heavy")?}
+export type BulkOptions = {____BatchSize: number?, ____SharedArgs: any?, ____MaxWaitTime: number?, ____Priority: BulkPriority?}
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- A configuration struct representing a single link in a Twin.Sequence array. It defines the module, function, and payload to pass to the next worker in line.
+export type ChainStep = {____Module: ModuleScript, ____FunctionName: string, ____Payload: any?, ____Weight: ("light" | "heavy")?}
+
+--- Dispatch priority for Twin.BulkSplit.
+export type BulkPriority = "critical" | "normal" | "background"
+
+-- String literals acting as a traffic-light system (Healthy/Green, Warm/Yellow, Overloaded/Red). They allow a developer to instantly spot bottlenecks without reading raw numbers.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+export type TelemetryStatus = "Healthy" | "Warm" | "Overloaded"
+export type TelemetryGroupStatus = "Green" | "Yellow" | "Red"
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- The structural wrappers for individual metrics. They pair the raw numeric value (e.g., how deep the queue is) with its calculated Status color.
+--------------------------------------------------------------------------------------------------------------------------------------------------
+export type TelemetryPoolEntry = {Value: number, Capacity: number, Status: TelemetryStatus}
+export type TelemetryQueueEntry = {Value: number, Status: TelemetryStatus}
+export type TelemetryWorkerExec = {Value: number, Status: TelemetryStatus}
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- The master diagnostic object. It aggregates the health of memory pools, queue depths, individual worker execution times, frame governor skips, and watchdog interventions into a single, cohesive snapshot.
+export type TelemetryReport = {Pools: {Node: TelemetryPoolEntry, SingleJob: TelemetryPoolEntry, BulkEntry: TelemetryPoolEntry, BulkBatch: TelemetryPoolEntry, ResultBuffer: TelemetryPoolEntry, Status: TelemetryGroupStatus},
+
+	Queues: {Light: TelemetryQueueEntry, Heavy: TelemetryQueueEntry, BulkCritical: TelemetryQueueEntry, BulkNormal: TelemetryQueueEntry, BulkBackground: TelemetryQueueEntry, Status: TelemetryGroupStatus},
+
+	Workers: {Total: number, Free: number, Busy: number, AvgExecTime: { [number]: TelemetryWorkerExec }, WatchdogInterventions: { Value: number, Status: TelemetryStatus }, Status: TelemetryGroupStatus},
+
+	FrameGovernor: {BudgetMs: { Value: number, Status: TelemetryStatus }, OverBudgetRate: { Value: number, Status: TelemetryStatus }, ActiveBulkCount: { Value: number, Status: TelemetryStatus }, Status: TelemetryGroupStatus},
+
+	Starvation: {BgSkipCount: { Value: number, Status: TelemetryStatus }, HeavySkipCount: { Value: number, Status: TelemetryStatus }, Status: TelemetryGroupStatus},
+
+	Overall: TelemetryGroupStatus, WindowSec: number, SampleCount: number, Timestamp: number}
+
+-- A fixed-capacity stack used for caching objects.
+type Pool<T> = {Stack: { T }, Top: number, Capacity: number}
+
+-- The fundamental building block of Twin’s internal queues.
+type ListNode = {Data: any, Next: ListNode?}
+
+-- A strict O(1) Linked-List FIFO (First-In, First-Out) queue.
+type Queue = {Head: ListNode?, Tail: ListNode?, Size: number}
+
+-- The master state for a single Actor. It tracks whether the worker is Busy, its moving average execution time, and exactly what job it is currently processing.
+type WorkerData = {Id: number, Actor: Actor, Busy: boolean, AvgExecTime: number, JobStartedAt: number, IsBulk: boolean, CurrentJobUid: string, CurrentBatchIndex: number, CurrentSingleJob: SingleJob?, WorkerGeneration: number}
+
+-- The memory payload for a Twin.Split() call. It holds the target ModuleScript, function name, and payload, sitting in the queue until a worker claims it.
+type SingleJob = {UniqueId: string, Module: ModuleScript, FunctionName: string, Payload: any, Callback: SplitCallback, Weight: "light" | "heavy", Cancelled: boolean}
+
+-- A sub-chunk of a BulkEntry. Twin takes a massive array of 10,000 items, cuts it into smaller BulkBatch structs containing a Slice of the data, and fires these individual batches off to the workers.
+type BulkBatch = {StartIndex: number, Length: number, Slice: { any }}
+
+-- The master coordinator for a Twin.BulkSplit() call. It holds the pre-allocated Buffer array to catch returning results, and tracks how many batches have been Dispatched versus how many have been Received.
+type BulkEntry = {UniqueId: string, Module: ModuleScript, FunctionName: string, Buffer: { any }, Received: number, Total: number, Dispatched: number, Callback: BulkCallback, SharedArgs: any?, ArrivedAt: number, MaxWaitTime: number, Batches: { BulkBatch }, Cancelled: boolean, Priority: "critical" | "normal" | "background"}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Imported Services Section
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Internal States Section
+----------------------------------------------------------
+
+local IsServer: boolean = RunService:IsServer()
+
+-- The master dictionary holding the state (WorkerData) of every initialized Actor.
+local Workers: { WorkerData } = {}
+
+--[[
+	Instead of iterating through all workers to find one that isn't busy (which is O(N)), Twin uses a pre-allocated array as a stack. When a worker finishes, its ID is pushed onto the stack. 
+	When a job needs a worker, it pops an ID off the top. This guarantees O(1) worker acquisition.
+]]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local FreeStack: { number } = table.create(if IsServer then SERVER_WORKER_COUNT else CLIENT_WORKER_COUNT)
+local FreeTop: number = 0
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Five dedicated Linked-List queues. Segregating the items allows the dispatcher to instantly check the highest-priority buckets first without sorting arrays.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+local BulkQueueCritical: Queue
+local BulkQueueNormal: Queue
+local BulkQueueBackground: Queue
+local LightQueue: Queue
+local HeavyQueue: Queue
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Tracks how many massive bulk splits are currently chewing up the worker pool.
+local ActiveBulkCount: number = 0
+
+-- Every time the dispatcher skips the Heavy or Background queues to process a Light or Critical job, these counters tick up. Once they hit their respective thresholds, they force the engine to process the neglected jobs.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local HeavySkipCount: number = 0
+local BackgroundSkipCount: number = 0
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Dictionaries mapped by UniqueId. When an Actor finishes Job "452", the engine looks up "452" in these registries to find the exact callback function to execute.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local SingleListeners: { [string]: SplitCallback } = {}
+local BulkRegistry: { [string]: BulkEntry } = {}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--[[
+	A pre-allocated BindableEvent. Actors cannot natively execute functions on the main thread, but they can fire BindableEvents. 
+	This bridge is the physical wire that carries results from the parallel threads back to the main thread's memory space.
+]]
+local SingleBridge: BindableEvent = Instance.new("BindableEvent")
+
+-- Captures the exact microsecond os.clock() at the beginning of the Heartbeat. The dispatcher constantly checks against this to ensure it doesn't exceed the 8ms FRAME_BUDGET_SEC.
+local FrameStart: number = os.clock()
+
+-- An incrementing integer used to generate unique, zero-collision IDs for all parallel tasks.
+local NextJobId: number = 0
+
+-- Dynamic Task Scheduler
+local Scheduler = {
+	Spawn = task.spawn,
+	Defer = task.defer,
+	Delay = task.delay,
+	Wait = task.wait,
+	Cancel = task.cancel,
+}
+
+--[[
+	These are the physical instances of the Pool<T> type. They are populated once during initialization. During runtime, Twin exclusively borrows from these pools to build queues and track data, mathematically eliminating 
+	Luau garbage collection spikes.
+]]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local NodePool: Pool<ListNode>
+local SingleJobPool: Pool<SingleJob>
+local BulkBatchPool: Pool<BulkBatch>
+local BulkEntryPool: Pool<BulkEntry>
+local ResultBufferPool: Pool<{ any }>
+local CleanParamsPool: Pool<{ [string]: any }>
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--[[
+	Instead of creating a new table every frame to record stats (which would leak memory instantly), Twin uses a "Ring Buffer." TelemetryRingHead moves from 1 to 600, then loops back to 1. The engine simply overwrites the 
+	oldest data point. This provides a constant, rolling 10-second window of perfect diagnostic data at zero allocation cost.
+]]
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local TelemetryWorkerEMA: { [number]: { number } } = {}
+local TelemetryFrameOverBudget: { boolean } = table.create(TELEMETRY_RING_SIZE, false)
+local TelemetryActiveBulk: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryFreeTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryLightQueueSize: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryHeavyQueueSize: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBulkCriticalSize: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBulkNormalSize: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBulkBackgroundSize: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryNodePoolTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetrySingleJobPoolTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBulkEntryPoolTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBulkBatchPoolTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryResultBufferPoolTop: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryBackgroundSkip: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryHeavySkip: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+local TelemetryWatchdogFires: { number } = table.create(TELEMETRY_RING_SIZE, 0)
+
+local TelemetryRingHead: number = 0
+local TelemetryRingCount: number = 0
+local TelemetryWindowStart: number = os.clock()
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Local Function Section
+----------------------------------------------------------
+
+-- Creates a fixed-capacity stack-based pool using a factory function.
+local function makePool<T>(Capacity: number, Factory: () -> T): Pool<T>
+
+	--[[
+		makePool: The Zero-Allocation Memory Forge.
+
+		Constructs a fixed-capacity, pre-allocated stack of objects. It takes a factory 
+		function and eagerly populates the entire pool upfront during initialization. 
+		During runtime, the engine will exclusively borrow and return objects from this 
+		stack rather than allocating new memory.
+
+		Params:
+		    Capacity : number      -- The absolute maximum number of items this pool can hold.
+		    Factory  : () -> T     -- A generator function that returns a new, blank struct of type T.
+
+		Returns:
+		    Pool<T> -- The pre-filled stack structure and its integer pointer.
+
+		Core Behaviors:
+		    * Deterministic Sizing: Utilizes table.create() to prevent dynamic array re-hashing during runtime.
+		    * Eager Instantiation: Pre-fabricates every single object required by the Capacity limit upfront.
+		    * Pointer-Based LIFO: Tracks the active stack size using a simple "Top" integer, completely avoiding standard table manipulation overhead.
+	]]
+
+	-- Command the Luau VM to allocate exactly "Capacity (example 100)" slots in memory instantly.
+	local Stack: { T } = table.create(Capacity)
+
+	-- Loop through the pre-allocated array and fill every single slot using the Factory() generator.
+	for SlotIndex = 1, Capacity do
+		Stack[SlotIndex] = Factory()
+	end
+
+	-- Return the Pool struct. The "Top" integer acts as our O(1) index pointer. Since the pool starts completely full, Top is initialized to equal Capacity.
+	return {
+		Stack = Stack,
+		Top = Capacity,
+		Capacity = Capacity,
+	}
+end
+
+-- Acquires an object from the pool, or falls back to the factory if exhausted.
+local function poolAcquire<T>(TargetPool: Pool<T>, Factory: () -> T): T
+
+	--[[
+		poolAcquire: The O(1) Memory Borrower.
+
+		Extracts a pre-allocated object from the top of the pool's stack in strict O(1) time. 
+		If the pool is completely exhausted due to extreme load, it safely falls back 
+		to dynamic allocation to guarantee the engine never drops a task.
+
+		Params:
+		    TargetPool : Pool<T>   -- The specific memory pool to draw from.
+		    Factory    : () -> T   -- The fallback generator function for starvation events.
+
+		Returns:
+		    T -- The acquired struct, ready for immediate data population.
+
+		Core Behaviors:
+		    * Pointer Extraction: Avoids table.remove() shifting by strictly using the Top integer pointer for O(1) execution.
+		    * Reference Cleansing: Nils the stack slot after extraction to prevent the pool from holding strong references to checked-out objects.
+		    * Graceful Degradation: Defaults to dynamic Factory allocation if the pool is starved, prioritizing system stability over strict memory constraints.
+	]]
+
+	-- Check if there are any pre-allocated objects remaining in the stack.
+	if TargetPool.Top > 0 then
+		-- Grab the object currently sitting at the absolute top of the stack.
+		local Object = TargetPool.Stack[TargetPool.Top]
+
+		-- Erase the pointer from the array. This guarantees that if the object is lost or destroyed outside the pool, the GC can successfully reclaim it.
+		TargetPool.Stack[TargetPool.Top] = nil :: any
+
+		-- Decrement the stack pointer.
+		TargetPool.Top -= 1
+
+		-- Return the borrowed object.
+		return Object
+	end
+
+	-- The pool has been completely exhausted by a massive concurrency spike. Dynamically allocate a new object to ensure the job is still processed.
+	return Factory()
+end
+
+-- Returns an object to the pool.
+local function poolRelease<T>(TargetPool: Pool<T>, Object: T)
+	-- Do not accept objects anymore if the pool already exceeds the pre-allocated capacity.
+	if TargetPool.Top >= TargetPool.Capacity then
+		return
+	end
+
+	TargetPool.Top += 1
+	TargetPool.Stack[TargetPool.Top] = Object
+end
+
+-- Acquires a ListNode from the pool and sets its data.
+local function acquireNode(ItemData: any): ListNode
+
+	--[[
+		acquireNode: The High-Frequency Queue Node Allocator.
+
+		Retrieves a recycled ListNode struct from the pre-allocated NodePool and sanitizes 
+		its pointers to hold new job data. This is the absolute core of Twin's zero-allocation 
+		Linked List queueing architecture.
+
+		Params:
+		    ItemData : any -- The raw job payload (e.g., SingleJob or BulkEntry struct).
+
+		Returns:
+		    ListNode -- A freshly sanitized queue node, ready to be attached to a Queue's Tail.
+
+		Core Behaviors:
+		    * Zero-Allocation Assembly: Borrows pre-fabricated nodes, eliminating GC overhead during massive job dispatch spikes.
+		    * State Sanitization: Ruthlessly clears stale structural pointers (Next) to maintain absolute mathematical integrity of the Linked List.
+		    * Seamless Degradation: Injects a dynamic factory closure to safely allocate emergency nodes if the pool is subjected to starvation.
+	]]
+
+	-- Request a node from the global NodePool. If the pool is completely exhausted, execute the inline anonymous function to dynamically forge an emergency node.
+	local NewNode = poolAcquire(NodePool, function(): ListNode
+		return {
+			Data = nil,
+			Next = nil,
+		} -- Only execute this function if the pool is completely empty.
+	end)
+
+	-- Bind the raw job data to this queue node.
+	NewNode.Data = ItemData
+
+	-- Because this node was likely recycled, we must forcefully sever any lingering structural connections from its previous lifecycle. If we fail to nil this, the Queue will inherit a corrupted graph.
+	NewNode.Next = nil
+
+	-- Return the fully prepared and sanitized node to the Queue builder.
+	return NewNode
+end
+
+-- Returns a ListNode to the pool.
+local function releaseNode(Node: ListNode)
+	Node.Data = nil
+	Node.Next = nil
+	poolRelease(NodePool, Node)
+end
+
+-- Creates a blank SingleJob struct.
+local function makeSingleJob(): SingleJob
+	return {
+		UniqueId = "",
+		Module = nil :: any,
+		FunctionName = "",
+		Payload = nil,
+		Callback = nil :: any,
+		Weight = "heavy",
+		Cancelled = false,
+	}
+end
+
+-- Acquires and populates a SingleJob from the pool.
+local function acquireSingleJob(UniqueId: string, Module: ModuleScript, FunctionName: string, Payload: any, Callback: SplitCallback, Weight: "light" | "heavy"): SingleJob
+	local Job = poolAcquire(SingleJobPool, makeSingleJob)
+
+	Job.UniqueId = UniqueId
+	Job.Module = Module
+	Job.FunctionName = FunctionName
+	Job.Payload = Payload
+	Job.Callback = Callback
+	Job.Weight = Weight
+	Job.Cancelled = false
+
+	return Job
+end
+
+-- Clears and returns a SingleJob to the pool.
+local function releaseSingleJob(Job: SingleJob)
+	Job.UniqueId = ""
+	Job.Module = nil :: any
+	Job.FunctionName = ""
+	Job.Payload = nil
+	Job.Callback = nil :: any
+	Job.Cancelled = false
+
+	poolRelease(SingleJobPool, Job)
+end
+
+-- Creates a blank BulkBatch struct with a pre-sized slice table.
+local function makeBulkBatch(): BulkBatch
+	return {
+		StartIndex = 0,
+		Length = 0,
+		Slice = table.create(MAX_BATCH_SIZE),
+	}
+end
+
+-- Acquires and populates a BulkBatch from the pool.
+local function acquireBulkBatch(StartIndex: number, Length: number): BulkBatch
+	local Batch = poolAcquire(BulkBatchPool, makeBulkBatch)
+
+	Batch.StartIndex = StartIndex
+	Batch.Length = Length
+
+	return Batch
+end
+
+-- Clears and returns a BulkBatch to the pool.
+local function releaseBulkBatch(Batch: BulkBatch)
+	Batch.StartIndex = 0
+	Batch.Length = 0
+
+	table.clear(Batch.Slice) -- Because BulkBatch only receives just a part (slice) of the original data
+	poolRelease(BulkBatchPool, Batch)
+end
+
+-- Acquires a pre-sized result buffer from the pool.
+local function acquireResultBuffer(): { any }
+	return poolAcquire(ResultBufferPool, function(): { any }
+		return table.create(MAX_RESULT_ITEMS) -- Only execute this function if the pool is completely empty.
+	end)
+end
+
+-- Clears and returns a result buffer to the pool.
+local function releaseResultBuffer(Buffer: { any })
+	table.clear(Buffer)
+	poolRelease(ResultBufferPool, Buffer)
+end
+
+-- Clears the buffer in a delayed execution.
+local function delayedCleanup(Buffer: any)
+	releaseResultBuffer(Buffer)
+end
+
+-- Creates a blank BulkEntry struct.
+local function makeBulkEntry(): BulkEntry
+	return {
+		UniqueId = "",
+		Module = nil :: any,
+		FunctionName = "",
+		Buffer = nil :: any,
+		Received = 0,
+		Total = 0,
+		Dispatched = 0,
+		Callback = nil :: any,
+		SharedArgs = nil,
+		ArrivedAt = 0,
+		MaxWaitTime = 0,
+		Batches = {},
+		Cancelled = false,
+		Priority = "normal",
+	}
+end
+
+-- Acquires and populates a BulkEntry from the pool.
+local function acquireBulkEntry(UniqueId: string, Module: ModuleScript, FunctionName: string, Total: number, Callback: BulkCallback, SharedArgs: any?, MaxWaitTime: number, Priority: "critical" | "normal" | "background"): BulkEntry
+	local Entry = poolAcquire(BulkEntryPool, makeBulkEntry)
+
+	Entry.UniqueId = UniqueId
+	Entry.Module = Module
+	Entry.FunctionName = FunctionName
+	Entry.Buffer = acquireResultBuffer()
+	Entry.Received = 0
+	Entry.Total = Total
+	Entry.Dispatched = 0
+	Entry.Callback = Callback
+	Entry.SharedArgs = SharedArgs
+	Entry.ArrivedAt = os.clock()
+	Entry.MaxWaitTime = MaxWaitTime
+	Entry.Cancelled = false
+	Entry.Priority = Priority
+
+	return Entry
+end
+
+-- Returns all batch objects to the pool and resets the BulkEntry.
+local function releaseBulkEntry(Entry: BulkEntry)
+
+	--[[
+		releaseBulkEntry: The Deep Hierarchy Cleanup Pipeline.
+
+		Executes a cascading memory teardown for a completed or cancelled bulk dispatch. 
+		It systematically returns all child batches and the master result buffer to their 
+		respective zero-allocation pools before sanitizing its own pointers and returning 
+		to the BulkEntryPool.
+
+		Params:
+		    Entry : BulkEntry -- The master job struct that has completed its lifecycle.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Cascading Reclamation: Recursively frees sub-allocations (Batches and Buffers) to prevent nested pool starvation.
+		    * O(1) Array Obliteration: Utilizes C-side table.clear() to instantly sever all child pointers without expensive Lua-side iteration.
+		    * Total Pointer Scrubbing: Ruthlessly nils all structural and functional properties to mathematically prevent ghost data leakage into future recycled jobs.
+	]]
+
+	-- Iterate through the strictly known bounds of the dispatched batches.
+	for BatchIndex = 1, Entry.Total do
+		local Batch = Entry.Batches[BatchIndex]
+
+		-- If the batch exists, return it to the BulkBatchPool.
+		if Batch then
+			releaseBulkBatch(Batch)
+		end
+	end
+
+	-- Instantly wipe the Batches array in a single C-side instruction. This is drastically faster than manually setting indices to nil.
+	table.clear(Entry.Batches)
+
+	-- If the buffer exists, return it to the ResultBufferPool and sever the local pointer.
+	if Entry.Buffer then
+		releaseResultBuffer(Entry.Buffer) 
+		Entry.Buffer = nil :: any
+	end
+
+	-- Systematically destroy every remaining pointer. This guarantees the object is completely blank and mathematically safe to be recycled by poolAcquire.
+	Entry.UniqueId = ""
+	Entry.Module = nil :: any
+	Entry.FunctionName = ""
+	Entry.Received = 0
+	Entry.Total = 0
+	Entry.Dispatched = 0
+	Entry.Callback = nil :: any
+	Entry.SharedArgs = nil
+	Entry.ArrivedAt = 0
+	Entry.MaxWaitTime = 0
+	Entry.Cancelled = false
+	Entry.Priority = "normal"
+
+	-- Return the fully scrubbed master struct back to the pool.
+	poolRelease(BulkEntryPool, Entry)
+end
+
+-- Creates an empty queue.
+local function makeQueue(): Queue
+	return {
+		Head = nil,
+		Tail = nil,
+		Size = 0,
+	} -- Only runs this function if the queue is empty.
+end
+
+-- Clean the pool of the params table utility.
+local function releaseParams(CleanParams: { [string]: any })
+	table.clear(CleanParams)
+	poolRelease(CleanParamsPool, CleanParams)
+end
+
+-- Ultra-fast parser with strict validation for DX prefixes.
+local function sanitizeParams(RawParams: { [string]: any }?): { [string]: any }
+
+	--[[
+		sanitizeParams: The DX Parameter Sanitizer.
+
+		A fast dictionary parser that strips the "____" prefix from optional parameter keys. 
+		This prefix is used purely as a Developer Experience (DX) hack to force Luau's 
+		autocomplete to bubble optional keys to the top of the suggestion list.
+
+		Params:
+		    RawParams : { [string]: any }? -- The raw options dictionary provided by the developer.
+
+		Returns:
+		    { [string]: any } -- A new, clean dictionary for internal engine use.
+
+		Core Behaviors:
+		    * Key Normalization: Strips exactly 4 leading underscores from string keys (e.g., ____Weight becomes Weight).
+		    * Typo Enforcement: Throws a fatal error if a developer miscounts the underscores (e.g., using 3 or 5), mathematically preventing silent configuration failures.
+		    * Zero-Cost Fallback: Gracefully passes through standard keys or non-string keys without modification.
+	]]
+
+	-- Fetch a table from the pool.
+	local CleanParams = poolAcquire(CleanParamsPool, function(): { [string]: any }
+		return {}
+	end)
+
+	table.clear(CleanParams)
+
+	-- If the developer passed nil (no options), return the empty dictionary.
+	if not RawParams then
+		return CleanParams
+	end
+
+	-- Iterate through the raw dictionary.
+	for Key, Value in RawParams do
+		if type(Key) == "string" then
+			-- Use regex to capture any consecutive underscores at the very start of the string.
+			local LeadingUnderscores = string.match(Key, "^_+")
+
+			if LeadingUnderscores then
+				-- Strict Typo Enforcement: Ensure it is EXACTLY four underscores.
+				if #LeadingUnderscores == 4 then
+					-- Strip the first 4 characters (start the new string at index 5).
+					local CleanKey = string.sub(Key, 5)
+
+					-- Map the value to the clean key.
+					CleanParams[CleanKey] = Value
+
+				else
+					-- Fatal error: Prevent the parameter from being silently ignored due to a typo.
+					error("[Twin] Invalid parameter prefix: '" .. Key .. "'. Must use exactly 4 underscores (____) for autocomplete, or none at all.\n" .. debug.traceback(), 2)
+				end
+
+			else
+				-- The string has no leading underscores. Pass it through cleanly.
+				CleanParams[Key] = Value
+			end
+
+		else
+			-- The key is not a string (e.g., a number index). Pass it through cleanly.
+			CleanParams[Key] = Value
+		end
+	end
+
+	return CleanParams
+end
+
+-- Enqueues data at the tail.
+local function enqueue(TargetQueue: Queue, ItemData: any)
+
+	--[[
+		enqueue: The O(1) Tail Injector.
+
+		Injects a new job payload into the absolute end of a Linked-List queue. It 
+		operates in strict O(1) time complexity by maintaining direct pointer access 
+		to the Tail node, mathematically bypassing standard array manipulation overhead.
+
+		Params:
+		    TargetQueue : Queue -- The destination queue (e.g., LightQueue, BulkQueueCritical).
+		    ItemData    : any   -- The raw job struct to inject (SingleJob or BulkEntry).
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Pointer-Based Appending: Achieves infinite scaling without performance degradation by bypassing O(N) array iteration.
+		    * Zero-Allocation Wrapping: Forces the payload through acquireNode to wrap it in a recycled structural shell before injection.
+		    * Empty State Resolution: Intelligently binds the Head pointer if the queue is receiving its very first node, preventing graph corruption.
+	]]
+
+	-- Request a recycled, sanitized node from the global NodePool and bind the payload.
+	local Node = acquireNode(ItemData)
+
+	-- Check if the queue already has existing nodes.
+	if TargetQueue.Tail then
+		-- The queue is active. Bind the current Tail's Next pointer to our newly forged node.
+		TargetQueue.Tail.Next = Node
+
+	else
+		-- The queue is completely empty. We must initialize the entry point of the graph by setting the new node as the absolute Head.
+		TargetQueue.Head = Node
+	end
+
+	-- Regardless of whether the queue was empty or full, our new node is now mathematically the absolute end of the list. Update the master Tail pointer.
+	TargetQueue.Tail = Node
+
+	-- Increment the O(1) size tracker used for Telemetry depth reporting.
+	TargetQueue.Size += 1
+end
+
+-- Enqueues data at the head. Used to re-insert a job that could not be dispatched.
+local function enqueueHead(TargetQueue: Queue, ItemData: any)
+
+	--[[
+		enqueueHead: The O(1) Head Injector (Requeue Pipeline).
+
+		Forcefully injects a job payload into the absolute front of a Linked-List queue. 
+		This is exclusively utilized for emergency job recovery (e.g., aborted dispatches 
+		or Watchdog rescues) to ensure interrupted tasks maintain absolute priority 
+		without suffering O(N) array-shifting penalties.
+
+		Params:
+		    TargetQueue : Queue -- The destination queue (e.g., LightQueue, HeavyQueue).
+		    ItemData    : any   -- The raw job struct to re-inject.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * O(1) Prepend: Bypasses standard table.insert() penalties, mathematically prepending the node in three pointer operations.
+		    * Priority Preservation: Ensures recovered jobs are placed at the absolute front of the line rather than being penalized at the Tail.
+		    * Graph Synchronization: Detects if the prepend occurred on a dead-empty queue and safely binds the Tail pointer to maintain structural integrity.
+	]]
+
+	-- Request a recycled, sanitized node from the global NodePool.
+	local Node = acquireNode(ItemData)
+
+	-- Bind the new node's Next pointer to whatever is currently at the front of the line. If the queue is empty, TargetQueue.Head is nil, which perfectly terminates the node.
+	Node.Next = TargetQueue.Head
+
+	-- Override the master Head pointer. The new node is now officially the front of the line.
+	TargetQueue.Head = Node
+
+	-- If the Tail pointer is nil, it means this queue was completely empty before we executed this prepend. A queue with exactly 1 item must have both its Head and Tail pointing to that same single item.
+	if not TargetQueue.Tail then
+		TargetQueue.Tail = Node
+	end
+
+	-- Increment the O(1) size tracker used for Telemetry depth reporting.
+	TargetQueue.Size += 1
+end
+
+-- Dequeues the first non-cancelled SingleJob.
+local function dequeueSingle(TargetQueue: Queue): SingleJob?
+
+	--[[
+		dequeueSingle: The Head Extractor and Lazy Pruner.
+
+		Extracts the next valid job from the absolute front of a Linked-List queue. 
+		It completely bypasses O(N) array shifting and acts as the executioner for 
+		cancelled jobs, ruthlessly pruning dead nodes via a lazy deletion pipeline 
+		before returning a valid payload to the dispatcher.
+
+		Params:
+		    TargetQueue : Queue -- The queue to extract from (e.g., LightQueue, HeavyQueue).
+
+		Returns:
+		    SingleJob? -- The extracted job, or nil if the queue is empty (or completely filled with cancelled jobs).
+
+		Core Behaviors:
+		    * O(1) Extraction: Pops the Head node in exactly three pointer assignments, executing with zero latency regardless of queue depth.
+		    * Lazy Deletion: Rapidly iterates through and recycles any jobs that were cancelled via Handle:Disconnect(), keeping the cancellation API strictly O(1).
+		    * Structural Teardown: Instantly recycles the queue node shells back into the NodePool to maintain the zero-allocation guarantee.
+	]]
+
+	-- We loop because the node at the Head might be a "ghost" job that was cancelled. If it is, we must discard it and immediately check the next one.
+	while TargetQueue.Head do
+		-- Capture the current Head node and extract its physical payload.
+		local Node = TargetQueue.Head
+		local Job = Node.Data :: SingleJob
+
+		-- Move the master Head pointer to the next node in the line. The original node is now officially severed from the queue.
+		TargetQueue.Head = Node.Next
+
+		-- If shifting the Head pointer resulted in nil, it means we just popped the very last item. We must nullify the Tail to prevent structural corruption.
+		if not TargetQueue.Head then
+			TargetQueue.Tail = nil
+		end
+
+		-- Decrement the O(1) telemetry size tracker.
+		TargetQueue.Size -= 1
+
+		-- We no longer need the structural shell. Return it to the NodePool instantly.
+		releaseNode(Node)
+
+		-- If the developer did not call Handle:Disconnect(), this job is valid. Return it to the dispatcher.
+		if not Job.Cancelled then
+			return Job
+		end
+
+		-- The job was cancelled. We do not return it to the dispatcher. We return the job struct to the SingleJobPool and let the while loop run again to fetch the next node.
+		releaseSingleJob(Job)
+	end
+
+	-- The queue is completely empty (or all remaining jobs were cancelled).
+	return nil
+end
+
+-- Dequeues the first non-cancelled BulkEntry.
+local function dequeueBulk(TargetQueue: Queue): BulkEntry?
+
+	--[[
+		dequeueBulk: The Master Extractor and Heavy Cascade Pruner.
+
+		Extracts the next valid BulkEntry from the absolute front of a Linked-List queue. 
+		It completely bypasses O(N) array shifting and acts as the executioner for 
+		cancelled bulk jobs. When it detects a ghost entry, it triggers the heavy 
+		cascading teardown protocol to instantly reclaim massive amounts of pooled memory.
+
+		Params:
+		    TargetQueue : Queue -- The destination queue (e.g., BulkQueueCritical, BulkQueueNormal).
+
+		Returns:
+		    BulkEntry? -- The extracted master struct, or nil if the queue is empty (or completely filled with cancelled jobs).
+
+		Core Behaviors:
+		    * O(1) Extraction: Pops the Head node in exactly three pointer assignments, executing with zero latency.
+		    * Heavy Lazy Pruning: Rapidly detects cancelled master jobs and triggers the releaseBulkEntry cascade to instantly reclaim Batches and Buffers.
+		    * Structural Teardown: Instantly recycles the queue node shells back into the NodePool to maintain the zero-allocation guarantee.
+	]]
+
+	-- Loop continuously to process through any cancelled "ghost" jobs sitting at the front of the queue until we hit a valid payload.
+	while TargetQueue.Head do
+		-- Capture the current Head node and extract its physical master payload.
+		local Node = TargetQueue.Head
+		local Entry = Node.Data :: BulkEntry
+
+		-- Move the master Head pointer to the next node in the line. 
+		TargetQueue.Head = Node.Next
+
+		-- If shifting the Head pointer resulted in nil, the queue is now dead-empty. We must strictly nullify the Tail to prevent structural graph corruption.
+		if not TargetQueue.Head then
+			TargetQueue.Tail = nil
+		end
+
+		-- Decrement the O(1) telemetry size tracker.
+		TargetQueue.Size -= 1
+
+		-- The graph node is no longer needed. Return it to the NodePool instantly.
+		releaseNode(Node)
+
+		-- If the developer did not call Handle:Disconnect(), this bulk job is valid. Return the master struct to the dispatcher to begin batch slicing.
+		if not Entry.Cancelled then
+			return Entry
+		end
+
+		-- The bulk job was cancelled. We route it directly into the deep cleanup pipeline. This will systematically reclaim every sub-batch and the master result buffer back into their respective pools. The while loop then repeats.
+		releaseBulkEntry(Entry)
+	end
+
+	-- The queue is completely empty (or all remaining bulk jobs were cancelled).
+	return nil
+end
+
+-- Peeks at the first non-cancelled BulkEntry without removing it.
+local function peekBulk(TargetQueue: Queue): BulkEntry?
+
+	--[[
+		peekBulk: The Non-Destructive Scanner.
+
+		Scopes the front of a Linked-List queue to return the next valid BulkEntry 
+		without altering the physical queue state. It intelligently bypasses any 
+		cancelled "ghost" jobs sitting at the front of the line to find the true 
+		next active payload.
+
+		Params:
+		    TargetQueue : Queue -- The queue to inspect (e.g., BulkQueueCritical, BulkQueueNormal).
+
+		Returns:
+		    BulkEntry? -- The next valid master struct, or nil if the queue is entirely empty or only contains cancelled jobs.
+
+		Core Behaviors:
+		    * Read-Only Traversal: Strictly prohibits mutating pointers or queue sizes, allowing the dispatcher to evaluate jobs before committing to extraction.
+		    * Ghost Bypassing: Intelligently navigates through the Linked-List's Next pointers to skip over lazily deleted payloads.
+		    * Dispatcher Vision: Provides the essential look ahead capability required to calculate Starvation logic and MaxWaitTime deadlines.
+	]]
+
+	-- Start the traversal at the absolute physical Head of the Linked-List.
+	local Node = TargetQueue.Head
+
+	-- Iterate down the line. We must use a loop because the first N nodes might be cancelled jobs awaiting lazy deletion by dequeueBulk.
+	while Node do
+		-- Extract the physical payload from the current structural node.
+		local Entry = Node.Data :: BulkEntry
+
+		-- If the job has not been cancelled via Handle:Disconnect(), we have found the true next active payload. Return it immediately.
+		if not Entry.Cancelled then
+			return Entry
+		end
+
+		-- The current job is dead. We do NOT delete it here (that is the job of the destructive dequeue function). We simply move our local scanner pointer to the next node in the graph and loop again.
+		Node = Node.Next
+	end
+
+	-- The scanner reached the physical Tail (Node == nil) without finding a single valid job. The queue is functionally empty.
+	return nil
+end
+
+-- Pushes a worker ID onto the free stack.
+local function pushFree(Id: number)
+	FreeTop += 1
+	FreeStack[FreeTop] = Id
+end
+
+-- Pops a worker ID from the free stack.
+local function popFree(): number?
+
+	--[[
+		popFree: The O(1) Worker Extraction Pipeline.
+
+		Pops an available worker ID from the top of the FreeStack in strict O(1) time. 
+		This completely replaces traditional O(N) loops that scan through workers to find 
+		an idle thread, allowing the dispatcher to allocate actors instantaneously.
+
+		Params:
+		    nil
+
+		Returns:
+		    number? -- The unique integer ID of an available worker actor, or nil if the pool is fully saturated.
+
+		Core Behaviors:
+		    * Zero-Iteration Allocation: Uses the FreeTop pointer to grab a free worker instantly, bypassing search loops entirely.
+		    * Saturation Guard: Returns nil immediately if FreeTop is 0, safely locking out further dispatches until a worker finishes.
+		    * Contiguous Array Hygiene: Clears out data slots on extraction to maintain clean tracking states inside the pre-allocated array.
+	]]
+
+	-- If FreeTop is exactly 0, every single initialized actor is currently busy processing parallel computations. Escape early and return nil to force the dispatcher to wait.
+	if FreeTop == 0 then return nil end
+
+	-- Read the worker ID currently sitting at the absolute peak of our pre-allocated free stack.
+	local Id = FreeStack[FreeTop]
+
+	-- Clear the slot reference. While numbers don't cause strong-reference memory leaks, this ensures that no duplicate or ghost data fragments linger in the array.
+	FreeStack[FreeTop] = nil :: any
+
+	-- Decrement the stack pointer. The index below this is now the new top of the stack.
+	FreeTop -= 1
+
+	-- Return the free worker ID back to the dispatcher so a SendMessage channel can be opened.
+	return Id
+end
+
+-- Returns true once the main thread has spent >= FRAME_BUDGET_SEC this frame.
+local function overBudget(): boolean
+	return (os.clock() - FrameStart) >= FRAME_BUDGET_SEC -- Evaluates to true or false based on the elapsed time against the frame budget.
+end
+
+-- Dispatches a single job to a worker via SendMessage.
+local function sendSingle(TargetWorker: WorkerData, Job: SingleJob)
+
+	--[[
+		sendSingle: The Boundary Crossing Pipeline (Single Job).
+
+		Prepares a worker's internal state for tracking and fires the physical 
+		job payload across the C-side boundary into the Actor's parallel memory space.
+
+		Params:
+		    TargetWorker : WorkerData -- The specific idle worker assigned to this task.
+		    Job          : SingleJob  -- The struct containing the module, function, and payload.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * State Locking: Fully binds the job parameters to the worker struct, locking its state to "Busy".
+		    * Watchdog Arming: Stamps the exact os.clock() execution time, starting the countdown for the emergency recovery scanner.
+		    * Ghost Prevention: Injects the WorkerGeneration integer into the parallel thread to mathematically invalidate delayed responses from crashed actors.
+	]]
+
+	-- Lock the worker so popFree() ignores it until the job is complete.
+	TargetWorker.Busy = true
+
+	-- Arm the Watchdog. If the Actor hangs, the Watchdog uses this timestamp to execute a recovery.
+	TargetWorker.JobStartedAt = os.clock()
+
+	-- Explicitly flag this as a single task (not a bulk slice) to guide the recovery logic if it crashes.
+	TargetWorker.IsBulk = false
+
+	-- Bind the job tracking pointers to the worker.
+	TargetWorker.CurrentJobUid = Job.UniqueId
+	TargetWorker.CurrentBatchIndex = 0
+	TargetWorker.CurrentSingleJob = Job
+
+	-- Store the developer's callback function in the main-thread registry. Functions cannot cross parallel boundaries, so the Actor will only return the UniqueId.
+	SingleListeners[Job.UniqueId] = Job.Callback
+
+	-- Fire the payload to the physical Actor. 
+	-- CRITICAL: We pass the WorkerGeneration to mathematically prevent "ghost" responses from actors that hang and then randomly wake up after the Watchdog has already replaced them.
+	TargetWorker.Actor:SendMessage("RunSingleJob", TargetWorker.Id, Job.UniqueId, Job.Module, Job.FunctionName, Job.Payload, TargetWorker.WorkerGeneration)
+end
+
+-- Dispatches the next batch of a BulkEntry to a worker.
+local function sendBatch(TargetWorker: WorkerData, Entry: BulkEntry, Batch: BulkBatch)
+
+	--[[
+		sendBatch: The Boundary Crossing Pipeline (Bulk Batch).
+
+		Prepares a worker's internal state and fires a specific data slice (BulkBatch) 
+		from a master BulkEntry across the C-side boundary into the Actor's parallel memory space.
+
+		Params:
+		    TargetWorker : WorkerData -- The specific idle worker assigned to this batch.
+		    Entry        : BulkEntry  -- The master job struct coordinating this parallel operation.
+		    Batch        : BulkBatch  -- The specific data slice to be processed by this worker.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * State Locking: Locks the worker, arms the Watchdog, and explicitly flags the workload as a Bulk operation.
+		    * Re-Dispatch Anchoring: Binds the CurrentBatchIndex to the worker, giving the Watchdog the exact pointer it needs to rescue and re-assign the slice if the worker hangs.
+		    * Data Localization: Serializes and transmits only the strictly necessary sub-array (Slice) to prevent C-side memory transfer bottlenecks.
+	]]
+
+	-- Lock the worker so popFree() ignores it.
+	TargetWorker.Busy = true
+
+	-- Arm the Watchdog recovery timer.
+	TargetWorker.JobStartedAt = os.clock()
+
+	-- Explicitly flag this as a bulk slice to guide the Watchdog's recovery routing.
+	TargetWorker.IsBulk = true
+
+	-- Bind the master job tracking pointer.
+	TargetWorker.CurrentJobUid = Entry.UniqueId
+
+	-- Record the exact batch index this worker is responsible for. 
+	TargetWorker.CurrentBatchIndex = Entry.Dispatched + 1
+
+	-- Clear out any lingering single job pointers from previous lifecycles.
+	TargetWorker.CurrentSingleJob = nil
+
+	-- Increment the master entry's dispatched counter.
+	Entry.Dispatched += 1
+
+	--[[
+		CRITICAL:
+		
+		We pass the WorkerGeneration to mathematically prevent "ghost" data from overwriting our Buffer if this Actor hangs, is replaced, and then wakes up late.
+	]]
+	TargetWorker.Actor:SendMessage("RunBulkJob", Entry.UniqueId, Batch.StartIndex, Batch.Length, Entry.Module, Entry.FunctionName, Batch.Slice, Entry.SharedArgs, TargetWorker.WorkerGeneration) -- Fire the payload to the physical Actor.
+end
+
+-- Re-dispatches a specific batch index after watchdog recovery.
+local function reSendBatch(TargetWorker: WorkerData, Entry: BulkEntry, Batch: BulkBatch, BatchIndex: number)
+
+	--[[
+		reSendBatch: The Emergency Recovery Pipeline (Bulk Batch).
+
+		Surgically injects a previously lost or timed-out data slice into a fresh 
+		worker. Exclusively utilized by the Watchdog, this function bypasses standard 
+		sequential dispatch counters to allow seamless mid-computation recovery 
+		without corrupting the master job's tracking state.
+
+		Params:
+		    TargetWorker : WorkerData -- The fresh, idle worker pulled to replace the crashed Actor.
+		    Entry        : BulkEntry  -- The master job struct coordinating this parallel operation.
+		    Batch        : BulkBatch  -- The specific, recovered data slice to be re-processed.
+		    BatchIndex   : number     -- The explicit index of the lost batch (e.g., Slice #47).
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Surgical Override: Explicitly sets CurrentBatchIndex without incrementing Entry.Dispatched, preventing sequence corruption during a hot-swap.
+		    * Watchdog Re-Arming: Stamps a fresh os.clock() execution time, ensuring the recovery worker itself is strictly monitored for timeouts.
+		    * Seamless Continuation: Re-fires the exact same slice and SharedArgs across the C-side boundary, making the crash mathematically invisible to the developer's callback.
+	]]
+
+	-- Lock the replacement worker so popFree() ignores it.
+	TargetWorker.Busy = true
+
+	-- Arm the Watchdog recovery timer for this specific recovery attempt.
+	TargetWorker.JobStartedAt = os.clock()
+
+	-- Flag the workload as a Bulk operation.
+	TargetWorker.IsBulk = true
+	TargetWorker.CurrentJobUid = Entry.UniqueId
+
+	-- We DO NOT increment Entry.Dispatched here. We explicitly force the worker to adopt the exact index of the batch that was lost by the previous crashed thread.
+	TargetWorker.CurrentBatchIndex = BatchIndex
+
+	-- Clear out any lingering single job pointers.
+	TargetWorker.CurrentSingleJob = nil
+
+	-- Fire the recovered payload to the new Actor.
+	TargetWorker.Actor:SendMessage("RunBulkJob", Entry.UniqueId, Batch.StartIndex, Batch.Length, Entry.Module, Entry.FunctionName, Batch.Slice, Entry.SharedArgs, TargetWorker.WorkerGeneration)
+end
+
+-- Returns the highest-priority pending BulkEntry and its source queue, with starvation promotion for background jobs.
+local function peekNextBulk(): (BulkEntry?, Queue?)
+
+	--[[
+		peekNextBulk: The Priority Router and Starvation Governor.
+
+		Evaluates the three tiered bulk queues to determine the absolute highest-priority 
+		job that should be dispatched next. It enforces a strict Critical > Normal > Background 
+		hierarchy while implementing a mathematical aging protocol to prevent low-priority 
+		starvation under extreme load.
+
+		Params:
+		    nil
+
+		Returns:
+		    BulkEntry? -- The next master job struct to be processed.
+		    Queue?     -- The specific linked-list queue that the entry resides in.
+
+		Core Behaviors:
+		    * Tiered Authority: Enforces strict priority routing, guaranteeing Critical tasks execute before Normal or Background tasks.
+		    * Starvation Prevention: Tracks exactly how many times the Background queue is bypassed, forcefully promoting it to highest priority once the threshold is crossed.
+		    * Non-Destructive Lookahead: Exclusively utilizes peekBulk() to route logic without mutating the physical graph or triggering early object teardowns.
+	]]
+
+	-- Scope the absolute front of the background queue first to see if a low-priority job is waiting.
+	local BackgroundEntry = peekBulk(BulkQueueBackground)
+
+	-- If a background job is waiting, and we have bypassed it too many times in favor of higher priority jobs, we forcefully promote it to the absolute front of the line.
+	if BackgroundEntry and BackgroundSkipCount >= BG_STARVATION_THRESHOLD then
+		-- Reset the starvation counter back to zero.
+		BackgroundSkipCount = 0
+
+		return BackgroundEntry, BulkQueueBackground
+	end
+
+	-- Critical Priority Gateway
+	local CriticalEntry = peekBulk(BulkQueueCritical)
+
+	if CriticalEntry then
+		-- If a Critical job exists, it takes immediate precedence. However, if there is a Background job waiting in the queue, we MUST record that we just skipped it, incrementing its starvation age.
+		if BackgroundEntry then
+			BackgroundSkipCount += 1
+		end
+
+		return CriticalEntry, BulkQueueCritical
+	end
+
+	-- Normal Priority Gateway
+	local NormalEntry = peekBulk(BulkQueueNormal)
+
+	if NormalEntry then
+		-- If a Normal job exists, it takes precedence over Background. Again, increment the background starvation age if we are skipping it.
+		if BackgroundEntry then
+			BackgroundSkipCount += 1
+		end
+
+		return NormalEntry, BulkQueueNormal
+	end
+
+	-- If we reached this point, there are absolutely zero Critical or Normal jobs in the queue. If a Background job exists, it is free to execute naturally.
+	if BackgroundEntry then
+		-- Because it is executing naturally, its starvation age is reset to zero.
+		BackgroundSkipCount = 0
+
+		return BackgroundEntry, BulkQueueBackground
+	end
+
+	-- All three bulk queues are completely empty (or filled entirely with cancelled ghost jobs).
+	return nil, nil
+end
+
+--[[
+	Single source of truth for dispatching jobs to free workers.
+	
+	Phase 1: 
+		- Bulk batches (unconditional, no budget gate).
+		
+	Phase 2: 
+		- Single jobs (gated by 8ms frame budget).
+]]
+local function tryDispatch()
+
+	--[[
+		tryDispatch: The Master Dispatch Pipeline.
+
+		The absolute core of the Twin scheduling engine. It acts as the single source 
+		of truth for routing pending jobs from the Linked-List queues to idle Actors. 
+		It dynamically balances maximum parallel saturation against main-thread stability 
+		using a strict, multi-phase execution strategy.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Bulk Saturation: Unconditionally prioritizes bulk batch slicing, ignoring frame budgets to ensure massive datasets saturate the worker pool instantly.
+		    * Budget-Gated Dispatch: Strictly aborts execution if the main thread exceeds FRAME_BUDGET_SEC, mathematically protecting the framerate.
+		    * Speculative Injection: Intelligently feeds Light jobs through massive Bulk workloads to maintain responsiveness.
+		    * Heavy Starvation Override: Physically promotes neglected Heavy jobs into the Light queue to guarantee eventual execution.
+	]]
+
+	-----------------------------------------------------------
+	-- PHASE 1: THE BULK SATURATION LOOP
+	-----------------------------------------------------------
+
+	-- While we have idle workers, unconditionally attempt to assign them bulk batches.
+	while FreeTop > 0 do
+		-- Route to the highest priority active bulk job.
+		local Entry, SourceQueue = peekNextBulk()
+
+		-- If there are no bulk jobs waiting, break the loop and move to Single jobs.
+		if not Entry or not SourceQueue then
+			break
+		end
+
+		-- Check if the master Entry has any batches left to dispatch.
+		local NextBatch = Entry.Batches[Entry.Dispatched + 1]
+
+		if not NextBatch then
+			-- All items have been sliced and sent to actors. The master Entry is done routing. Pop it out of the queue so peekNextBulk can move on to the next job in line.
+			dequeueBulk(SourceQueue)
+
+			continue
+		end
+
+		-- If the developer cancelled the job while we were in the middle of routing it, destroy it and move on.
+		if Entry.Cancelled then
+			dequeueBulk(SourceQueue)
+
+			continue
+		end
+
+		-- Grab an idle worker in O(1) time.
+		local WorkerId = popFree()
+
+		if not WorkerId then
+			break -- No idle workers available, stop trying to route more batches.
+		end
+
+		-- Fire the slice across the C-side boundary.
+		sendBatch(Workers[WorkerId], Entry, NextBatch)
+	end
+
+	-----------------------------------------------------------
+	-- PHASE 2: THE MAIN-THREAD BUDGET GATE
+	-----------------------------------------------------------
+
+	-- If we have completely exhausted the worker pool, OR if the main thread has spent > FRAME_BUDGET_SEC dispatching jobs, we MUST abort instantly to protect the framerate.
+	if FreeTop == 0 or overBudget() then return end
+
+	-----------------------------------------------------------
+	-- PHASE 3: STANDARD SINGLE DISPATCH
+	-----------------------------------------------------------
+
+	if ActiveBulkCount == 0 then
+		-- No massive parallel jobs are clogging the engine. Proceed with standard execution.
+		while FreeTop > 0 do
+			-- Prioritize the Light queue, fallback to the Heavy queue.
+			local Job = dequeueSingle(LightQueue) or dequeueSingle(HeavyQueue)
+
+			if not Job then
+				break -- No more jobs in the Single queue.
+			end
+
+			local WorkerId = popFree()
+
+			-- If a worker vanished right as we popped the job, forcefully shove the job back into the absolute front of its queue so it isn't lost.
+			if not WorkerId then
+				enqueueHead(if Job.Weight == "light" then LightQueue else HeavyQueue, Job)
+
+				break
+			end
+
+			sendSingle(Workers[WorkerId], Job)
+		end
+
+		-----------------------------------------------------------
+		-- PHASE 4: SPECULATIVE INJECTION and STARVATION OVERRIDE
+		-----------------------------------------------------------
+
+	else
+		-- Massive bulk jobs ARE currently running. Single jobs normally wait.
+		local HeadEntry = peekBulk(BulkQueueCritical) or peekBulk(BulkQueueNormal) or peekBulk(BulkQueueBackground)
+
+		-- Have the bulk jobs missed their deadline threshold?
+		local DeadlineExceeded = HeadEntry ~= nil and (os.clock() - HeadEntry.ArrivedAt) >= HeadEntry.MaxWaitTime
+		local SlowWorkerBusy = false
+
+		-- If they haven't missed their deadline, check if any workers are slowing down.
+		if not DeadlineExceeded then
+			for _, Worker in Workers do
+				if Worker.Busy and Worker.AvgExecTime >= SPECULATIVE_THRESHOLD then
+					SlowWorkerBusy = true
+
+					break
+				end
+			end
+		end
+
+		-- If the bulk computation is struggling, we Speculate. We allow fast jobs (Light jobs) to push through the bulk workload and claim free workers.
+		local CanSpeculate = DeadlineExceeded or SlowWorkerBusy
+
+		-- If we can speculate and there are actually light jobs waiting. Then process them.
+		if CanSpeculate and LightQueue.Size > 0 then
+			while FreeTop > 0 do
+				local Job = dequeueSingle(LightQueue)
+
+				if not Job then break end
+
+				local WorkerId = popFree() -- During bulk operations, since workers dont really receive equal slice of data of the job, some might finish fast while others are still processing. Feed light job to those idling worker while waiting for others to finish.
+
+				if not WorkerId then
+					enqueueHead(LightQueue, Job)
+
+					break
+				end
+
+				sendSingle(Workers[WorkerId], Job)
+			end
+		end
+
+		-- Heavy jobs are strictly blocked by Active Bulk jobs. If we bypass them too many times, they will starve.
+		if HeavyQueue.Size > 0 then
+			HeavySkipCount += 1
+
+			if HeavySkipCount >= STARVATION_THRESHOLD then
+				-- Threshold breached. Reset the counter.
+				HeavySkipCount = 0
+
+				-- Look at the physical head of the Heavy queue.
+				local Node = HeavyQueue.Head
+
+				if Node then
+					-- Physically detach the node from the Heavy graph.
+					HeavyQueue.Head = Node.Next
+
+					if not HeavyQueue.Head then
+						HeavyQueue.Tail = nil
+					end
+
+					HeavyQueue.Size -= 1
+
+					local PromotedJob = Node.Data :: SingleJob
+
+					-- If the job was cancelled while starving, clean it.
+					if PromotedJob.Cancelled then
+						releaseNode(Node)
+						releaseSingleJob(PromotedJob)
+
+					else
+						-- The job is valid. Forcefully wire this node to the absolute Head of the Light queue (Promotion). It will execute on the next speculative strike.
+						Node.Next = LightQueue.Head
+						LightQueue.Head = Node
+
+						if not LightQueue.Tail then
+							LightQueue.Tail = Node
+						end
+
+						LightQueue.Size += 1
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Processes a completed single job: updates worker state, fires callback, and re-dispatches.
+local function onSingleReturn(WorkerId: number, UniqueId: string, Result: any, Elapsed: number, Generation: number)
+
+	--[[
+		onSingleReturn: The Single Job Return Pipeline and Ghost Filter.
+
+		Receives the executed payload from a parallel Actor via the C-side bridge. 
+		It authenticates the worker's generation tag to filter out ghost responses, 
+		updates moving averages for speculative dispatch, and safely executes the 
+		developer's callback within a protected sandbox.
+
+		Params:
+		    WorkerId   : number -- The ID of the worker returning the data.
+		    UniqueId   : string -- The monotonic ID of the job that was completed.
+		    Result     : any    -- The physical data returned by the worker's function.
+		    Elapsed    : number -- The exact CPU time the worker spent executing the job.
+		    Generation : number -- The generation tag of the worker at the time the job was dispatched.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Ghost Filtering: Rejects data from workers that have been mathematically superseded by the Watchdog.
+		    * EMA Telemetry: Continuously recalculates the Exponential Moving Average of execution times to feed the Speculative Dispatcher.
+		    * Sandboxed Execution: Isolates developer callbacks within a pcall to prevent external logic errors from crashing the internal framework.
+		    * Pipeline Continuation: Guarantees tryDispatch is called upon completion to maintain absolute parallel saturation.
+	]]
+
+	-- State Retrieval
+	local Worker: WorkerData? = Workers[WorkerId]
+	local CompletedJob: SingleJob? = nil
+
+	-- The Ghost Filter (Generation Authentication)
+	if Worker then
+		if Worker.WorkerGeneration == Generation then
+			-- The worker is authentic. Extract the physical job pointer and unlock the worker state.
+			CompletedJob = Worker.CurrentSingleJob
+			Worker.Busy = false
+			Worker.JobStartedAt = 0
+			Worker.CurrentSingleJob = nil
+
+			-- Calculate the Exponential Moving Average of the worker's execution time. This smooths out micro-stutters and provides a reliable baseline for the Speculative Dispatcher.
+			local Alpha = EMA_ALPHA
+
+			Worker.AvgExecTime = Alpha * Elapsed + (1 - Alpha) * Worker.AvgExecTime
+
+			-- Push the newly idle worker back onto the zero-allocation stack.
+			pushFree(WorkerId)
+
+		else
+			--[[
+				GHOST DETECTED: 
+				
+				This Actor was assumed dead by the Watchdog, its generation was incremented, and it has randomly awoken. We reject its data entirely. We trigger tryDispatch() just in case the queue is backed up, then abort.
+			]]
+			tryDispatch()
+
+			return
+		end
+	end
+
+	-- Look up the developer's specific callback function tied to this UniqueId.
+	local Callback = SingleListeners[UniqueId]
+
+	-- Immediately clear the registry pointer to prevent memory leaks.
+	SingleListeners[UniqueId] = nil
+
+	-- Sandboxed Callback Execution
+	if Callback then
+		-- Wrap the developer's function in a protected call.
+		local Success, ErrorMessage = pcall(Callback :: ((any) -> any), Result)
+
+		-- If the developer's code crashes, absorb the error and print a clean warning instead of allowing the thread to fatally halt.
+		if not Success then
+			warn(("[Twin] Split callback error (uid %s):\n%s"):format(UniqueId, tostring(ErrorMessage)))
+		end
+	end
+
+	-- If we extracted a valid job struct during the Ghost Filter phase, route it back to the SingleJobPool to be recycled.
+	if CompletedJob then
+		releaseSingleJob(CompletedJob)
+	end
+
+	-- A worker just became free. Immediately ask the Master Dispatcher to give it a new job.
+	tryDispatch()
+end
+
+-- Called every Heartbeat: resets frame clock, dispatches pending jobs, and samples telemetry.
+local function onHeartbeat()
+
+	--[[
+		onHeartbeat: The Engine Clock and Telemetry Sampler.
+
+		Executes every frame to synchronize the engine's internal budget clock, 
+		unconditionally force a master dispatch evaluation, and record a massive, 
+		zero-allocation diagnostic snapshot into the telemetry ring buffers.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Clock Synchronization: Establishes the absolute FrameStart time to arm the main-thread 8ms budget governor.
+		    * Pipeline Guarantee: Ensures the dispatcher processes pending queues even when parallel worker return events are idle.
+		    * O(1) Telemetry Ring: Utilizes modular arithmetic to record a rolling 10-second history of every queue, pool, and worker state without triggering Luau garbage collection.
+	]]
+
+	-- Stamp the current microsecond. tryDispatch relies entirely on this value.
+	FrameStart = os.clock()
+
+	-- Unconditionally evaluate the queues and assign jobs to any idle workers.
+	tryDispatch()
+
+	-- The Zero-Allocation Telemetry Snapshot
+	if TELEMETRY_ENABLED then
+		-- Capture the budget state before we spend any time recording telemetry.
+		local WasOverBudget = overBudget()
+
+		-- Advances the Head from 1 -> 600. If it hits 600, modulo forces it back to 1. This guarantees we never expand the pre-allocated arrays.
+		TelemetryRingHead = (TelemetryRingHead % TELEMETRY_RING_SIZE) + 1
+
+		-- This prevents our math functions (like ringMean) from dividing by 600 if the system just booted and we only have like 15 frames of data.
+		if TelemetryRingCount < TELEMETRY_RING_SIZE then
+			TelemetryRingCount += 1
+		end
+
+		-- Alias the pointer for microscopic read speed optimization.
+		local SlotIndex = TelemetryRingHead
+
+		-- Overwrite the oldest data point in the pre-allocated arrays with the exact state of the engine at this current microsecond.
+		TelemetryFrameOverBudget[SlotIndex] = WasOverBudget
+		TelemetryActiveBulk[SlotIndex] = ActiveBulkCount
+		TelemetryFreeTop[SlotIndex] = FreeTop
+
+		-- Queue Depths
+		TelemetryLightQueueSize[SlotIndex] = LightQueue.Size
+		TelemetryHeavyQueueSize[SlotIndex] = HeavyQueue.Size
+		TelemetryBulkCriticalSize[SlotIndex] = BulkQueueCritical.Size
+		TelemetryBulkNormalSize[SlotIndex] = BulkQueueNormal.Size
+		TelemetryBulkBackgroundSize[SlotIndex] = BulkQueueBackground.Size
+
+		-- Memory Pool Saturation
+		TelemetryNodePoolTop[SlotIndex] = NodePool.Top
+		TelemetrySingleJobPoolTop[SlotIndex] = SingleJobPool.Top
+		TelemetryBulkEntryPoolTop[SlotIndex] = BulkEntryPool.Top
+		TelemetryBulkBatchPoolTop[SlotIndex] = BulkBatchPool.Top
+		TelemetryResultBufferPoolTop[SlotIndex] = ResultBufferPool.Top
+
+		-- Governor Counters
+		TelemetryBackgroundSkip[SlotIndex] = BackgroundSkipCount
+		TelemetryHeavySkip[SlotIndex] = HeavySkipCount
+
+		-- Pre-clear the watchdog slot. If the Watchdog fires later this frame, it will add to this slot.
+		TelemetryWatchdogFires[SlotIndex] = 0
+
+		-- Record the Exponential Moving Average of every initialized worker.
+		for WorkerIndex, Worker in Workers do
+			if TelemetryWorkerEMA[WorkerIndex] then
+				TelemetryWorkerEMA[WorkerIndex][SlotIndex] = Worker.AvgExecTime
+			end
+		end
+	end
+end
+
+-- Scans all busy workers and revives/recovers any that have exceeded WATCHDOG_TIMEOUT.
+local function watchdogScan()
+
+	--[[
+		watchdogScan: The Watchdog Recovery Pipeline and State Executioner.
+
+		Scans all active workers to detect infinite loops, crashes, or severe yielding 
+		across the C-side boundary. When a timeout is detected, it mathematically 
+		terminates the worker's current lifecycle, recycles the Actor, and ruthlessly 
+		rescues the stranded payload to guarantee zero data loss.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Thread Invalidation: Increments WorkerGeneration to mathematically lock out delayed "ghost" responses from hung threads.
+		    * Actor Recycling: Pushes the "dead" worker back to the FreeStack, allowing the engine to spawn fresh threads inside the same physical Actor instance.
+		    * Surgical Hot-Swapping: Extracts lost BulkBatch slices and instantly re-assigns them to idle workers without corrupting master dispatch sequencing.
+		    * Priority Requeueing: Utilizes enqueueHead to guarantee rescued jobs skip the line and execute immediately upon the next dispatch cycle.
+	]]
+
+	local Now = os.clock()
+	local Timeout = WATCHDOG_TIMEOUT
+
+	-- Iterate through every initialized worker in the engine.
+	for _, Worker in Workers do
+		-- Skip idle workers immediately.
+		if not Worker.Busy then
+			continue
+		end
+
+		-- Calculate the exact execution time. If it is under the timeout threshold, the worker is safe.
+		if (Now - Worker.JobStartedAt) < Timeout then
+			continue
+		end
+
+		-------------------------------------------------------------
+		-- PHASE 1: THE EXECUTION and RECYCLE PHASE
+		-------------------------------------------------------------
+
+		-- The worker has hung. Reset its state lock.
+		Worker.Busy = false
+		Worker.JobStartedAt = 0
+
+		--[[
+			LETHAL INVALIDATION: 
+			
+			Increment the generation tag. If the hung thread magically unfreezes later, onSingleReturn will reject its data.
+		]]
+		Worker.WorkerGeneration += 1
+
+		-- Recycle the Actor. Roblox Actors can handle new SendMessage requests even if an old thread is yielding infinitely inside them.
+		pushFree(Worker.Id)
+
+		-- Record the intervention in the O(1) telemetry ring buffer.
+		if TELEMETRY_ENABLED and TelemetryRingHead > 0 then
+			TelemetryWatchdogFires[TelemetryRingHead] += 1
+		end
+
+		-------------------------------------------------------------
+		-- PHASE 2: THE RECOVERY PHASE
+		-------------------------------------------------------------
+
+		if Worker.IsBulk then
+			-- Bulk Recovery
+			local UniqueId = Worker.CurrentJobUid
+			local Entry = BulkRegistry[UniqueId]
+
+			if Entry and not Entry.Cancelled then
+				local BatchIndex = Worker.CurrentBatchIndex
+				local Batch = Entry.Batches[BatchIndex]
+
+				if Batch then
+					-- Attempt a surgical hot-swap. Is there another worker free right now?
+					local WorkerId = popFree()
+
+					if WorkerId then
+						-- Hot-swap successful. Fire the slice to the new worker instantly.
+						reSendBatch(Workers[WorkerId], Entry, Batch, BatchIndex)
+
+					else
+						-- Hot-swap failed (system is completely saturated). We must mathematically repair the master Entry's dispatch sequencing.
+						Entry.Batches[BatchIndex] = Batch
+						Entry.Dispatched = BatchIndex - 1
+
+						-- Route the master job to its correct priority queue.
+						local TargetQueue = if Entry.Priority == "critical" then BulkQueueCritical elseif Entry.Priority == "background" then BulkQueueBackground else BulkQueueNormal
+
+						-- Forcefully shove the master job to the absolute front of the line.
+						enqueueHead(TargetQueue, Entry)
+					end
+				end
+			end
+
+		else
+			-- Single Job Recovery
+			local UniqueId = Worker.CurrentJobUid
+			local Job = Worker.CurrentSingleJob
+
+			-- Immediately sever the callback registry to prevent memory leaks if the job was cancelled during the crash window.
+			SingleListeners[UniqueId] = nil
+
+			if Job then
+				if not Job.Cancelled then
+					-- Priority Preservation: Forcefully shove the rescued single job to the absolute front of its respective queue.
+					enqueueHead(if Job.Weight == "light" then LightQueue else HeavyQueue, Job)
+
+				else
+					-- The job hung, and the developer called Handle:Disconnect() while waiting. Do not requeue it. Recycle its memory instantly.
+					releaseSingleJob(Job)
+				end
+			end
+
+			-- Clear the worker's lingering pointers.
+			Worker.CurrentSingleJob = nil
+		end
+	end
+end
+
+-- Classifies a numeric value against warn/crit thresholds.
+local function itemStatus(Value: number, WarnThreshold: number, CritThreshold: number): TelemetryStatus
+	if Value > CritThreshold then
+		return "Overloaded"
+	end
+
+	if Value > WarnThreshold then
+		return "Warm"
+	end
+
+	return "Healthy"
+end
+
+-- Classifies pool health by free-slot ratio (low free = bad).
+local function poolStatus(FreeSlots: number, Capacity: number): TelemetryStatus
+	local Ratio = FreeSlots / Capacity
+
+	if Ratio < POOL_CRIT_RATIO then
+		return "Overloaded"
+	end
+
+	if Ratio < POOL_WARN_RATIO then
+		return "Warm"
+	end
+
+	return "Healthy"
+end
+
+-- Derives group color from the worst individual status in the group.
+local function groupStatus(Statuses: { TelemetryStatus }): TelemetryGroupStatus
+	local HasWarm = false
+
+	for _, Status in Statuses do
+		if Status == "Overloaded" then
+			return "Red"
+		end
+
+		if Status == "Warm" then
+			HasWarm = true
+		end
+	end
+
+	return if HasWarm then "Yellow" else "Green"
+end
+
+-- Derives overall color from the worst group color.
+local function overallStatus(Groups: { TelemetryGroupStatus }): TelemetryGroupStatus
+	local HasYellow = false
+
+	for _, Group in Groups do
+		if Group == "Red" then
+			return "Red"
+		end
+
+		if Group == "Yellow" then
+			HasYellow = true
+		end
+	end
+
+	return if HasYellow then "Yellow" else "Green"
+end
+
+-- Sums all live slots in the ring buffer.
+local function ringSum(Array: { number }): number
+	local Sum = 0
+
+	-- Capture the exact number of frames recorded so far. If the system just booted up, this prevents from pointlessly summing 500+ empty slots full of zeros.
+	local Count = TelemetryRingCount
+
+	-- Execute a raw, strictly bounded numeric loop for maximum execution speed.
+	for SlotIndex = 1, Count do
+		Sum += Array[SlotIndex]
+	end
+
+	return Sum
+end
+
+-- Returns the peak value across all live ring slots.
+local function ringPeak(Array: { number }): number
+	-- Assume the lowest possible baseline (Twin's telemetry arrays deal in positive integers/counts).
+	local Peak = 0
+
+	-- Capture the exact number of frames physically recorded so far to avoid dead-slot scanning.
+	local Count = TelemetryRingCount
+
+	for SlotIndex = 1, Count do
+		-- Extract the data point for this specific frame.
+		local Value = Array[SlotIndex]
+
+		-- If this frame's value exceeds our highest known record, it becomes the new peak.
+		if Value > Peak then
+			Peak = Value
+		end
+	end
+
+	-- Payload Delivery
+	return Peak
+end
+
+-- Returns the mean value across all live ring slots.
+local function ringMean(Array: { number }): number
+	-- Capture the exact number of frames physically recorded so far.
+	local Count = TelemetryRingCount
+
+	-- If the system just booted up and we have zero recorded frames, calculating a mean is impossible. Escape immediately to prevent a division-by-zero crash.
+	if Count == 0 then
+		return 0
+	end
+
+	-- State Initialization
+	local Sum = 0
+
+	-- Sum the exact bounds of our known data.
+	for SlotIndex = 1, Count do
+		Sum += Array[SlotIndex]
+	end
+
+	-- Return the final smoothed average.
+	return Sum / Count
+end
+
+-- Returns the most recently written value in the ring.
+local function ringLatest(Array: { number }): number
+	if TelemetryRingCount == 0 then
+		return 0
+	end
+
+	return Array[TelemetryRingHead]
+end
+
+-- Returns the fraction of sampled frames that exceeded FRAME_BUDGET_SEC.
+local function ringOverBudgetRate(): number
+	-- If the server just booted up and no frames have been recorded, a ratio calculation is impossible. Escape immediately to prevent a division-by-zero crash.
+	if TelemetryRingCount == 0 then
+		return 0
+	end
+
+	-- State Initialization
+	local OverCount = 0
+
+	-- Sum the exact bounds of our known data, executing as a raw numeric loop.
+	for SlotIndex = 1, TelemetryRingCount do
+		-- If the frame at this specific slot exceeded FRAME_BUDGET_SEC, the boolean evaluates to true. Accumulate the infraction (offenses).
+		if TelemetryFrameOverBudget[SlotIndex] then
+			OverCount += 1
+		end
+	end
+
+	-- Return the fractional ratio of infractions (e.g., 30 over-budget frames / 600 total = 0.05 rate).
+	return OverCount / TelemetryRingCount
+end
+
+-- Validates that a function exists and is callable in a module before any job is enqueued.
+local function validateFunction(Module: ModuleScript, FunctionName: string, Caller: string)
+
+	--[[
+		validateFunction: The Pre-Flight Validation Pipeline.
+
+		A strict, synchronous integrity check that verifies a target module can be required 
+		and physically contains the requested callable function. It enforces a "Fail-Fast" 
+		philosophy to catch developer typos on the main thread before they can cause 
+		cryptic crashes deep inside isolated parallel Actor threads.
+
+		Params:
+		    Module       : ModuleScript -- The physical module to inspect.
+		    FunctionName : string       -- The string name of the function to verify.
+		    Caller       : string       -- The name of the Twin API that triggered the check (for error formatting).
+
+		Returns:
+		    nil -- Throws a fatal error if validation fails.
+
+		Core Behaviors:
+		    * Fail-Fast Integrity: Mathematically guarantees that only structurally sound, callable jobs are allowed to enter the queueing pipelines.
+		    * Protected Sandboxing: Wraps the initial require() in a pcall to safely intercept root-level syntax errors within the developer's module.
+		    * Opt-Out Execution: Gated entirely by ENABLE_TYPO_POLICE, allowing this safety check to be completely bypassed in live production servers for absolute maximum performance.
+	]]
+
+	-- If the game is running in a live production environment (and the flag is off), instantly exit. We assume the code is bug-free and prioritize raw speed.
+	if not ENABLE_TYPO_POLICE then return end
+
+	-- Attempt to load the module. We use pcall because if the module itself has a root-level error, a raw require() would fatally crash the Twin dispatcher.
+	local Success, LoadedModule = pcall(require, Module)
+
+	if not Success then
+		-- The module failed to compile or initialize. Throw a clean framework error.
+		error(("[Twin] %s: require failed for '%s'.\n"):format(Caller, Module.Name) .. debug.traceback(), 2)
+	end
+
+	-- Check if the requested key actually exists inside the loaded module table.
+	if not LoadedModule[FunctionName] then
+		error(("[Twin] %s: '%s' not found in '%s'.\n"):format(Caller, FunctionName, Module.Name) .. debug.traceback(), 2)
+	end
+
+	-- The key exists, but we must mathematically verify it is a callable function (not a string, number, or nested table). If it isn't a function, the parallel Actor will crash.
+	if type(LoadedModule[FunctionName]) ~= "function" then
+		error(("[Twin] %s: '%s' in '%s' is not a function.\n"):format(Caller, FunctionName, Module.Name) .. debug.traceback(), 2)
+	end
+end
+
+-- Returns a new monotonic unique ID string. Never reuses within a session, always forwarding.
+local function nextUniqueId(): string
+	NextJobId += 1
+
+	return tostring(NextJobId)
+end
+
+-- Runs the watchdog scan when enabled. Called each interval tick.
+local function runWatchdogTick()
+	if WATCHDOG_ENABLED then
+		watchdogScan()
+	end
+end
+
+-- Initializes the Actor-based worker pool, wires return channels, and populates Workers.
+local function startTwin()
+
+	--[[
+		startTwin: The Hardware Abstraction and Bridge Constructor.
+
+		Physically constructs the parallel execution environment. It spawns the 
+		required Roblox Actor instances, clones the internal worker scripts, and 
+		wires the high-speed C-side communication bridges required to transfer 
+		data between the main thread and isolated parallel memory spaces.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Environment Bootstrapping: Automatically detects Server/Client contexts and builds a dedicated Twin_Engine folder to house the Actor farm.
+		    * Dual-Bridge Routing (4G/5G): Wires separate BindableEvents for Single and Bulk jobs to optimize data flow and prevent event bottlenecking.
+		    * O(1) Memory Stitching: Utilizes table.move to physically overwrite pre-allocated buffer slots with returning bulk data, bypassing expensive array sorting.
+		    * Eager Initialization: Fully populates the FreeStack and WorkerData registries during system boot to guarantee zero allocation delays during live gameplay.
+	]]
+
+	-- Determine if the engine is booting on the server or the client, and locate the corresponding internal worker script template.
+	local TemplateName = IsServer and "TwinWorker_Server" or "TwinWorker_Client"
+	local Template = script.Parent:FindFirstChild(TemplateName) or script:FindFirstChild(TemplateName)
+
+	if not Template then
+		-- Fatal initialization failure.
+		error(("[Twin] System Boot: '%s' not found!\n"):format(TemplateName) .. debug.traceback(), 2)
+	end
+
+	-- Disable the template so it doesn't accidentally execute during initialization.
+	Template.Disabled = true
+
+	-- Build a dedicated folder to safely sandbox the Actor farm.
+	local EngineParent: Instance = IsServer and game:GetService("ServerScriptService") or Players.LocalPlayer:WaitForChild("PlayerScripts")
+	local WorkerFolder: any = EngineParent:FindFirstChild("Twin_Engine")
+
+	if not WorkerFolder then
+		WorkerFolder = Instance.new("Folder")
+		WorkerFolder.Name = "Twin_Engine"
+		WorkerFolder.Parent = EngineParent
+	end
+
+	local WorkerCount = IsServer and SERVER_WORKER_COUNT or CLIENT_WORKER_COUNT
+
+	-- The Actor Farm Generator
+	for WorkerIndex = 1, WorkerCount do
+		-- Instantiate the physical boundary isolator (Actor).
+		local WorkerActor = Instance.new("Actor")
+
+		WorkerActor.Name = "TwinWorker_" .. WorkerIndex
+
+		-----------------------------------------------------------------
+		-- THE 4G BRIDGE (SINGLE JOB RETURN CHANNEL)
+		-----------------------------------------------------------------
+
+		local ReturnCallbackEvent = Instance.new("BindableEvent")
+
+		ReturnCallbackEvent.Name = "TwinEngine_Bridge_4G"
+		ReturnCallbackEvent.Parent = WorkerActor
+		ReturnCallbackEvent.Event:Connect(function(WorkerId: number, UniqueId: string, Result: any, Elapsed: number, Generation: number)
+			-- Route the return signal to the master onSingleReturn pipeline.
+			SingleBridge:Fire(WorkerId, UniqueId, Result, Elapsed, Generation)
+		end)
+
+		-----------------------------------------------------------------
+		-- THE 5G BRIDGE (BULK BATCH RETURN CHANNEL)
+		-----------------------------------------------------------------
+
+		local BulkCallbackEvent = Instance.new("BindableEvent")
+
+		BulkCallbackEvent.Name = "TwinEngine_Bridge_5G"
+		BulkCallbackEvent.Parent = WorkerActor
+
+		-- Capture the specific ID of this worker in a closure variable.
+		local CapturedId = WorkerIndex
+
+		BulkCallbackEvent.Event:Connect(function(UniqueId: string, StartIndex: number, Length: number, Results: { any }?, Elapsed: number, Generation: number)
+
+			-----------------------------------------------------------------
+			-- Phase A: The Ghost Filter and State Unlock
+			-----------------------------------------------------------------
+
+			local Worker = Workers[CapturedId]
+
+			if Worker then
+				if Worker.WorkerGeneration == Generation then
+					-- The worker is authentic. Unlock it.
+					Worker.Busy = false
+					Worker.JobStartedAt = 0
+					Worker.CurrentSingleJob = nil
+
+					-- Update the EMA execution telemetry.
+					local Alpha = EMA_ALPHA
+
+					Worker.AvgExecTime = Alpha * Elapsed + (1 - Alpha) * Worker.AvgExecTime
+
+					-- Push the newly idle worker back to the FreeStack.
+					pushFree(CapturedId)
+
+				else
+					-- GHOST DETECTED: The Watchdog already terminated this worker lifecycle. Reject data.
+					tryDispatch()
+
+					return
+				end
+			end
+
+			-----------------------------------------------------------------
+			-- Phase B: Master Entry Resolution
+			-----------------------------------------------------------------
+
+			local Entry = BulkRegistry[UniqueId]
+
+			-- If the job was cancelled by the developer while this specific batch was computing, drop the data.
+			if not Entry or Entry.Cancelled then
+				tryDispatch()
+
+				return
+			end
+
+			-----------------------------------------------------------------
+			-- Phase C: O(1) Memory Stitching
+			-----------------------------------------------------------------
+
+			-- Using the StartIndex provided by the batch, inject the returning array slice directly into the master pre-allocated buffer.
+			if Results then
+				table.move(Results, 1, Length, StartIndex, Entry.Buffer)
+			end
+
+			-----------------------------------------------------------------
+			-- Phase D: The Completion Gate
+			-----------------------------------------------------------------
+
+			Entry.Received += 1
+
+			-- Has every single batch returned successfully?
+			if Entry.Received == Entry.Total then
+				-- Master Completion Sequence
+				BulkRegistry[UniqueId] = nil
+				ActiveBulkCount -= 1
+
+				-- Detach the master buffer and callback.
+				local Buffer = Entry.Buffer
+				local Callback = Entry.Callback
+
+				-- Sever the pointer to protect it from the cascading teardown pipeline.
+				Entry.Buffer = nil :: any
+
+				-- Deep clean the master job, batches, and pointers.
+				releaseBulkEntry(Entry)
+
+				-- Execute the developer's callback in a protected call.
+				local CallbackSuccess, CallbackError = pcall(Callback :: (({ any }) -> any), Buffer)
+
+				-- The developer has finished reading the data. Release the buffer back to the pool.
+				Scheduler.Delay(3, delayedCleanup, Buffer)
+
+				if not CallbackSuccess then
+					warn(("[Twin] BulkSplit callback error (uid %s):\n%s"):format(UniqueId, tostring(CallbackError)))
+				end
+			end
+
+			-- Force the engine to process the next queue item.
+			tryDispatch()
+		end)
+
+		-- Clone the template into the Actor and boot it up.
+		local WorkerClone = Template:Clone()
+
+		WorkerClone.Parent = WorkerActor
+		WorkerActor.Parent = WorkerFolder
+		WorkerClone.Disabled = false
+
+		-- Create the WorkerData struct to track this Actor's lifecycle.
+		Workers[WorkerIndex] = {
+			Id = WorkerIndex,			-- The static integer identifier assigned to this worker upon initialization
+			Actor = WorkerActor,		-- The physical Roblox instance representing the parallel memory boundary
+			Busy = false,				-- The master allocation lock. When true, the Master Dispatcher strictly ignores this worker, preventing dual-dispatch race conditions
+			AvgExecTime = 0,			-- The Exponential Moving Average (EMA) of how long this specific worker takes to complete tasks
+			JobStartedAt = 0,			-- The absolute os.clock() microsecond timestamp recorded the instant a payload crosses the C-side boundary. This is the mathematical anchor used by the Watchdog to calculate Time-To-Live (TTL) and detect frozen threads
+			IsBulk = false,				-- The recovery routing flag. If the Watchdog detects a crash, it reads this boolean to determine whether it should execute the Surgical Bulk Hot-Swap pipeline or the Single Job Priority Requeue pipeline
+			CurrentJobUid = "",			-- The monotonic unique ID of the job currently loaded in the Actor's memory
+			CurrentBatchIndex = 0,		-- The surgical hot-swap anchor. If this worker is processing a BulkSplit and crashes, the Watchdog reads this exact index to seamlessly re-dispatch the lost slice to a fresh worker without corrupting the master sequence
+			CurrentSingleJob = nil,		-- A strong memory pointer to the active Single job struct. If the job finishes successfully, this pointer allows onSingleReturn to route the struct back to the zero-allocation SingleJobPool
+			WorkerGeneration = 0,		-- The ghost-filtering execution tag. It starts at 0. If the Watchdog mathematically terminates this worker for hanging, this integer increments. If the hung thread magically unfreezes later and tries to return data, the engine compares the returning tag against this one. If they mismatch, the "ghost" data is ruthlessly rejected
+		}
+
+		-- Register the worker as available.
+		pushFree(WorkerIndex)
+
+		-- Telemetry Pre-Allocation
+		if TELEMETRY_ENABLED then
+			TelemetryWorkerEMA[WorkerIndex] = table.create(TELEMETRY_RING_SIZE, 0)
+		end
+	end
+
+	-- Destroy the original template.
+	if Template then
+		Template:Destroy()
+	end
+end
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------
+-- THE MEMORY PRE-ALLOCATION ENGINE (POOLS)
+-------------------------------------------------------------
+
+-- Eagerly construct the zero-allocation table shells. This pays the GC tax upfront so the engine never allocates dynamic memory during high-frequency dispatches.
+
+-- Pre-allocates the structural shells used to build the Linked-Lists.
+NodePool = makePool(NODE_POOL_SIZE, function(): ListNode
+	return {
+		Data = nil,
+		Next = nil,
+	}
+end)
+
+-- Pre-allocates the payload trackers for Twin.Split().
+SingleJobPool = makePool(SINGLE_JOB_POOL_SIZE, makeSingleJob)
+
+-- Pre-allocates the small data fragments sent across the 5G bridge.
+BulkBatchPool = makePool(BULK_BATCH_POOL_SIZE, makeBulkBatch)
+
+-- Pre-allocates the heavy orchestrator structs for Twin.BulkSplit().
+BulkEntryPool = makePool(BULK_ENTRY_POOL_SIZE, makeBulkEntry)
+
+-- Pre-allocates massive C-side arrays. table.create(MAX_RESULT_ITEMS) ensures the Luau VM does not have to re-hash the array as actors return their data slices.
+ResultBufferPool = makePool(RESULT_BUFFER_POOL_SIZE, function(): { any }
+	return table.create(MAX_RESULT_ITEMS)
+end)
+
+-- Pre-allocates tiny dictionaries used purely to strip "____" autocomplete prefixes without triggering garbage collection spikes on the main thread.
+CleanParamsPool = makePool(4, function(): { [string]: any }
+	return {}
+end)
+
+-------------------------------------------------------------
+-- THE PIPELINE SEGREGATION ENGINE (QUEUES)
+-------------------------------------------------------------
+
+-- Physically separate the Linked-Lists to allow the dispatcher to resolve job priority mathematically in O(1) time, bypassing array sorting overhead entirely.
+
+-- Bulk Tiered Queues (Phase 1 Dispatch)
+BulkQueueCritical = makeQueue()
+BulkQueueNormal = makeQueue()
+BulkQueueBackground = makeQueue()
+
+-- Single Tiered Queues (Phase 2 and Phase 3 Dispatch)
+LightQueue = makeQueue()
+HeavyQueue = makeQueue()
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Start the Twin internal engines.
+startTwin()
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Background Worker Section
+----------------------------------------------------------
+
+Scheduler.Spawn(function()
+	while true do
+		runWatchdogTick()
+		Scheduler.Wait(WATCHDOG_INTERVAL)
+	end
+end)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Event Binding Section
+----------------------------------------------------------
+
+SingleBridge.Event:Connect(onSingleReturn)
+RunService.Heartbeat:Connect(onHeartbeat)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Twin Public APIs Section
+----------------------------------------------------------
+
+local Twin = {}
+
+--[[
+	Dispatches a single parallel job and delivers the result to a callback in the same frame the worker finishes. The job is sent to the best available worker. When the worker completes, the callback fires synchronously on the main thread with no additional frame delay.
+
+	Params:
+	    Module       : ModuleScript  -- The ModuleScript that contains the function to run.
+	    FunctionName : string        -- The name of the function to call on the module. Must be a function that accepts a single argument and returns a single value.
+	    Payload      : any           -- The value passed to the worker function as its only argument.
+	    Callback     : SplitCallback -- Called with the function's return value when the job completes. Must not yield.
+	    Options      : SplitOptions? -- (Optional) Table controlling dispatch weight.
+
+	Returns:
+	    Handle -- Call Disconnect() on this to cancel the job before it runs, or to discard the callback if the job is already in flight.
+]]
+function Twin.Split(Module: ModuleScript, FunctionName: string, Payload: any, Callback: SplitCallback, Options: SplitOptions?): Handle
+
+	--[[
+		Twin.Split: The Public Single-Job Dispatch API.
+
+		Dispatches a single parallel job to the best available worker. It features 
+		strict synchronous parameter validation, zero-allocation option parsing, 
+		and returns a mathematical handle that allows developers to abort the job 
+		instantly before it executes.
+
+		Core Behaviors:
+		    * Fail-Fast Validation: Synchronously catches typos and bad types on the main thread before they cross the parallel boundary.
+		    * Zero-Allocation Sanitization: Borrows and immediately recycles the Options dictionary to prevent GC spikes during high-frequency dispatches.
+		    * Lazy Cancellation: Aborts jobs mathematically without O(N) queue iteration by severing the callback pointer and flagging the struct for pruning.
+	]]
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if typeof(Module) ~= "Instance" then
+			error("[Twin] Split: Module must be a ModuleScript.\n" .. debug.traceback(), 2)
+		end
+
+		if type(FunctionName) ~= "string" then
+			error("[Twin] Split: FunctionName must be a string.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Twin] Split: Callback must be a function.\n" .. debug.traceback(), 2)
+		end
+
+		validateFunction(Module, FunctionName, "Split")
+	end
+
+	-- Borrow a dictionary from the CleanParamsPool and strip the autocomplete prefixes.
+	local CleanOptions = sanitizeParams(Options)
+
+	-- Extract the queue assignment (defaulting to "heavy" if not specified).
+	local Weight: "light" | "heavy" = CleanOptions.Weight or "heavy"
+
+	-- Immediately return the dictionary to the pool. We have what we need.
+	releaseParams(CleanOptions)
+
+	-- Generate a monotonic ID and wrap the payload in a recycled zero-allocation shell.
+	local UniqueId = nextUniqueId()
+	local Job = acquireSingleJob(UniqueId, Module, FunctionName, Payload, Callback, Weight)
+
+	-- Push the job to the absolute Tail of the selected queue.
+	enqueue(if Weight == "light" then LightQueue else HeavyQueue, Job)
+
+	-- Immediately wake the Master Dispatcher. If a worker is free, this job will execute in the exact same frame.
+	tryDispatch()
+
+	-- Return the control struct to the developer.
+	return {
+		Disconnect = function()
+			-- Flag the struct. The dequeueSingle function will destroy it when it sees it.
+			Job.Cancelled = true
+
+			-- Instantly sever the callback pointer. If the job is already computing inside a parallel Actor, this ensures the callback will never fire when it returns.
+			SingleListeners[UniqueId] = nil
+		end,
+	}
+end
+
+--[[
+	Dispatches a list of items out across all workers in parallel and reassembles the results in original order. The items list is automatically divided into batches and distributed across every available worker. When every worker has reported back, the callback fires with a single result table where results is identical to items fully assembled back automatically.
+
+	Params:
+	    Module       : ModuleScript -- The ModuleScript containing the batch function to run on each slice.
+	    FunctionName : string       -- The name of the batch function. Its signature must be (slice: { any }, sharedArgs: any?) -> { any }, returning a result table the same length as the slice.
+	    Items        : { any }      -- The full list of inputs to distribute. The list is sliced and each slice is sent to a separate worker.
+	    Callback     : BulkCallback -- Called with the reassembled results table when all workers have finished.
+	    Options      : BulkOptions? -- (Optional) Table controlling batch size, shared arguments, deadline, and priority.
+
+	Returns:
+	    Handle -- Call Disconnect() on this to cancel all remaining batches. Batches already delivered to workers will finish, but the callback will never fire.
+]]
+function Twin.BulkSplit(Module: ModuleScript, FunctionName: string, Items: { any }, Callback: BulkCallback, Options: BulkOptions?): Handle
+
+	--[[
+		Twin.BulkSplit: The Public Multi-Job Dispatch API.
+
+		Distributes a massive array of items across all available workers in parallel. 
+		It mathematically slices the payload into optimized batches, dispatches them 
+		to the C-side boundary, and automatically stitches the results back together 
+		in perfectly preserved order.
+
+		Core Behaviors:
+		    * Fail-Fast Validation: Synchronously catches typos and bad types on the main thread.
+		    * Mathematical Slicing: Automatically calculates optimal batch sizes to guarantee 100% worker saturation.
+		    * C-Side Array Movement: Bypasses Lua-side loops, utilizing table.move to instantly populate batch slices.
+		    * Eager Speculation Teardown: Instantly drops ActiveBulkCount upon cancellation to free the main dispatcher.
+	]]
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if typeof(Module) ~= "Instance" then
+			error("[Twin] BulkSplit: Module must be a ModuleScript.\n" .. debug.traceback(), 2)
+		end
+
+		if type(FunctionName) ~= "string" then
+			error("[Twin] BulkSplit: FunctionName must be a string.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Twin] BulkSplit: Callback must be a function.\n" .. debug.traceback(), 2)
+		end
+
+		validateFunction(Module, FunctionName, "BulkSplit")
+	end
+
+	-- If the developer accidentally passes an empty array, bypass the entire queueing architecture, fire the callback with an empty result, and return a dummy handle.
+	local ItemCount = #Items
+
+	if ItemCount == 0 then
+		Callback({})
+
+		return {
+			Disconnect = function() end,
+		}
+	end
+
+	-- Zero-Allocation DX Sanitization
+	local CleanOptions = sanitizeParams(Options)
+
+	-- If BatchSize isn't strictly defined, slice the array perfectly to hit every worker.
+	local WorkerCount = #Workers
+	local BatchSize = CleanOptions.BatchSize or math.ceil(ItemCount / WorkerCount)
+	local MaxWait = CleanOptions.MaxWaitTime or DEFAULT_MAX_WAIT
+	local SharedArgs = CleanOptions.SharedArgs
+	local Priority = CleanOptions.Priority or "normal"
+	local TotalBatches = math.ceil(ItemCount / BatchSize)
+	local UniqueId = nextUniqueId()
+
+	-- Instantly return the options table to the pool.
+	releaseParams(CleanOptions)
+
+	-- Acquire the heavy orchestrator from the zero-allocation shell.
+	local Entry = acquireBulkEntry(UniqueId, Module, FunctionName, TotalBatches, Callback, SharedArgs, MaxWait, Priority)
+
+	-- The C-Side Slicing Engine
+	for BatchIndex = 1, TotalBatches do
+		-- Mathematically calculate the absolute bounds of this specific slice.
+		local StartIndex = (BatchIndex - 1) * BatchSize + 1
+		local EndIndex = math.min(StartIndex + BatchSize - 1, ItemCount)
+		local Length = EndIndex - StartIndex + 1
+
+		-- Acquire a sub-slice struct.
+		local Batch = acquireBulkBatch(StartIndex, Length)
+
+		-- Execute a microscopic C-side memory transfer to copy the data from the master Items array into the Batch.Slice array.
+		table.move(Items, StartIndex, EndIndex, 1, Batch.Slice)
+
+		-- Bind the prepared batch to the Master Entry.
+		Entry.Batches[BatchIndex] = Batch
+	end
+
+	-- Register the job globally so returning workers can find their master struct.
+	BulkRegistry[UniqueId] = Entry
+
+	-- Warn the Master Dispatcher that a massive dataset is about to tie up the actors.
+	ActiveBulkCount += 1
+
+	-- Resolve the queue priority and inject the master struct.
+	local TargetQueue = if Priority == "critical" then BulkQueueCritical elseif Priority == "background" then BulkQueueBackground else BulkQueueNormal
+
+	enqueue(TargetQueue, Entry)
+
+	-- Wake the dispatcher.
+	tryDispatch()
+
+	return {
+		Disconnect = function()
+			-- If the job is already fully cancelled or completed, ignore.
+			if not Entry.Cancelled then
+				-- Flag the struct for deep teardown inside dequeueBulk.
+				Entry.Cancelled = true
+
+				-- Eagerly sever the registry pointer and lower the bulk count. This instantly stops tryDispatch from Speculating against a ghost job.
+				BulkRegistry[UniqueId] = nil
+				ActiveBulkCount -= 1
+			end
+		end,
+	}
+end
+
+--[[
+	Runs an ordered chain of parallel jobs where each step receives the previous step's result. Steps are dispatched one at a time, in order. Step 2 only dispatches after Step 1's worker finishes; Step 3 only dispatches after Step 2, and so on. The final callback receives a table containing every step's result in order: results[1] is Step 1's result, results[2] is Step 2's, and so on.
+
+	Params:
+	    Steps    : { ChainStep }    -- An ordered array of step descriptors. Each step specifies the module, function name, payload, and optional weight.
+	    Callback : SequenceCallback -- Called with all step results in order when the last step completes.
+
+	Returns:
+	    Handle -- Call Disconnect() to cancel the chain at any point. The current in-flight step is cancelled, and no further steps are dispatched. The final callback never fires.
+]]
+function Twin.Sequence(Steps: { ChainStep }, Callback: SequenceCallback): Handle
+
+	--[[
+		Twin.Sequence: The Asynchronous Pipeline Orchestrator.
+
+		Chains multiple parallel jobs sequentially without yielding the main thread. 
+		It guarantees strict execution order while allowing dynamic data piping 
+		between steps (where the output of Step N becomes the input of Step N+1).
+
+		Core Behaviors:
+		    * Recursive Execution: Advances the sequence strictly via event-driven callbacks, avoiding thread yielding overhead.
+		    * Dynamic Data Piping: Evaluates functional payloads safely to pass data between isolated C-side boundaries.
+		    * Cascading Cancellation: Mathematically halts the overarching pipeline while simultaneously aborting the active parallel worker.
+		    * Zero-Allocation Buffering: Pre-allocates the exact memory footprint required to store all sequential results.
+	]]
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Steps) ~= "table" or #Steps == 0 then
+			error("[Twin] Sequence: steps must be a non-empty array.\n" .. debug.traceback(), 2)
+		end
+
+		if type(Callback) ~= "function" then
+			error("[Twin] Sequence: callback must be a function.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- State Initialization and Pre-Allocation
+	local StepCount: number = #Steps
+
+	-- Pre-allocate the master array to exactly match the number of sequence steps.
+	local Results: { any } = table.create(StepCount)
+	local IsCancelled: boolean = false
+
+	-- A localized pointer tracking the specific handle of the job currently running.
+	local CurrentHandle: Handle? = nil
+
+	-- The Master Cancellation Handle (Cascading Teardown)
+	local ChainHandle: Handle = {
+		Disconnect = function()
+			-- Immediately lock the state machine from advancing to the next step.
+			IsCancelled = true
+
+			-- If a job is physically running in the background right now, instantly trigger its O(1) lazy cancellation protocol.
+			if CurrentHandle then
+				CurrentHandle.Disconnect()
+				CurrentHandle = nil
+			end
+		end,
+	}
+
+	-- The Recursive State Machine
+	local function runStep(StepIndex: number, PreviousResult: any)
+		--[[
+			Safety Gate: 
+			
+			Abort execution if the master handle was disconnected.
+		]]
+		if IsCancelled then return end
+
+		--[[
+			Completion Gate: 
+			
+			Checks if the current step index exceeds the total number of steps.
+		]]
+		if StepIndex > StepCount then
+			-- Fire the developer's master callback with the compiled results.
+			Callback(Results)
+
+			return
+		end
+
+		-- Zero-Allocation DX Sanitization
+		local CleanStep = sanitizeParams(Steps[StepIndex])
+
+		-- Integrity Verification
+		if not CleanStep.Module or not CleanStep.FunctionName then
+			releaseParams(CleanStep)
+			error(("[Twin] Sequence step %d is missing ____Module or ____FunctionName!\n"):format(StepIndex) .. debug.traceback(), 2)
+		end
+
+		local StepModule = CleanStep.Module
+		local StepFunctionName = CleanStep.FunctionName
+		local StepPayloadRaw = CleanStep.Payload
+		local StepWeight = CleanStep.Weight
+
+		-- Immediately recycle the parsed dictionary.
+		releaseParams(CleanStep)
+
+		-- Dynamic Data Piping
+		local Payload: any
+
+		if type(StepPayloadRaw) == "function" then
+			-- The developer wants to inject the previous step's result into this step. Evaluate their function securely inside a pcall.
+			local Success, DerivedPayload = pcall(StepPayloadRaw :: (any) -> any, PreviousResult)
+
+			if not Success then
+				-- The developer's piping logic crashed. Warn and completely halt the sequence.
+				warn(("[Twin] Sequence step %d payload function error:\n%s"):format(StepIndex, tostring(DerivedPayload)))
+
+				return
+			end
+
+			Payload = DerivedPayload
+
+		else
+			-- Standard static payload.
+			Payload = StepPayloadRaw
+		end
+
+		-- Fire the actual parallel job and anchor it to CurrentHandle.
+		CurrentHandle = Twin.Split(StepModule, StepFunctionName, Payload, function(Result: any)
+			-- The parallel worker has returned its data.
+
+			if IsCancelled then return end -- Check if the master handle was disconnected while the worker was running.
+
+			-- Store the result in our pre-allocated buffer.
+			Results[StepIndex] = Result
+
+			-- Clear the handle to prevent memory leaks.
+			CurrentHandle = nil
+
+			-- Recursively advance the state machine to the next sequential step.
+			runStep(StepIndex + 1, Result)
+
+		end, { 
+			____Weight = StepWeight or "heavy" 
+		})
+	end
+
+	-- Kick off the very first step with a nil previous result.
+	runStep(1, nil)
+
+	-- Return the master control struct to the developer.
+	return ChainHandle
+end
+
+--[[
+	Returns a structured health snapshot of the scheduler's current state, or nil when telemetry is disabled. The snapshot is computed from a rolling window of sampled frames. Calling Report is safe at any frequency and does not reset the sample buffer.
+	
+	Params:
+		nil
+	
+	Returns:
+	    TelemetryReport? -- A full health report across pools, queues, workers, the frame governor, and starvation counters. nil if telemetry is disabled in configuration or if no frames have been sampled yet.
+]]
+function Twin.Report(): TelemetryReport?
+
+	--[[
+		Twin.Report: The Diagnostic Aggregator and Health Assessor.
+
+		Compiles the raw, rolling 10-second telemetry ring buffers into a comprehensive, 
+		human-readable health report. It mathematically grades every subsystem (Memory, 
+		Queues, Workers, Framerate) against strict thresholds to isolate bottlenecks.
+
+		Core Behaviors:
+		    * Zero-Impact Compilation: Reads strictly from pre-allocated arrays, avoiding any O(N) iteration over active engine state.
+		    * Hierarchical Grading: Evaluates individual metrics and bubbles their "Healthy/Warn/Critical" statuses up to a master Overall grade.
+		    * Contextual Math: Strategically applies Peak, Mean, Sum, and Latest extraction functions depending on the volatility of the metric.
+	]]
+
+	-- If the flight-recorder is off, or the system literally just booted and hasn't recorded a single frame, abort immediately.
+	if not TELEMETRY_ENABLED then return nil end
+	if TelemetryRingCount == 0 then return nil end
+
+	-- Establish the timeline of this specific report.
+	local Now: number = os.clock()
+	local WindowSec: number = Now - TelemetryWindowStart
+	local WorkerCount: number = #Workers
+
+	--------------------------------------------------------------
+	-- SUBSYSTEM 1: THE MEMORY POOLS
+	--------------------------------------------------------------
+
+	-- We use ringLatest because we care about the exact memory footprint RIGHT NOW, not what it was seconds ago.
+	local PoolNode = ringLatest(TelemetryNodePoolTop)
+	local PoolSingleJob = ringLatest(TelemetrySingleJobPoolTop)
+	local PoolBulkEntry = ringLatest(TelemetryBulkEntryPoolTop)
+	local PoolBulkBatch = ringLatest(TelemetryBulkBatchPoolTop)
+	local PoolResultBuf = ringLatest(TelemetryResultBufferPoolTop)
+
+	-- Grade saturation levels against maximum capacities.
+	local PoolNodeStatus = poolStatus(PoolNode, NODE_POOL_SIZE)
+	local PoolSingleJobStatus = poolStatus(PoolSingleJob, SINGLE_JOB_POOL_SIZE)
+	local PoolBulkEntryStatus = poolStatus(PoolBulkEntry, BULK_ENTRY_POOL_SIZE)
+	local PoolBulkBatchStatus = poolStatus(PoolBulkBatch, BULK_BATCH_POOL_SIZE)
+	local PoolResultBufStatus = poolStatus(PoolResultBuf, RESULT_BUFFER_POOL_SIZE)
+
+	local Pools = {
+		Node = { 
+			Value = PoolNode, 
+			Capacity = NODE_POOL_SIZE, 
+			Status = PoolNodeStatus 
+		},
+
+		SingleJob = { 
+			Value = PoolSingleJob, 
+			Capacity = SINGLE_JOB_POOL_SIZE, 
+			Status = PoolSingleJobStatus 
+		},
+
+		BulkEntry = { 
+			Value = PoolBulkEntry, 
+			Capacity = BULK_ENTRY_POOL_SIZE, 
+			Status = PoolBulkEntryStatus 
+		},
+
+		BulkBatch = { 
+			Value = PoolBulkBatch, 
+			Capacity = BULK_BATCH_POOL_SIZE,
+			Status = PoolBulkBatchStatus 
+		},
+
+		ResultBuffer = { 
+			Value = PoolResultBuf, 
+			Capacity = RESULT_BUFFER_POOL_SIZE,
+			Status = PoolResultBufStatus
+		},
+
+		-- Bubble up the worst status in the pool subsystem.
+		Status = groupStatus({PoolNodeStatus, PoolSingleJobStatus, PoolBulkEntryStatus, PoolBulkBatchStatus, PoolResultBufStatus} :: any),
+	}
+
+	--------------------------------------------------------------
+	-- SUBSYSTEM 2: THE DISPATCH QUEUES
+	--------------------------------------------------------------
+
+	-- We use ringPeak because queues fluctuate wildly. If a queue hit 500 items for just 3 frames, we MUST flag it, even if the average is zero.
+	local QueueLightDepth = ringPeak(TelemetryLightQueueSize)
+	local QueueHeavyDepth = ringPeak(TelemetryHeavyQueueSize)
+	local QueueCriticalDepth = ringPeak(TelemetryBulkCriticalSize)
+	local QueueNormalDepth = ringPeak(TelemetryBulkNormalSize)
+	local QueueBackgroundDepth = ringPeak(TelemetryBulkBackgroundSize)
+
+	local QueueLightStatus = itemStatus(QueueLightDepth, QUEUE_WARN_DEPTH, QUEUE_CRIT_DEPTH)
+	local QueueHeavyStatus = itemStatus(QueueHeavyDepth, QUEUE_WARN_DEPTH, QUEUE_CRIT_DEPTH)
+	local QueueCriticalStatus = itemStatus(QueueCriticalDepth, QUEUE_WARN_DEPTH, QUEUE_CRIT_DEPTH)
+	local QueueNormalStatus = itemStatus(QueueNormalDepth, QUEUE_WARN_DEPTH, QUEUE_CRIT_DEPTH)
+	local QueueBackgroundStatus = itemStatus(QueueBackgroundDepth, QUEUE_WARN_DEPTH, QUEUE_CRIT_DEPTH)
+
+	local Queues = {
+		Light = { 
+			Value = QueueLightDepth, 
+			Status = QueueLightStatus 
+		},
+
+		Heavy = { 
+			Value = QueueHeavyDepth,
+			Status = QueueHeavyStatus 
+		},
+
+		BulkCritical = { 
+			Value = QueueCriticalDepth,
+			Status = QueueCriticalStatus 
+		},
+
+		BulkNormal = { 
+			Value = QueueNormalDepth, 
+			Status = QueueNormalStatus 
+		},
+
+		BulkBackground = { 
+			Value = QueueBackgroundDepth, 
+			Status = QueueBackgroundStatus 
+		},
+
+		-- Bubble up the worst status in the queue subsystem.
+		Status = groupStatus({QueueLightStatus, QueueHeavyStatus, QueueCriticalStatus, QueueNormalStatus, QueueBackgroundStatus} :: any),
+	}
+
+	--------------------------------------------------------------
+	-- SUBSYSTEM 3: WORKER EFFICIENCY and WATCHDOG
+	--------------------------------------------------------------
+
+	local LatestFree: number = ringLatest(TelemetryFreeTop)
+	local WorkerExecStatuses: { TelemetryStatus } = {}
+	local AvgExecTime: { [number]: TelemetryWorkerExec } = {}
+
+	-- We use ringMean to smooth out execution times, providing a reliable baseline.
+	for WorkerIndex = 1, WorkerCount do
+		local WorkerEma = if TelemetryWorkerEMA[WorkerIndex] then ringMean(TelemetryWorkerEMA[WorkerIndex]) else 0
+		local Status = itemStatus(WorkerEma, WORKER_WARN_EXEC, WORKER_CRIT_EXEC)
+
+		AvgExecTime[WorkerIndex] = { 
+			Value = WorkerEma,
+			Status = Status 
+		} :: any
+
+		WorkerExecStatuses[WorkerIndex] = Status :: any
+	end
+
+	-- We use ringSum to count the absolute total of thread crashes/recoveries.
+	local WatchdogCount = ringSum(TelemetryWatchdogFires)
+	local WatchdogStatus = itemStatus(WatchdogCount, WATCHDOG_INTERVENTIONS_WARN, WATCHDOG_INTERVENTIONS_CRITICAL)
+
+	table.insert(WorkerExecStatuses, WatchdogStatus)
+
+	local WorkerReport = {
+		Total = WorkerCount,
+		Free = LatestFree,
+		Busy = WorkerCount - LatestFree,
+		AvgExecTime = AvgExecTime,
+
+		WatchdogInterventions = { 
+			Value = WatchdogCount, 
+			Status = WatchdogStatus 
+		},
+
+		Status = groupStatus(WorkerExecStatuses),
+	}
+
+	--------------------------------------------------------------
+	-- SUBSYSTEM 4: THE FRAME GOVERNOR
+	--------------------------------------------------------------
+
+	local OverBudgetRate = ringOverBudgetRate()
+	local PeakBulk = ringPeak(TelemetryActiveBulk)
+	local BudgetMs = FRAME_BUDGET_SEC * 1000
+
+	local OverBudgetRateStatus = itemStatus(OverBudgetRate, OVER_BUDGET_RATE_WARN, OVER_BUDGET_RATE_CRIT)
+	local BulkStatus = itemStatus(PeakBulk, ACTIVE_BULK_WARN, ACTIVE_BULK_CRIT)
+	local BudgetStatus: TelemetryStatus = "Healthy" -- The limit itself is always static/healthy.
+
+	local FrameGovernorReport = {
+		BudgetMs = { 
+			Value = BudgetMs, 
+			Status = BudgetStatus
+		},
+
+		OverBudgetRate = { 
+			Value = OverBudgetRate,
+			Status = OverBudgetRateStatus 
+		},
+
+		ActiveBulkCount = { 
+			Value = PeakBulk, 
+			Status = BulkStatus 
+		},
+
+		Status = groupStatus({OverBudgetRateStatus, BulkStatus} :: any),
+	}
+
+	--------------------------------------------------------------
+	-- SUBSYSTEM 5: STARVATION TRACKING
+	--------------------------------------------------------------
+
+	-- Track how badly lower-priority jobs are being suffocated by Critical jobs.
+	local BackgroundSkipPeak = ringPeak(TelemetryBackgroundSkip)
+	local HeavySkipPeak = ringPeak(TelemetryHeavySkip)
+
+	local BackgroundSkipStatus = itemStatus(BackgroundSkipPeak, BG_SKIP_WARN, BG_SKIP_CRITICAL)
+	local HeavySkipStatus = itemStatus(HeavySkipPeak, HEAVY_SKIP_WARN, HEAVY_SKIP_CRITICAL)
+
+	local StarvationReport = {
+		BgSkipCount = {
+			Value = BackgroundSkipPeak,
+			Status = BackgroundSkipStatus 
+		},
+
+		HeavySkipCount = {
+			Value = HeavySkipPeak,
+			Status = HeavySkipStatus 
+		},
+
+		Status = groupStatus({BackgroundSkipStatus, HeavySkipStatus} :: any),
+	}
+
+	--------------------------------------------------------------
+	-- MASTER ASSEMBLY
+	--------------------------------------------------------------
+
+	-- Bubble up every single subsystem grade to determine the final engine state.
+	local AllGroupStatuses = {Pools.Status, Queues.Status, WorkerReport.Status, FrameGovernorReport.Status, StarvationReport.Status}
+
+	-- Reset the timing window so the next report measures from THIS moment forward.
+	TelemetryWindowStart = Now
+
+	-- Return the fully compiled diagnostic struct.
+	return {
+		Pools = Pools,
+		Queues = Queues,
+		Workers = WorkerReport,
+		FrameGovernor = FrameGovernorReport,
+		Starvation = StarvationReport,
+		Overall = overallStatus(AllGroupStatuses),
+		WindowSec = WindowSec,
+		SampleCount = TelemetryRingCount,
+		Timestamp = Now,
+	} :: any
+end
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the "Assignment" library.
+
+	Params:
+	    ModuleName        : string -- The name of the ModuleScript file.
+	    ModuleTableObject : any    -- The module table to inject.
+
+	Returns:
+	    nil
+]]
+function Twin.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Twin] Inject Error: 'moduleName' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if type(ModuleTableObject) ~= "table" then
+			error("[Twin] Inject Error: 'moduleTableObject' must be a table.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn = ModuleTableObject.Spawn or task.spawn
+		Scheduler.Defer = ModuleTableObject.Defer or task.defer
+		Scheduler.Delay = ModuleTableObject.Delay or task.delay
+		Scheduler.Wait = ModuleTableObject.Wait or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+	end
+end
+
+----------------------------------------------------------
+return Twin
+----------------------------------------------------------
