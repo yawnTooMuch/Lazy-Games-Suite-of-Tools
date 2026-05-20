@@ -1,0 +1,2497 @@
+--[[
+	0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Assignment - Task Scheduler Library										  					   							000
+	000 Version: 1.1.1 Beta	Release												  					   							000
+	000 Platform: Roblox													  						   							000
+	000 License: Apache 2.0												  	  						   							000
+	000																		  						   							000
+	000																		  						   							000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  						   							000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    				   							000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler/4585350 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Assignment_ReadOnly 							000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/assignment/   							000
+	0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Configuration Section
+----------------------------------------------------------
+
+local MIN_DELAY: number = 0         		-- Minimum allowed delay in seconds
+local JANITOR_INTERVAL: number = 30 		-- How often the janitor cleans cancelled entries (seconds)
+local DEFER_BUDGET_MS: number = 3   		-- Max milliseconds allowed for Defer processing per frame
+local WHEEL_SIZE: number = 4096     		-- Total number of timing wheel slots
+local WHEEL_MASK: number = 4095     		-- Bitmask for wrapping slot index (WHEEL_SIZE - 1)
+local SLOT_SIZE: number = 0.005     		-- Duration of each slot in seconds
+local MAX_ENTRY_POOL: number = 5000 		-- Maximum recycled entry objects in pool
+local MAX_INLINE_ARGS: number = 4   		-- Maximum arguments stored directly in entry fields; beyond this, OverflowArgs is used
+local MAX_SWITCH_MATH_BRANCHES: number = 64 -- Maximum number of branches inside an Array (math mode) in switch case statements
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Type Structures Section
+----------------------------------------------------------
+
+--[[
+	A lightweight object returned to the developer upon scheduling a task. It provides 
+	a secure, memory-safe interface to abort pending tasks without forcing the engine 
+	to execute expensive array-shifting operations on the active timing wheel.
+]]
+export type Handle = {
+	-- An internal flag read by the execution and janitor loops to gracefully skip dead tasks.
+	_cancelled: boolean,
+
+	-- Syntactic sugar allowing clean task abortion.
+	Break: (self: Handle) -> (),
+}
+
+--[[
+	The master data structure representing a scheduled task within the hashed timing wheel. 
+	It is specifically engineered to be recycled via the EntryPool, and utilizes inline 
+	argument flattening to achieve true zero-allocation task execution for standard workloads.
+]]
+type WheelEntry = {
+	-- The exact os.clock() timestamp when this entry is scheduled to execute.
+	ResumeAt: number?,
+
+	-- Polymorphic Target A: A yielded Luau thread waiting to be resumed.
+	Thread: thread?,
+
+	-- Polymorphic Target B: A raw function waiting to be spawned into the thread pool.
+	Function: ((...any) -> ())?,
+
+	-- Inline Argument Flattening: 
+	-- Captures the first 4 arguments natively to completely bypass GC array allocations.
+	Arg1: any,
+	Arg2: any,
+	Arg3: any,
+	Arg4: any,
+
+	-- Fallback Storage: An array allocated exclusively for edge-cases with >4 arguments.
+	OverflowArgs: { any }?,
+
+	-- Tracks exactly how many arguments were passed to ensure perfect execution routing.
+	ArgCount: number,
+
+	-- A strong reference to the developer's control token.
+	Handle: Handle?,
+}
+
+-- Master union of every possible primitive and Roblox DataType (from typeof())
+type PrimitiveString = 
+	"nil" | "boolean" | "number" | "string" | "table" | "function" | "thread" | "userdata" | "buffer" |
+"CFrame" | "Color3" | "ColorSequence" | "DateTime" | "Enum" | "EnumItem" | "Font" |
+"Instance" | "NumberRange" | "NumberSequence" | "RaycastParams" | "RaycastResult" |
+"RBXScriptConnection" | "RBXScriptSignal" | "TweenInfo" | "UDim" | "UDim2" | "Vector2" | "Vector3" |
+string -- open tail: allows custom/unlisted data types without a type error
+
+-- Master union of every possible Roblox Classes (from IsA())
+type RobloxClassName =
+	-- Instances / Containers
+	"Instance" | "Model" | "Folder" | "Configuration" | "Actor" | "Tool" |
+
+-- Parts
+"BasePart" | "Part" | "MeshPart" | "UnionOperation" | "WedgePart" |
+"CornerWedgePart" | "TrussPart" | "SpawnLocation" | "Seat" | "VehicleSeat" |
+
+-- Character / Humanoid
+"Humanoid" | "HumanoidDescription" | "Animator" | "Animation" |
+"AnimationController" | "Accessory" | "Hat" | "Bone" |
+"Shirt" | "Pants" | "ShirtGraphic" | "CharacterMesh" |
+
+-- Scripts
+"Script" | "LocalScript" | "ModuleScript" |
+
+-- GUI
+"ScreenGui" | "Frame" | "ScrollingFrame" | "CanvasGroup" | "VideoFrame" |
+"TextLabel" | "TextButton" | "TextBox" |
+"ImageLabel" | "ImageButton" |
+"BillboardGui" | "SurfaceGui" | "GuiObject" | "GuiBase2d" |
+
+-- Effects / Particles
+"Fire" | "Smoke" | "Sparkles" | "ParticleEmitter" | "Trail" |
+"Beam" | "SelectionBox" | "BoxHandleAdornment" | "SphereHandleAdornment" |
+
+-- Lights
+"PointLight" | "SpotLight" | "SurfaceLight" |
+
+-- Sounds
+"Sound" | "SoundGroup" |
+
+-- Meshes / Decals
+"SpecialMesh" | "Decal" | "Texture" | "SurfaceAppearance" |
+
+-- Constraints & Joints
+"WeldConstraint" | "Weld" | "Motor6D" |
+"HingeConstraint" | "BallSocketConstraint" | "RodConstraint" |
+"RopeConstraint" | "SpringConstraint" |
+"AlignOrientation" | "AlignPosition" | "LinearVelocity" | "AngularVelocity" |
+
+-- Remotes / Bindables
+"RemoteEvent" | "RemoteFunction" | "BindableEvent" | "BindableFunction" |
+
+-- Value objects
+"ObjectValue" | "BoolValue" | "NumberValue" | "StringValue" | "IntValue" |
+"Vector3Value" | "CFrameValue" | "Color3Value" | "RayValue" |
+
+-- Interaction
+"ProximityPrompt" | "ClickDetector" |
+
+-- Services (for IsA checks on service refs)
+"Workspace" | "Players" | "Player" | "Team" | "Teams" |
+"ReplicatedStorage" | "ServerScriptService" | "ServerStorage" |
+"StarterGui" | "StarterPack" | "StarterPlayer" |
+"Lighting" | "Sky" | "Atmosphere" | "Clouds" | "Terrain" |
+"RunService" | "TweenService" | "UserInputService" |
+"ContextActionService" | "CollectionService" |
+"DataStoreService" | "PathfindingService" | "MarketplaceService" |
+"SoundService" | "Camera" | "LocalizationTable" |
+
+string -- open tail: allows custom/unlisted class names without a type error
+
+-- The String Opcodes
+export type Op_String_Type = { IsAssignmentOpcode: boolean, Name: "Type" }
+export type Op_String_IsA = { IsAssignmentOpcode: boolean, Name: "IsA" }
+
+-- The Number Opcodes
+export type Op_Number_Range = { IsAssignmentOpcode: boolean, Name: "InRange" }
+export type Op_Number_Math = { IsAssignmentOpcode: boolean, Name: "LessThan" | "LessThanOrEqual" | "GreaterThan" | "GreaterThanOrEqual" }
+
+-- Generic & Special Opcodes
+export type Op_Any_NotEqual = { IsAssignmentOpcode: boolean, Name: "NotEqual" }
+export type Op_Special_NoOp = { IsAssignmentOpcode: boolean, Name: "NoOp" }
+
+export type Opcode = { IsAssignmentOpcode: boolean, Name: string } -- Internal Fallback
+
+-- The public object returned by Assignment.Switch()
+export type SwitchHandle = {
+	_Name: string,					   -- The name of the switch tree
+	_Trie: { [any]: any },			   -- The actual nested tables that build the tree
+	_Default: ((...any) -> ())?,	   -- The default function to return if no cases match
+	_PendingPaths: { { [any]: any } }, -- Used for the OR Gate queue
+
+	Execute: (self: SwitchHandle, Payload: ((...any) -> ()) | Op_Special_NoOp) -> SwitchHandle,
+	Default: (self: SwitchHandle, Payload: (...any) -> ()) -> SwitchHandle,
+	Match: (self: SwitchHandle, ...any) -> ((...any) -> ())?,
+
+	------------------------------------------------------
+	-- THE INTERSECTION TYPE FOR AUTOCOMPLETE
+	------------------------------------------------------
+
+	Case: (
+		-- The String Opcodes
+		((self: SwitchHandle, op: Op_String_Type, targetType: PrimitiveString, ...any) -> SwitchHandle)
+		& ((self: SwitchHandle, op: Op_String_IsA, className: RobloxClassName, ...any) -> SwitchHandle)
+
+		-- The Number Opcodes
+		& ((self: SwitchHandle, op: Op_Number_Range, min: number, max: number, ...any) -> SwitchHandle)
+		& ((self: SwitchHandle, op: Op_Number_Math, threshold: number, ...any) -> SwitchHandle)
+
+		-- Generic Inequalities
+		& ((self: SwitchHandle, op: Op_Any_NotEqual, value: any, ...any) -> SwitchHandle)
+
+		-- Exact Matches & OR Gates
+		& ((self: SwitchHandle, exactMatch: string | number | boolean, ...any) -> SwitchHandle)
+	)
+}
+
+-- Define the strict shape of the registry using Phantom Types
+export type OpRegistryType = {
+	Type: Op_String_Type,
+	IsA: Op_String_IsA,
+	InRange: Op_Number_Range,
+	LessThan: Op_Number_Math,
+	LessThanOrEqual: Op_Number_Math,
+	GreaterThan: Op_Number_Math,
+	GreaterThanOrEqual: Op_Number_Math,
+	NotEqual: Op_Any_NotEqual,
+	NoOp: Op_Special_NoOp,
+}
+
+-- Internal strict-typing for the Math Mode arrays
+-----------------------------------------------------
+type OpStruct = {
+	Opcode: any,
+	Subject: any,
+	Node: { [any]: any }
+}
+type RangeStruct = {
+	Min: number,
+	Max: number,
+	Node: { [any]: any }
+}
+-----------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Imported Services Section
+----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Internal States Section
+----------------------------------------------------------
+
+local Assignment = {}
+
+-- A cached, yielding coroutine ready to accept instant function execution.
+local FreeThread: thread? = nil
+
+-- The master kill-switch flag triggered during BindToClose server shutdown.
+local IsShuttingDown: boolean = false
+
+-- Pre-allocated arrays that recycle WheelEntry objects to completely bypass GC spikes.
+local EntryPool: { any } = table.create(MAX_ENTRY_POOL)
+local EntryPoolSize: number = 0
+
+-- A secondary pool specifically for array tables when a function exceeds 4 arguments.
+local OverflowPool: { { any } } = {}
+local OverflowPoolSize: number = 0
+
+-- The master execution wheel. Pre-allocated to WHEEL_SIZE to prevent dynamic array resizing.
+local Wheel: { { WheelEntry }? } = table.create(WHEEL_SIZE, nil)
+
+-- O(1) Length Tracking: Caches the exact number of active tasks in every single slot.
+local WheelCounts: { number } = table.create(WHEEL_SIZE, 0)
+
+-- An isolated timing wheel specifically engineered to handle Assignment.Wait() thread yields.
+local WaitWheel: { { any }? } = table.create(WHEEL_SIZE, nil)
+local WaitCounts: { number } = table.create(WHEEL_SIZE, 0)
+
+-- The internal clock cursor. Tracks exactly which bucket the engine evaluated last frame.
+local LastRawSlot: number = math.floor(os.clock() / SLOT_SIZE)
+
+-- Prevents infinite deferral loops by writing new tasks to B while reading current tasks from A.
+local DeferBufferA: { WheelEntry } = {}
+local DeferBufferB: { WheelEntry } = {}
+
+-- The dynamic pointers that swap between Buffer A and Buffer B every frame.
+local DeferReadBuffer: { WheelEntry } = DeferBufferA
+local DeferWriteBuffer: { WheelEntry } = DeferBufferB
+
+-- Buffer execution tracking counters.
+local DeferReadIndex: number = 1
+local DeferReadCount: number = 0
+local DeferWriteCount: number = 0
+
+-- Accumulates DeltaTime to determine when the engine should sweep the wheel for cancelled handles.
+local JanitorAccumulator: number = 0
+
+-- Maps active threads to their cancellation handles.
+local ThreadToHandle: { [thread]: Handle } = setmetatable({}, { 
+	__mode = "k" 
+})
+
+-- Tracks threads spawned via .SpawnIsolated, completely bypassing the native pool.
+local IsolatedThreads: { [thread]: boolean } = setmetatable({}, { 
+	__mode = "k" 
+})
+
+-- The Global Singleton Registry for all Switch blocks.
+local SwitchRegistry: { [string]: SwitchHandle } = {}
+
+-- The Engine's Metatable Router.
+local SwitchMeta = {}
+SwitchMeta.__index = SwitchMeta
+
+-- The exported Opcode Enum Dictionary.
+local OpRegistry: OpRegistryType = {
+	Type = { 
+		IsAssignmentOpcode = true,
+		Name = "Type"
+	} :: Op_String_Type,
+
+	IsA = { 
+		IsAssignmentOpcode = true, 
+		Name = "IsA" 
+	} :: Op_String_IsA,
+
+	InRange = { 
+		IsAssignmentOpcode = true,
+		Name = "InRange" 
+	} :: Op_Number_Range,
+
+	NotEqual = { 
+		IsAssignmentOpcode = true,
+		Name = "NotEqual"
+	} :: Op_Any_NotEqual,
+
+	LessThan = { 
+		IsAssignmentOpcode = true,
+		Name = "LessThan" 
+	} :: Op_Number_Math,
+
+	GreaterThan = { 
+		IsAssignmentOpcode = true,
+		Name = "GreaterThan" 
+	} :: Op_Number_Math,
+
+	LessThanOrEqual = { 
+		IsAssignmentOpcode = true, 
+		Name = "LessThanOrEqual" 
+	} :: Op_Number_Math,
+
+	GreaterThanOrEqual = { 
+		IsAssignmentOpcode = true,
+		Name = "GreaterThanOrEqual"
+	} :: Op_Number_Math,
+
+	NoOp = { 
+		IsAssignmentOpcode = true,
+		Name = "NoOp"
+	} :: Op_Special_NoOp,
+}
+table.freeze(OpRegistry) -- Locks the dictionary to act like a native Roblox Enum
+Assignment.Op = OpRegistry
+
+--[[
+	The Shielded Math Registry:
+
+	The Trie Walker uses this table to execute logic without crossing heavy closures.
+]]
+local OperatorMath: { [any]: (any, any) -> boolean } = {
+	[OpRegistry.Type] = function(Target: any, Subject: any): boolean
+		return typeof(Target) == (Subject :: string)
+	end,
+
+	[OpRegistry.IsA] = function(Target: any, Subject: any): boolean
+		-- The Instance Shield. Prevents C-side crashes if the Target is nil or a primitive.
+		return typeof(Target) == "Instance" and Target:IsA(Subject :: string)
+	end,
+
+	[OpRegistry.NotEqual] = function(Target: any, Subject: any): boolean
+		return Target ~= Subject
+	end,
+
+	-- Primitive type-checking ensures we don't throw an error if a developer accidentally checks math operators on a wrong type.
+	[OpRegistry.LessThan] = function(Target: any, Subject: any): boolean
+		return type(Target) == "number" and type(Subject) == "number" and Target < (Subject :: number)
+	end,
+
+	[OpRegistry.GreaterThan] = function(Target: any, Subject: any): boolean
+		return type(Target) == "number" and type(Subject) == "number" and Target > (Subject :: number)
+	end,
+
+	[OpRegistry.LessThanOrEqual] = function(Target: any, Subject: any): boolean
+		return type(Target) == "number" and type(Subject) == "number" and Target <= (Subject :: number)
+	end,
+
+	[OpRegistry.GreaterThanOrEqual] = function(Target: any, Subject: any): boolean
+		return type(Target) == "number" and type(Subject) == "number" and Target >= (Subject :: number)
+	end,
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Local Function Section
+----------------------------------------------------------
+
+-- Marks a handle as cancelled
+local function breakHandle(Self: Handle): ()
+	Self._cancelled = true
+end
+
+-- Acquires a recycled entry from the pool, or creates a new one
+local function acquireEntry(): any
+
+	--[[
+		acquireEntry: The Zero-Allocation Shell Retriever.
+
+		The primary allocation gateway for new scheduled tasks. It intercepts requests 
+		for new memory and instead serves a recycled, pre-allocated table from the EntryPool, 
+		completely shielding the Luau Garbage Collector (GC) from high-frequency task creation.
+
+		Params:
+		    nil
+
+		Returns:
+		    any -- A clean WheelEntry table shell ready for data population.
+
+		Core Behaviors:
+		    * GC-Free Allocation: Prioritizes fetching a recycled object to prevent heap allocations and the resulting garbage collection spikes.
+		    * O(1) Array Pop: Utilizes the raw EntryPoolSize integer as a direct memory pointer, manually extracting the final array element to achieve instant retrieval without the overhead of table.remove().
+		    * Lazy Instantiation Fallback: If the engine undergoes a massive load spike and exhausts the pre-allocated pool, it gracefully falls back to creating a new table to guarantee the scheduler never halts or errors out.
+	]]
+
+	-- Check if the engine has any recycled shells available.
+	if EntryPoolSize > 0 then
+		-- Grab the last item in the array using the cached size pointer.
+		local Entry = EntryPool[EntryPoolSize]
+
+		-- Nullify the slot to prevent memory leaks and decrement the pointer.
+		EntryPool[EntryPoolSize] = nil
+		EntryPoolSize -= 1
+
+		return Entry
+	end
+
+	-- The pool is completely empty. Create a new table. (This newly created table will eventually be captured by releaseEntry() and added to the pool).
+	return {}
+end
+
+-- Acquires a recycled array table, or lazily creates a new one if the pool is empty
+local function acquireOverflow(): { any }
+
+	--[[
+		acquireOverflow: The Fallback Array Retriever.
+
+		A specialized allocation gateway used strictly when a scheduled task exceeds 
+		the engine's inline argument limit (MAX_INLINE_ARGS). It supplies a recycled 
+		array table from the OverflowPool, ensuring that heavy variadic function calls 
+		do not generate uncontrolled Garbage Collection (GC) spikes.
+
+		Params:
+		    nil
+
+		Returns:
+		    { any } -- A clean, recycled array table ready to store overflow arguments.
+
+		Core Behaviors:
+		    * GC-Free Overflow: Completely neutralizes the memory penalty of passing 5+ arguments to a scheduled task by recycling array tables instead of allocating new ones on the heap.
+		    * O(1) Array Pop: Utilizes the OverflowPoolSize integer as a raw memory pointer, instantly extracting the final array element without the CPU overhead of table.remove().
+		    * Lazy Instantiation Fallback: Gracefully falls back to requesting a new table {} if a sudden spike in variadic tasks exhausts the pre-allocated pool.
+	]]
+
+	-- Check if the engine has any recycled array tables available.
+	if OverflowPoolSize > 0 then
+		-- Grab the last array in the pool using the cached size pointer.
+		local Table = OverflowPool[OverflowPoolSize]
+
+		-- Nullify the slot to prevent memory leaks and decrement the pointer.
+		OverflowPool[OverflowPoolSize] = nil
+		OverflowPoolSize -= 1
+
+		return Table
+	end
+
+	-- The overflow pool is empty. Create a new table. (This newly created array will eventually be captured by releaseOverflow() and added to the pool).
+	return {}
+end
+
+-- Clears an array table and returns it to the pool, capped by MAX_ENTRY_POOL
+local function releaseOverflow(Table: { any }): ()
+	table.clear(Table)
+
+	-- If the pool limit is not yet reached, add the newly cleaned table into the pool.
+	if OverflowPoolSize < MAX_ENTRY_POOL then
+		OverflowPoolSize += 1
+		OverflowPool[OverflowPoolSize] = Table
+	end
+end
+
+-- Clears and returns an entry back to the pool
+local function releaseEntry(Entry: any): ()
+
+	--[[
+		releaseEntry: The Zero-Allocation Shell Recycler.
+
+		The master cleanup utility that sanitizes executed or cancelled tasks and returns 
+		them to the EntryPool. It explicitly severs all internal memory pointers to prevent 
+		Ghost Reference leaks, and enforces strict elasticity limits to ensure the pool 
+		itself does not permanently bloat during massive, anomalous task spikes.
+
+		Params:
+		    Entry : any -- The used WheelEntry table husk to be cleaned and recycled.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Pointer Sanitization: Aggressively nullifies every field within the table, ensuring that dead threads, functions, and heavy developer arguments are immediately released to the Garbage Collector.
+		    * Cascading Teardown: Automatically detects and routes nested OverflowArgs back to the secondary OverflowPool, ensuring zero-allocation fidelity even for highly complex variadic tasks.
+		    * Elastic Boundary Enforcement: Strictly adheres to the MAX_ENTRY_POOL limit. If the pool is full, the recycled husk is intentionally abandoned, allowing the Luau engine to safely shrink memory footprint after intense load spikes.
+	]]
+
+	-- Erase all execution data to sever strong references, allowing the GC to safely consume the developer's payload while we keep the empty table.
+	Entry.ResumeAt = nil
+	Entry.Thread = nil
+	Entry.Function = nil
+	Entry.Arg1 = nil
+	Entry.Arg2 = nil
+	Entry.Arg3 = nil
+	Entry.Arg4 = nil
+
+	-- If this task exceeded the inline argument limit, it holds an array. Route that array back to the secondary pool before nullifying it here.
+	if Entry.OverflowArgs then
+		releaseOverflow(Entry.OverflowArgs)
+	end
+
+	-- Reset the final metadata trackers.
+	Entry.OverflowArgs = nil
+	Entry.ArgCount = 0
+	Entry.Handle = nil
+
+	-- Check if the primary pool has room. If it does, push the clean shell back. If it doesn't, we do nothing; the table simply falls out of scope and the GC eats it.
+	if EntryPoolSize < MAX_ENTRY_POOL then
+		EntryPoolSize += 1
+		EntryPool[EntryPoolSize] = Entry
+	end
+end
+
+-- Runs a function with its arguments directly
+local function acquireAndRun(Function: (...any) -> (), ...: any): ()
+
+	--[[
+		acquireAndRun: The Execution Direct Runner.
+
+		A hyper-optimized syntactic bridge required to operate the engine's thread pool. 
+		It catches the variadic payload returning from a coroutine.yield() and instantly 
+		invokes it, entirely bypassing the need to pack yielded arguments into an array.
+
+		Params:
+		    Function : (...any) -> () -- The developer's target function to execute.
+		    ...      : any            -- The variadic arguments to forward to the function.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Syntactic Unpacking: Perfectly maps the multi-return values of coroutine.yield() into an executable function signature, solving a native Luau syntax limitation.
+		    * Zero-Allocation Invocation: Directly executes the target function without relying on table.pack() or closures, maintaining absolute GC silence during task execution.
+		    * Call-Stack Isolation: Keeps the execution layer physically separated from the coroutine yielding logic, ensuring error stack traces remain clean and legible for developers.
+	]]
+
+	-- Instantly execute the function with its forwarded arguments. No need table packing or closure creation, yielding the arguments directly to the function.
+	Function(...)
+end
+
+-- Thread pool runner: yields waiting for work, then executes it
+local function runInFreeThread(): ()
+
+	--[[
+		runInFreeThread: The Immortal Worker Loop.
+
+		The core execution cycle for the engine's thread pool. It traps a coroutine inside 
+		an infinite lifecycle, completely preventing thread death and the resulting Garbage 
+		Collection (GC) spikes. 
+
+		Params:
+		    nil
+
+		Returns:
+		    nil (Never returns due to the infinite loop architecture)
+
+		Core Behaviors:
+		    * Thread Immortality: Utilizes an unbreakable while-loop to prevent the coroutine from ever reaching a terminal state, allowing it to process infinite tasks over its lifespan.
+		    * Self-Registration: Automatically claims the global FreeThread pointer the moment it loops, signaling to the spawnInPool() dispatcher that it is ready for work.
+		    * The Yield Trap: Suspends itself mid-loop via coroutine.yield(), consuming zero CPU cycles while waiting for the engine to hand it a new target function and arguments.
+	]]
+
+	while true do
+		FreeThread = coroutine.running()
+		acquireAndRun(coroutine.yield())
+	end
+end
+
+-- Resumes or creates a pooled thread to run a function
+local function spawnInPool(Function: (...any) -> (), ...: any): ()
+
+	--[[
+		spawnInPool: The Coroutine Recycler and Dispatcher.
+
+		The master execution router for instantaneous function calls. It completely bypasses 
+		the CPU overhead of standard thread creation by routing target functions into a 
+		recycled, continuously yielding coroutine pool.
+
+		Params:
+		    Function : (...any) -> () -- The developer's target function to execute.
+		    ...      : any            -- The variadic arguments to forward to the function.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Just-In-Time Allocation: Lazily spins up a new worker thread only if the FreeThread slot is empty, keeping the engine's memory footprint as small as dynamically possible.
+		    * The Yield Hand-Off: Passes the target payload directly into the waiting coroutine via resume(), triggering the acquireAndRun direct runner without creating intermediate closures.
+		    * Error Isolation Pipeline: Safely traps execution failures using pcall-like coroutine mechanics. It then routes the error string and stack trace out to the console asynchronously, ensuring a single bad function never crashes the engine's master heartbeat loop.
+	]]
+
+	-- If the pool is empty (or the previous thread died/yielded), create a new one.
+	if not FreeThread then
+		-- Boot up the worker loop. It will immediately yield and set itself to FreeThread.
+		coroutine.resume(coroutine.create(runInFreeThread))
+	end
+
+	-- Grab the reference and instantly clear the pool slot so nested spawn calls don't accidentally hijack this exact same thread before it finishes.
+	local Thread = FreeThread :: thread
+
+	FreeThread = nil
+
+	-- Wake the thread up, passing the function and its arguments. The acquireAndRun() direct runner catches this payload and fires it.
+	local Success, ErrorMessage = coroutine.resume(Thread, Function, ...)
+
+	-- If the developer's code crashed, the coroutine.resume will return false.
+	if not Success then
+		-- Extract the raw stack trace from the crashed thread and throw it asynchronously. This guarantees the developer sees the exact line of code that broke, while perfectly protecting the scheduler from a fatal cascade.
+		task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
+	end
+end
+
+-- Inserts an entry into the correct timing wheel slot
+local function wheelInsert(Entry: WheelEntry): ()
+
+	--[[
+		wheelInsert: The O(1) Temporal Router.
+
+		The mathematical core of the timing wheel scheduler. It converts an absolute 
+		os.clock() execution timestamp into a physical array index, routing the scheduled 
+		task into the correct temporal bucket for future execution.
+
+		Params:
+		    Entry : WheelEntry -- The fully populated task shell waiting to be scheduled.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * O(1) Hashing: Completely bypasses array sorting by using lightning-fast bitwise operations to map infinite time onto a finite, circular array buffer.
+		    * Temporal Safeguards: Actively prevents "lost tasks" by intercepting tasks scheduled in the past (or exactly right now) and bumping them safely to the next execution slot.
+		    * Raw Pointer Insertion: Replaces table.insert() with direct array indexing via the WheelCounts registry, shaving off microscopic CPU overhead during high-frequency scheduling.
+	]]
+
+	-- Divide the target execution time by the size of a single slot (e.g., 0.005s) and floor it to find the absolute temporal bucket on the infinite timeline.
+	local RawSlot = math.floor((Entry.ResumeAt :: number) / SLOT_SIZE)
+
+	-- If the target slot is in the past, or happens to be the exact slot the Heartbeat loop is currently processing, shift it exactly one slot forward into the future. This guarantees 0-second delays are executed safely on the next frame.
+	if RawSlot <= LastRawSlot then
+		RawSlot = LastRawSlot + 1
+	end
+
+	-- bit32.band mathematically acts as a hyper-fast modulo operator here. It maps the infinite RawSlot number perfectly into the 1 to 4096 bounds of the physical array.
+	local Slot = bit32.band(RawSlot, WHEEL_MASK) + 1
+
+	-- Lazy Bucket Instantiation
+	local Bucket: any = Wheel[Slot]
+
+	if not Bucket then
+		Bucket = {}
+		Wheel[Slot] = Bucket
+	end
+
+	-- Retrieve the exact length of the bucket from the O(1) length registry.
+	local Count = WheelCounts[Slot] + 1
+
+	-- Update the registry and assign the entry directly to the array memory slot, completely bypassing the overhead of table.insert().
+	WheelCounts[Slot] = Count
+	Bucket[Count] = Entry
+end
+
+
+-----------------------------------------------------------------------------------------
+-- O(1) Table Jump Graph - Bypassing the O(N) execution of if/elseif/else chains. START
+-----------------------------------------------------------------------------------------
+-- Dispatch table for populating up to MAX_INLINE_ARGS argument fields directly onto an entry
+local PopulatorGraph: { [number]: (WheelEntry, ...any) -> () } = {
+	[0] = function(_Entry: WheelEntry)
+	end,
+
+	[1] = function(Entry: WheelEntry, Arg1: any)
+		Entry.Arg1 = Arg1
+	end,
+
+	[2] = function(Entry: WheelEntry, Arg1: any, Arg2: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+	end,
+
+	[3] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+		Entry.Arg3 = Arg3
+	end,
+
+	[4] = function(Entry: WheelEntry, Arg1: any, Arg2: any, Arg3: any, Arg4: any)
+		Entry.Arg1 = Arg1
+		Entry.Arg2 = Arg2
+		Entry.Arg3 = Arg3
+		Entry.Arg4 = Arg4
+	end,
+}
+
+-- Dispatch table for resuming a thread entry with up to MAX_INLINE_ARGS stored arguments
+local ThreadExecutorGraph: { [number]: (WheelEntry) -> (boolean, string?) } = {
+	[0] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread)
+	end,
+
+	[1] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1)
+	end,
+
+	[2] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Entry: WheelEntry)
+		return coroutine.resume(Entry.Thread :: thread, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+
+-- Dispatch table for spawning a function entry with up to MAX_INLINE_ARGS stored arguments
+local FunctionExecutorGraph: { [number]: (WheelEntry) -> () } = {
+	[0] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> ())
+	end,
+
+	[1] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1)
+	end,
+
+	[2] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Entry: WheelEntry)
+		spawnInPool(Entry.Function :: (...any) -> (), Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+--=======================================================================================
+
+--[[
+	Shutdown Migration Dispatch Graphs
+	
+	These two jump tables are strictly reserved for the server shutdown sequence 
+	(BindToClose) and remain completely dormant during normal engine operations.
+
+	The Problem: 
+	To achieve O(1) scheduling without array-shifting overhead, Assignment utilizes a 
+	Hashed Timing Wheel. This wheel relies entirely on the RunService.Heartbeat event 
+	to advance its internal clock. When a server initiates a shutdown, the Heartbeat 
+	event is instantly terminated. This freezes the engine's clock, which would 
+	normally cause all pending delayed and deferred tasks to be permanently lost.
+
+	The Solution:
+	To guarantee absolute data safety (e.g., preserving delayed player-data saves), 
+	this logic executes the exact millisecond a shutdown is detected. It iterates 
+	through the frozen wheel and safely translates all remaining entries back into 
+	the engine's native Roblox task library, preserving their remaining time.
+]]
+
+-- Dispatch table for task-deferring a function entry with up to MAX_INLINE_ARGS stored arguments
+local DeferMigratorGraph: { [number]: (any, WheelEntry) -> () } = {
+	[0] = function(Target: any, _Entry: WheelEntry)
+		task.defer(Target)
+	end,
+
+	[1] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1)
+	end,
+
+	[2] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Target: any, Entry: WheelEntry)
+		task.defer(Target, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+
+-- Dispatch table for task-delaying a function entry with up to MAX_INLINE_ARGS stored arguments
+local DelayMigratorGraph: { [number]: (number, any, WheelEntry) -> () } = {
+	[0] = function(Remaining: number, Target: any, _Entry: WheelEntry)
+		task.delay(Remaining, Target)
+	end,
+
+	[1] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1)
+	end,
+
+	[2] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2)
+	end,
+
+	[3] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2, Entry.Arg3)
+	end,
+
+	[4] = function(Remaining: number, Target: any, Entry: WheelEntry)
+		task.delay(Remaining, Target, Entry.Arg1, Entry.Arg2, Entry.Arg3, Entry.Arg4)
+	end,
+}
+--=======================================================================================
+-----------------------------------------------------------------------------------------
+-- O(1) Table Jump Graph - Bypassing the O(N) execution of if/elseif/else chains. END
+-----------------------------------------------------------------------------------------
+
+
+-- Populates entry argument fields via PopulatorGraph, falling back to OverflowArgs for counts above MAX_INLINE_ARGS
+local function populateArguments(Entry: WheelEntry, Count: number, ...: any): ()
+
+	--[[
+		populateArguments: The Variadic Payload Compiler.
+
+		The master router for capturing and storing function arguments on a scheduled task. 
+		It aggressively avoids GC-triggering array allocations by leveraging a hardcoded 
+		dispatch graph to flatten arguments directly onto the task shell whenever possible.
+
+		Params:
+		    Entry : WheelEntry -- The pre-allocated table shell receiving the data.
+		    Count : number     -- The exact integer count of arguments passed.
+		    ...   : any        -- The variadic arguments to compile.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * O(1) Graph Dispatch: Routes execution through the PopulatorGraph to natively assign up to 4 arguments directly to the struct, bypassing array allocation entirely.
+		    * GC-Free Fallback: Gracefully handles 5+ arguments by fetching a recycled array from the OverflowPool, completely shielding heavy payloads from the Luau memory heap.
+		    * Manual Variadic Extraction: Utilizes the native select() function within the overflow loop to precisely extract varargs without ever generating an intermediate {...} table.
+	]]
+
+	-- Store the exact argument count. The execution engine needs this later to know exactly which ExecutorGraph to use when resuming the task.
+	Entry.ArgCount = Count
+
+	-- Fast-Path Graph Lookup
+	local Populator = PopulatorGraph[Count]
+
+	-- If the graph has a pre-compiled function for this specific argument count (0 to 4)...
+	if Populator then
+		-- O(1) zero-allocation inline assignment.
+		Populator(Entry, ...)
+
+	else -- The Overflow Fallback
+		local OverflowTable = acquireOverflow() -- The developer passed 5 or more arguments. Fetch a clean, recycled array table to prevent a new heap allocation.
+
+		-- Iterate through the target count and manually inject the values.
+		for Index = 1, Count do
+			-- select() isolates the specific argument at the given index without forcing the engine to wrap the entire vararg sequence in a table.
+			OverflowTable[Index] = select(Index, ...)
+		end
+
+		-- Bind the populated array to the task shell.
+		Entry.OverflowArgs = OverflowTable
+	end
+end
+
+-- Executes a wheel entry by resuming its thread or spawning its function with the stored arguments
+local function executeEntry(Entry: WheelEntry): ()
+
+	--[[
+		executeEntry: The Polymorphic Execution Gateway.
+
+		The master dispatch router that fires scheduled tasks. It reads the metadata of a 
+		WheelEntry shell to determine its type (thread vs. function) and routes it through 
+		the appropriate zero-allocation execution graph, ensuring absolute engine stability 
+		if the developer's payload crashes.
+
+		Params:
+		    Entry : WheelEntry -- The fully populated and matured task husk ready to fire.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Polymorphic Execution: Seamlessly handles both yielded coroutines and raw function pointers within the exact same unified pipeline.
+		    * O(1) Fast-Path Dispatch: Utilizes pre-compiled executor graphs to natively pass inline arguments, completely bypassing the CPU overhead of table.unpack() for standard tasks.
+		    * Engine Blast Shield: Employs safe coroutine resumption to trap developer errors, throwing stack traces asynchronously to guarantee a single bad task never kills the master timing wheel.
+	]]
+
+	-- Cache the argument count to determine if we can use the fast-path graphs.
+	local Count = Entry.ArgCount
+
+	-- The task is a yielded thread (e.g., from Assignment.Wait).
+	if Entry.Thread then
+		local Function = ThreadExecutorGraph[Count]
+		local Success: boolean
+		local ErrorMessage: string?
+
+		-- O(1) Graph Dispatch (0 to 4 arguments)
+		if Function then
+			-- Resume the thread natively using the inline argument struct.
+			Success, ErrorMessage = Function(Entry)
+
+		else -- Unpack Fallback (5+ arguments)
+			Success, ErrorMessage = coroutine.resume(Entry.Thread :: thread, table.unpack(Entry.OverflowArgs :: { any }, 1, Count)) -- The task exceeded inline limits. We must unpack the overflow array. We restrict the unpack length to 'Count' to prevent trailing nils.
+		end
+
+		-- If the thread crashed upon waking up, coroutine.resume returns false.
+		if not Success then
+			-- Detach the error throw from the current execution thread. This prints the red error text to the developer's console with the exact line of failure, but prevents the timing wheel itself from crashing.
+			task.spawn(error, debug.traceback(Entry.Thread :: thread, tostring(ErrorMessage)), 2)
+		end
+
+	elseif Entry.Function then -- The task is a standalone function pointer (e.g., from Assignment.Delay).
+		local Function = FunctionExecutorGraph[Count]
+
+		-- O(1) Graph Dispatch (0 to 4 arguments)
+		if Function then
+			-- Route the function and its inline arguments directly into the recycled thread pool.
+			Function(Entry)
+
+		else -- Unpack Fallback (5+ arguments)
+			spawnInPool(Entry.Function :: (...any) -> (), table.unpack(Entry.OverflowArgs :: { any }, 1, Count)) -- Route the function into the thread pool, unpacking the heavy variadic array.
+		end
+	end
+end
+
+----------------------------------------------------------
+-- Assignment Switch Meta Methods (Phase 2: The Builder)
+----------------------------------------------------------
+
+-- Parses arguments from left to right, building the Trie structure and respecting strict memory boundaries.
+function SwitchMeta:Case(...: any): SwitchHandle
+
+	--[[
+		Assignment.Switch:Case: The JIT Pattern Compiler.
+
+		The core architectural builder of the Pattern Matching Engine. It evaluates a chained 
+		sequence of conditions from left to right and permanently compiles them into a static 
+		zero-allocation Prefix Tree (Trie) in memory. It seamlessly routes exact matches, 
+		mathematical bounds, and dynamic Lua types into optimized evaluation arrays.
+
+		Params:
+		    ... : any -- The evaluation sequence. Can be Exact Matches (string, number, bool) 
+		                 or explicitly structured Assignment.Op instructions with Subjects.
+
+		Returns:
+		    SwitchHandle -- Returns itself to allow infinite method chaining.
+
+		Core Behaviors:
+		    * Polymorphic Compilation: Automatically detects standard data types and routes them into O(1) Dictionaries, while safely grouping flexible Opcodes into O(K) ordered arrays to guarantee native "elseif" execution precedence.
+		    * Prefix Sharing (Node Reuse): Aggressively deduplicates identical rules by forcing them to converge into a single, shared memory trunk. This ensures overlapping conditions cost zero extra memory and eliminates duplicate evaluations during the Heartbeat loop.
+		    * Native Guardrails: Actively monitors the JIT cache size during array compilation. It strictly enforces a 32-branch limit per Opcode node to absolutely prevent memory leaks if a developer mistakenly passes dynamic variables into the Setup phase.
+		    * The OR Gate Queue: Temporarily stores the final destination node into an internal PendingPaths queue. This allows developers to chain multiple :Case() methods consecutively before calling :Execute(), natively building an O(1) multi-path OR gate.
+	]]
+
+	local CurrentNode: any = self._Trie 
+	local Arguments = { ... }
+	local ArgCount = select("#", ...)
+	local Index = 1
+
+	while Index <= ArgCount do
+		local Arg = Arguments[Index]
+
+		-- Type Detection: Is this argument an Assignment Opcode?
+		if type(Arg) == "table" and (Arg :: Opcode).IsAssignmentOpcode then
+			if Arg == Assignment.Op.NoOp then
+				error("[Assignment] Error: Op.NoOp is an execution terminator. It cannot be used as a comparison condition inside :Case().\n" .. debug.traceback(), 2)
+			end
+
+			--[[
+					IN-RANGE FAST PATH:
+					
+					Requires two subjects (Min, Max)
+				]]
+			if Arg == Assignment.Op.InRange then
+				local Min = Arguments[Index + 1]
+				local Max = Arguments[Index + 2]
+
+				if type(Min) ~= "number" or type(Max) ~= "number" then
+					error("[Assignment] Error: Op.InRange strictly requires two numerical subjects (Min, Max). \n" .. debug.traceback(), 2)
+				end
+
+				CurrentNode.__RANGES = CurrentNode.__RANGES or {}
+
+				-- Node Reuse and Safety Valve Check
+				local NextNode = nil
+
+				for _, RangeStruct in ipairs(CurrentNode.__RANGES) do
+					if RangeStruct.Min == Min and RangeStruct.Max == Max then
+						NextNode = RangeStruct.Node
+
+						break
+					end
+				end
+
+				if not NextNode then
+					if #CurrentNode.__RANGES >= MAX_SWITCH_MATH_BRANCHES then
+						error("[Assignment] Error: JIT Cache Bloat (>" .. MAX_SWITCH_MATH_BRANCHES .. " Range branches). Stop passing dynamic variables into Setup. \n" .. debug.traceback(), 2)
+					end
+
+					NextNode = {}
+					table.insert(CurrentNode.__RANGES, {
+						Min = Min,
+						Max = Max,
+						Node = NextNode 
+					})
+				end
+
+				CurrentNode = NextNode
+				Index += 3 -- Jump past the Opcode, Min, and Max
+
+				--[[
+					:Case(Assignment.Op.InRange, 1, 2)
+									1			 2  3
+					
+					Where the first index is the OpCode and the next 2 indexes are the Minimum and Maximum. Failed to jump 3 indexe ahead will result in corruption.
+				]]
+
+			else
+				--[[
+					FLEXIBLE OPCODES: 
+					
+					Requires one subject
+				]]
+				local Subject = Arguments[Index + 1]
+
+				if Subject == nil then
+					error("[Assignment] Error: Opcode '" .. (Arg :: Opcode).Name .. "' is missing a Subject argument. \n" .. debug.traceback(), 2)
+				end
+
+				CurrentNode.__OPERATORS = CurrentNode.__OPERATORS or {}
+
+				-- Node Reuse and Safety Valve Check
+				local NextNode = nil
+
+				for _, OpStruct in ipairs(CurrentNode.__OPERATORS) do
+					if OpStruct.Opcode == Arg and OpStruct.Subject == Subject then
+						NextNode = OpStruct.Node
+
+						break
+					end
+				end
+
+				if not NextNode then
+					if #CurrentNode.__OPERATORS >= MAX_SWITCH_MATH_BRANCHES then
+						error("[Assignment] Error: JIT Cache Bloat (>" .. MAX_SWITCH_MATH_BRANCHES .. " Operator branches). Stop passing dynamic variables into Setup. \n" .. debug.traceback(), 2)
+					end
+
+					NextNode = {}
+					table.insert(CurrentNode.__OPERATORS, { 
+						Opcode = Arg,
+						Subject = Subject, 
+						Node = NextNode 
+					})
+				end
+
+				CurrentNode = NextNode
+				Index += 2 -- Jump past the Opcode and Subject
+
+				--[[
+					:Case(Assignment.Op.LessThan, 100)
+									 1			   2
+					
+					Where the first index is the OpCode and the next index will always be a subject to the OpCode. Failed to jump 2 indexes ahead will result in corruption.
+				]]
+
+			end
+
+		else
+			--[[
+				EXACT MATCH PATH (Dictionary):
+				
+				Instantly jumps or creates a new dictionary key natively.
+			]]
+			CurrentNode[Arg] = CurrentNode[Arg] or {}
+			CurrentNode = CurrentNode[Arg]
+			Index += 1
+		end
+	end
+
+	--[[
+		How Node Reuse Works:
+		
+		Example script:
+		
+			InvSwitch
+			    -- Rule 1
+			    :Case(Assignment.Op.LessThan, 50, "Weapon"):Execute(LowHealthWeapon)
+			    -- Rule 2
+			    :Case(Assignment.Op.LessThan, 50, "Potion"):Execute(LowHealthPotion)
+	
+	
+		Notice that both rules start with the exact same prefix: "< 50".
+		
+		Here is how the Node Reuse logic handles this seamlessly:
+		---------------------------------------------------------------------------------------------------------------------------
+			- Step 1: Processing Rule 1 (The Initial Creation) -
+			
+				* The engine sees Op.LessThan, 50.
+
+				* It loops through CurrentNode.__OPERATORS. It is completely empty.
+
+				* Because NextNode remains nil, it bypasses the reuse block and triggers the creation block.
+
+				* It creates a new memory address (e.g., MemoryPointer_A), inserts it into the array, and steps into it.
+
+				* Inside MemoryPointer_A, it creates the "Weapon" dictionary key and binds the execution function.
+		---------------------------------------------------------------------------------------------------------------------------
+			- Step 2: Processing Rule 2 (The Node Reuse) -
+			
+				* The engine starts back at the top of the tree. It sees Op.LessThan, 50 again.
+
+				* It loops through CurrentNode.__OPERATORS.
+
+				* The Catch: It finds an existing struct where Opcode == Op.LessThan and Subject == 50.
+
+				* Instead of creating a new node, it grabs the exact pointer from Rule 1: NextNode = OpStruct.Node (MemoryPointer_A).
+
+				* The Break: It immediately breaks the loop, saving CPU cycles.
+
+				* The engine steps into MemoryPointer_A, creates the "Potion" dictionary key, and binds the execution function.
+		---------------------------------------------------------------------------------------------------------------------------
+	]]
+
+	-- Add the final destination node of this path to the OR Gate queue.
+	table.insert(self._PendingPaths, CurrentNode)
+
+	return self
+end
+
+-- Binds the payload pointer to all pending paths (The OR Gate Resolver)
+function SwitchMeta:Execute(Payload: ((...any) -> ()) | Opcode): SwitchHandle
+
+	--[[
+		Assignment.Switch:Execute: The Payload Binder and OR Gate Resolver.
+
+		The finalization method for a specific Trie path. It takes a developer's target 
+		function (or explicit Opcode) and permanently binds it to the memory nodes 
+		created by the preceding :Case() sequence, locking the blueprint in place.
+
+		Params:
+		    Payload : ((...any) -> ()) | Assignment.Op.NoOp -- The target function to fire when the condition is met, or the NoOp instruction.
+
+		Returns:
+		    SwitchHandle -- Returns itself to allow infinite method chaining.
+
+		Core Behaviors:
+		    * The OR Gate Resolver: Iterates through the internal PendingPaths queue. If a developer stacked multiple :Case() statements sequentially before calling :Execute(), the engine binds this single payload to all of them simultaneously, natively compiling a multi-path OR gate.
+		    * The Explicit Terminator (NoOp): Actively detects if the developer passed Assignment.Op.NoOp. If detected, it embeds the Opcode directly into the node. During execution, the Router interprets this as an intentional "Do Nothing" state and safely skips the :Default() fallback.
+		    * Queue Flushing: Instantly clears the PendingPaths array after binding, cleanly resetting the state machine so the developer can seamlessly begin building the next isolated rule branch.
+	]]
+
+	local Pending = self._PendingPaths
+
+	-- Ignore empty executions
+	if #Pending == 0 then return self end
+
+	local PayloadIsOpcode = type(Payload) == "table" and (Payload :: Opcode).IsAssignmentOpcode
+
+	if PayloadIsOpcode then
+		-- Throw a hard error if they passed .LessThan, .Type, etc., into the execution block
+		if Payload ~= Assignment.Op.NoOp then
+			error("[Assignment] Error: Op." .. tostring((Payload :: Opcode).Name) .. " is a comparison operator. It cannot be bound as an execution payload. Did you mean to use Op.NoOp?\n" .. debug.traceback(), 2)
+		end
+		
+	elseif type(Payload) ~= "function" then
+		-- Throw a hard error if they passed a random string, number, or standard table
+		error("[Assignment] Error: :Execute() strictly requires a function payload or Assignment.Op.NoOp.\n" .. debug.traceback(), 2)
+	end
+
+	-- Bind the validated payload
+	for _, Node: any in ipairs(Pending) do
+		-- If it's NoOp, it safely binds the enum. If it's a function, it binds the pointer.
+		Node.__EXECUTE = Payload
+	end
+
+	-- Flush the queue so the next :Case() starts fresh
+	table.clear(Pending)
+
+	return self
+end
+
+-- Binds a global fallback payload to the Switch
+function SwitchMeta:Default(Payload: (...any) -> ()): SwitchHandle
+
+	--[[
+		Assignment.Switch:Default: The Global Fallback Router.
+
+		Establishes the absolute baseline safety net for the entire pattern-matching 
+		engine. If the dynamic variables passed into the Router during the Execution 
+		Phase fail to match any compiled Trie paths, the engine gracefully falls back 
+		to this payload.
+
+		Params:
+		    Payload : (...any) -> () -- The function to fire when the engine encounters an unknown or unmapped state.
+
+		Returns:
+		    SwitchHandle -- Returns itself to allow infinite method chaining.
+
+		Core Behaviors:
+		    * Graceful Failures: Completely eliminates the need for complex error handling during the 60 FPS loop. Dead ends resolve silently and safely route the dynamic targets directly into this fallback closure.
+		    * Global Scope: Unlike :Execute(), which binds to specific, localized memory nodes, :Default() is a global property of the Switch instance itself.
+		    * The NoOp Bypass (C++ Standard): If a compiled path successfully matches but ends in Assignment.Op.NoOp, the engine treats the match as an intentional "Do Nothing" state and explicitly skips firing this Default fallback.
+	]]
+
+	self._Default = Payload
+
+	return self
+end
+
+-- The primary runner of the pre-compiled Trie graph.
+function SwitchMeta:Match(...: any): ((...any) -> ())?
+
+	--[[
+		Assignment.Switch:Match: The Zero-Allocation Execution Router.
+
+		The high-frequency runtime evaluator of the Pattern Matching Engine. It navigates 
+		the pre-compiled Trie memory graph using a strict Fallback Priority System, 
+		evaluating dynamic targets against the static blueprint to return a function pointer.
+
+		Params:
+		    ... : any -- The dynamic variables to evaluate against the compiled blueprint.
+
+		Returns:
+		    ((...any) -> ())? -- Returns the exact memory pointer to the developer's 
+		                         payload function, or nil if explicitly terminated.
+
+		Core Behaviors:
+		    * Zero-Allocation Variadics: Utilizes native "select()" to pull dynamic targets directly from the call stack. It never packs targets into an array, completely silencing the Garbage Collector.
+		    * The Fallback Priority System: Evaluates paths in order of absolute CPU efficiency. It attempts O(1) Dictionary exact-matches first. If that fails, it triggers the O(N) inline-math "__RANGES" array. Finally, it falls back to the dynamic "__OPERATORS" dispatcher.
+		    * Native C Inline Math: The "__RANGES" check completely bypasses function dispatching, compiling the minimum/maximum bounds directly into native C-level ">=" and "<=" arithmetic.
+		    * Decoupled Execution: Returns a memory pointer rather than automatically firing the function. This protects the structural Trie walker from getting choked by heavy developer payloads.
+	]]
+
+	local CurrentNode: any = self._Trie
+	local TargetCount = select("#", ...)
+
+	-- Traverse the tree using the dynamic targets provided (Left-to-Right evaluation)
+	for Index = 1, TargetCount do
+		-- Use select() to pull directly from the vararg without allocating an array
+		local Target = select(Index, ...)
+		local NextNode: any = nil
+
+		--[[
+			First Route Attempt:
+			
+			Exact Match Fast-Path (O(1) Dictionary Table Jump)
+		]]
+		NextNode = CurrentNode[Target]
+
+		--[[
+			Second Route Attempt:
+			
+			InRange Math-Path (Native C-Level Inline Arithmetic)
+		]]
+		if not NextNode and CurrentNode.__RANGES then
+			if type(Target) == "number" then
+				for _, RangeStruct: any in ipairs(CurrentNode.__RANGES :: {any}) do
+					if Target >= RangeStruct.Min and Target <= RangeStruct.Max then
+						NextNode = RangeStruct.Node
+
+						break
+					end
+				end
+			end
+		end
+
+		--[[
+			Third Route Attempt:
+			
+			Flexible Opcode Dispatcher (Math Mode)
+		]]
+		if not NextNode and CurrentNode.__OPERATORS then
+			for _, OpStruct: any in ipairs(CurrentNode.__OPERATORS :: {any}) do
+				-- Pass the target and subject into the shielded Math Registry
+				if OperatorMath[OpStruct.Opcode](Target, OpStruct.Subject) then
+					NextNode = OpStruct.Node
+
+					break
+				end
+			end
+		end
+
+		-- If all three routing priorities failed, the state is completely unknown.
+		if not NextNode then
+			return self._Default -- Pass the default callback
+		end
+
+		-- Move the pointer deeper into the tree
+		CurrentNode = NextNode
+	end
+
+	-- We successfully reached the end of the required Trie path. Check if a Payload was bound to this specific node.
+	local Payload = CurrentNode.__EXECUTE
+
+	if Payload then
+		-- Check for the Explicit Terminator (Assignment.Op.NoOp)
+		if type(Payload) == "table" and (Payload :: Opcode).IsAssignmentOpcode and Payload == OpRegistry.NoOp then
+			return nil -- Intentional "Do Nothing" state. Explicitly skip the Default.
+		end
+
+		return Payload -- This might be the default callback, or it might be a user-defined callback :Execute().
+	end
+
+	-- The path structurally matched the targets, but it lacked an :Execute() binding.
+	return self._Default
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Background Worker Section
+----------------------------------------------------------
+
+-- Main timing wheel heartbeat: flushes deferred entries and advances wheel slots
+RunService.Heartbeat:Connect(function(): ()
+
+	--[[
+		RunService.Heartbeat: The Master Execution Pump.
+
+		The central clock source for the Assignment scheduler. It processes deferred 
+		tasks within strict time budgets, advances the internal timing wheel, and executes 
+		mature delays. It relies on in-place array shifting and double-buffering to achieve 
+		massive task throughput with zero Garbage Collection (GC) overhead.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+	]]
+
+	if IsShuttingDown then return end
+
+	-- Absolute Clock Synchronization
+	local Now = os.clock()
+	local CurrentRawSlot = math.floor(Now / SLOT_SIZE)
+	local Delta = CurrentRawSlot - LastRawSlot
+
+	----------------------------------------------------------------------
+	-- PHASE 1: DEFER QUEUE PROCESSING
+	----------------------------------------------------------------------
+
+	-- If we have finished reading the current buffer, swap the pointers. This pushes all newly deferred tasks to the active read queue, completely isolating the current frame's execution from tasks scheduled for the next frame.
+	if DeferReadIndex > DeferReadCount then
+		if DeferWriteCount > 0 then
+			local TempBuffer = DeferReadBuffer
+
+			DeferReadBuffer = DeferWriteBuffer
+			DeferWriteBuffer = TempBuffer
+			DeferReadCount = DeferWriteCount
+			DeferReadIndex = 1
+			DeferWriteCount = 0
+		end
+	end
+
+	-- Begin executing the active defer buffer.
+	if DeferReadIndex <= DeferReadCount then
+		local StartTime = os.clock()
+
+		while DeferReadIndex <= DeferReadCount do
+			local Entry = DeferReadBuffer[DeferReadIndex]
+
+			-- Sever the pointer to prevent ghost memory leaks.
+			DeferReadBuffer[DeferReadIndex] = nil :: any
+			DeferReadIndex += 1
+
+			-- Handle Cancellation Gracefully
+			if Entry.Handle and Entry.Handle._cancelled then
+				releaseEntry(Entry)
+
+				continue
+			end
+
+			-- Erase weak references before execution to prevent GC locks.
+			if Entry.Thread then
+				ThreadToHandle[Entry.Thread :: thread] = nil
+			end
+
+			-- Execute and recycle the zero-allocation shell.
+			executeEntry(Entry)
+			releaseEntry(Entry)
+
+			-- If executing these deferred tasks takes longer than the allocated budget (e.g., 3 milliseconds), instantly break the loop. The remaining tasks will safely carry over to the next frame, preserving a smooth 60 FPS.
+			if (os.clock() - StartTime) * 1000 > DEFER_BUDGET_MS then
+				break
+			end
+		end
+	end
+
+	----------------------------------------------------------------------
+	-- PHASE 2: TIMING WHEEL ADVANCEMENT
+	----------------------------------------------------------------------
+
+	-- If the clock hasn't crossed a SLOT_SIZE boundary, abort wheel execution.
+	if Delta <= 0 then return end
+
+	-- Cap the delta advance to the maximum wheel size to prevent overlapping cycles during extreme server lag spikes.
+	local Advance = if Delta < WHEEL_SIZE then Delta else WHEEL_SIZE
+
+	for Index = 1, Advance do
+		local CurrentProcessRaw = LastRawSlot + Index
+		local Slot = bit32.band(CurrentProcessRaw, WHEEL_MASK) + 1
+		local SlotHorizon = (CurrentProcessRaw + 1) * SLOT_SIZE
+
+		----------------------------------------------------------------------
+		-- PHASE 3: WAIT WHEEL PROCESSING
+		----------------------------------------------------------------------
+		local WaitSlotCount = WaitCounts[Slot]
+
+		if WaitSlotCount > 0 then
+			local WaitBucket = WaitWheel[Slot] :: { any }
+			local WriteIndex = 0
+
+			-- Iterate in strides of 3 (Thread, ResumeAt, StartTime)
+			for InnerIndex = 1, WaitSlotCount, 3 do
+				local Thread = WaitBucket[InnerIndex] :: thread
+				local ResumeAt = WaitBucket[InnerIndex + 1] :: number
+				local StartTime = WaitBucket[InnerIndex + 2] :: number
+
+				-- Clear memory pointers instantly.
+				WaitBucket[InnerIndex] = nil
+				WaitBucket[InnerIndex + 1] = nil
+				WaitBucket[InnerIndex + 2] = nil
+
+				-- Check Hash Collision: Is this task meant for NOW, or a future rotation?
+				if ResumeAt < SlotHorizon then
+					-- The task is mature. Calculate exact delta and resume.
+					local Elapsed = Now - StartTime
+
+					if Elapsed < 0 then Elapsed = 0 end
+
+					local Success, ErrorMessage = coroutine.resume(Thread, Elapsed)
+
+					-- Engine Blast Shield
+					if not Success then
+						task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
+					end
+
+				else -- This task belongs to a future wheel revolution. Shift its data backwards to fill the empty array gaps left by executed tasks, preserving it without calling table.remove().
+					WaitBucket[WriteIndex + 1] = Thread
+					WaitBucket[WriteIndex + 2] = ResumeAt
+					WaitBucket[WriteIndex + 3] = StartTime
+					WriteIndex += 3
+				end
+			end
+
+			-- Safely append any brand-new tasks that a developer might have queued during the execution loop above.
+			local NewlyAdded = WaitCounts[Slot] - WaitSlotCount
+
+			if NewlyAdded > 0 then
+				if WriteIndex ~= WaitSlotCount then
+					for ExtraIndex = 1, NewlyAdded do
+						WaitBucket[WriteIndex + ExtraIndex] = WaitBucket[WaitSlotCount + ExtraIndex]
+						WaitBucket[WaitSlotCount + ExtraIndex] = nil
+					end
+				end
+
+				WriteIndex += NewlyAdded
+			end
+
+			WaitCounts[Slot] = WriteIndex
+
+			if WriteIndex == 0 then WaitWheel[Slot] = nil end
+		end
+
+		----------------------------------------------------------------------
+		-- PHASE 4: STANDARD WHEEL PROCESSING
+		----------------------------------------------------------------------
+		local SlotCount = WheelCounts[Slot]
+
+		if SlotCount > 0 then
+			local Bucket = Wheel[Slot] :: { WheelEntry }
+			local WriteIndex = 0
+
+			for InnerIndex = 1, SlotCount do
+				local Entry = Bucket[InnerIndex]
+
+				-- Sever array pointer.
+				Bucket[InnerIndex] = nil :: any
+
+				-- Graceful skip for cancelled tasks.
+				if Entry.Handle and Entry.Handle._cancelled then
+					releaseEntry(Entry)
+
+					continue
+				end
+
+				-- Check Hash Collision
+				if (Entry.ResumeAt or 0) < SlotHorizon then
+					if Entry.Thread then
+						ThreadToHandle[Entry.Thread] = nil
+					end
+
+					-- Execute and recycle.
+					executeEntry(Entry)
+					releaseEntry(Entry)
+
+				else -- In-Place Collision Shift for future tasks.
+					WriteIndex += 1
+					Bucket[WriteIndex] = Entry
+				end
+			end
+
+			-- Safely append newly queued tasks.
+			local NewlyAdded = WheelCounts[Slot] - SlotCount
+
+			if NewlyAdded > 0 then
+				if WriteIndex ~= SlotCount then
+					for ExtraIndex = 1, NewlyAdded do
+						Bucket[WriteIndex + ExtraIndex] = Bucket[SlotCount + ExtraIndex]
+						Bucket[SlotCount + ExtraIndex] = nil
+					end
+				end
+
+				WriteIndex += NewlyAdded
+			end
+
+			WheelCounts[Slot] = WriteIndex
+
+			if WriteIndex == 0 then Wheel[Slot] = nil end
+		end
+	end
+
+	-- Advance the internal clock cursor.
+	LastRawSlot = CurrentRawSlot
+end)
+
+-- Janitor heartbeat: periodically cleans up cancelled entries from the wheel
+RunService.Heartbeat:Connect(function(DeltaTime: number): ()
+
+	--[[
+		RunService.Heartbeat (The Janitor): The Lazy Garbage Collector.
+
+		A throttled background worker that periodically sweeps the entire timing wheel 
+		to permanently eradicate cancelled tasks. By delaying memory cleanup to a strict 
+		30-second interval, it guarantees that massive spikes in task cancellations 
+		never stall the game's immediate rendering loop.
+
+		Params:
+		    DeltaTime : number -- The elapsed time since the last frame.
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Throttled Sweeping: Accumulates delta time to enforce a strict cleanup interval, isolating heavy array iteration away from the core execution pump.
+		    * In-Place Compaction: Sweeps buckets and shifts valid entries leftward using a localized WriteIndex pointer, eradicating dead tasks without the extreme O(N) CPU penalty of table.remove().
+		    * Registry Pruning: Actively detaches cancelled threads from the global handle registry to assist the Luau GC in reclaiming memory from dead coroutines.
+	]]
+
+	if IsShuttingDown then return end
+
+	JanitorAccumulator += DeltaTime
+
+	-- Abort the sweep if we haven't reached the 30-second interval threshold.
+	if JanitorAccumulator < JANITOR_INTERVAL then return end
+
+	-- Reset the accumulator to trigger the next sweep 30 seconds from now.
+	JanitorAccumulator = 0
+
+	----------------------------------------------------------------------
+	-- PHASE 1: WHEEL COMPACTION
+	----------------------------------------------------------------------
+
+	-- Iterate through every single temporal bucket in the wheel (1 to 4096).
+	for Index = 1, WHEEL_SIZE do
+		local Count = WheelCounts[Index]
+
+		-- Skip empty buckets instantly to save CPU cycles.
+		if Count == 0 then continue end
+
+		local Bucket = Wheel[Index] :: { WheelEntry }
+		local WriteIndex = 0
+
+		-- Iterate over the tasks currently residing in this bucket.
+		for InnerIndex = 1, Count do
+			local Entry = Bucket[InnerIndex]
+
+			-- Temporarily sever the array pointer.
+			Bucket[InnerIndex] = nil :: any
+
+			-- If the task was cancelled by the developer, recycle its memory shell and skip it entirely.
+			if Entry.Handle and Entry.Handle._cancelled then
+				releaseEntry(Entry)
+
+				continue
+			end
+
+			-- If the task is still valid, rewrite it to the lowest available index in the bucket. This perfectly compresses the array, filling any gaps left by the cancelled tasks that just deleted.
+			WriteIndex += 1
+			Bucket[WriteIndex] = Entry
+		end
+
+		-- Update the master O(1) length registry with the new compressed size.
+		WheelCounts[Index] = WriteIndex
+
+		-- If the compaction wiped out every task in the bucket, erase the bucket itself.
+		if WriteIndex == 0 then
+			Wheel[Index] = nil
+		end
+	end
+
+	----------------------------------------------------------------------
+	-- PHASE 2: REGISTRY PRUNING
+	----------------------------------------------------------------------
+
+	-- Iterate through the weak-keyed thread cache.
+	for Thread, ExistingHandle in ThreadToHandle do
+		-- If the developer cancelled the thread, completely detach it from the engine's state, signaling the Luau GC that this thread is ready to die.
+		if ExistingHandle._cancelled then
+			ThreadToHandle[Thread] = nil
+		end
+	end
+end)
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Runs a function or resumes a thread immediately.
+
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume immediately.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    void
+]]
+function Assignment.Spawn(Function: ((...any) -> ()) | thread, ...: any): ()
+
+	--[[
+		Assignment.Spawn: The Zero-Allocation Immediate Executor.
+
+		Instantly fires a target function or resumes a yielded coroutine. It routes
+		the payload directly through the engine's pre-allocated thread pool,
+		bypassing the CPU overhead of native thread creation.
+
+		Core Behaviors:
+		    * Pooled Execution: Reuses existing yielding coroutines instead of spawning a new coroutine if a FreeThread is available, completely silencing the Garbage Collector.
+		    * Blast Shield: Safely traps execution failures. If the developer's code errors, the engine catches it and asynchronously prints the stack trace without crashing the caller script.
+		    * Polymorphic Routing: Automatically detects if the target is a function pointer or a yielded thread, executing it perfectly using native inline arguments.
+	]]
+
+	-- Polymorphic Route A: Coroutine Resumption
+	if type(Function) == "thread" then
+		-- Wake the thread up immediately, passing in the forwarded arguments.
+		local Success, ErrorMessage = coroutine.resume(Function, ...)
+
+		-- If the thread crashed upon waking up, coroutine.resume returns false.
+		if not Success then
+			-- Detach the error throw from the current execution thread. This prints the red error text to the developer's console with the exact line of failure, but completely protects the caller script from a fatal cascade.
+			task.spawn(error, debug.traceback(Function, tostring(ErrorMessage)), 2)
+		end
+
+	else -- Polymorphic Route B: Raw Function Spawning
+		spawnInPool(Function :: (...any) -> (), ...) -- The target is a standard function. Route it directly into the zero-allocation thread pool to bypass the CPU overhead of creating a new coroutine.
+	end
+end
+
+--[[
+	Runs a function or thread immediately at full engine priority, completely independent of the shared worker.
+
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume immediately.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
+]]
+function Assignment.SpawnIsolated(Function: ((...any) -> ()) | thread, ...: any): thread
+
+	--[[
+		Assignment.SpawnIsolated: The Native Thread Spawner.
+
+		Instantly executes a payload at full engine priority, entirely bypassing
+		the custom zero-allocation thread pool in favor of Roblox's native C-side
+		task scheduler.
+
+		Core Behaviors:
+		    * Native Execution: Routes directly to "task.spawn", trading zero-allocation benefits for absolute maximum C-level thread priority.
+		    * Cross-Compatibility: Registers the returned native thread into the Assignment ecosystem so that Assignment.Cancel() can still seamlessly terminate it.
+	]]
+
+	local IsolatedThread: thread
+
+	-- Check the payload type and execute immediately via the C-side native scheduler.
+	if type(Function) == "thread" then
+		IsolatedThread = task.spawn(Function :: thread, ...)
+
+	else
+		IsolatedThread = task.spawn(Function :: (...any) -> (), ...)
+	end
+
+	-- Register the native thread token in the custom engine's weak-keyed isolated dictionary. This allows Assignment.Cancel() to detect that this thread does not possess a WheelEntry shell, and must be terminated using task.cancel() instead.
+	IsolatedThreads[IsolatedThread] = true
+
+	-- Return the token to the developer so they retain absolute control over the execution.
+	return IsolatedThread
+end
+
+--[[
+	Queues work to run on the next available frame.
+
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to discard the work before it runs.
+]]
+function Assignment.Defer(Function: ((...any) -> ()) | thread, ...: any): Handle
+
+	--[[
+		Assignment.Defer: The Next-Frame Queue Scheduler.
+
+		Schedules a payload to execute on the very next frame via the internal 
+		DeferBuffer. It prioritizes smooth high FPS gameplay by executing workloads 
+		only within strict frame-time budgets.
+
+		Core Behaviors:
+		    * Zero-Allocation Queuing: Acquires a recycled memory shell from the EntryPool, allocating absolutely no new memory during the scheduling process.
+		    * Budgeted Execution: Tasks queued here are executed during the Heartbeat loop but are strictly capped by DEFER_BUDGET_MS to prevent frame drops.
+		    * Double-Buffered Safety: Automatically writes to a secondary buffer if called during the execution phase, completely preventing infinite deferral loops.
+	]]
+
+	-- Create the lightweight lifecycle control token.
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+
+	-- Zero-Allocation Shell Retrieval
+	local Entry = acquireEntry()
+
+	Entry.Handle = NewHandle
+
+	-- Polymorphic Registration
+	if type(Function) == "thread" then
+		-- Register the thread so Assignment.Cancel(Thread) works seamlessly.
+		ThreadToHandle[Function :: thread] = NewHandle
+		Entry.Thread = Function :: thread
+
+	else
+		Entry.Function = Function :: (...any) -> ()
+	end
+
+	-- Flatten the arguments natively onto the struct or use the recycled overflow pool.
+	populateArguments(Entry, select("#", ...), ...)
+
+	-- Push the task directly into the Write Buffer. It will not be touched until the Heartbeat loop swaps the buffers on the next frame.
+	DeferWriteCount += 1
+	DeferWriteBuffer[DeferWriteCount] = Entry
+
+	return NewHandle
+end
+
+--[[
+	Queues work to run on the next available frame at full engine priority.
+
+	Params:
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
+]]
+function Assignment.DeferIsolated(Function: ((...any) -> ()) | thread, ...: any): thread
+
+	--[[
+		Assignment.DeferIsolated: The Native Defer Scheduler.
+
+		Schedules a payload for the next resumption cycle using Roblox's native 
+		C-side task scheduler, bypassing the budgeted DeferBuffers.
+
+		Core Behaviors:
+		    * Native Queuing: Routes directly to "task.defer".
+		    * Unbudgeted Execution: Because it relies on the native engine, it will execute regardless of the frame's time budget, which can impact performance under heavy loads.
+		    * Cancel Integration: Automatically tracks the native thread so Assignment.Cancel() can safely interact with it.
+	]]
+
+	local IsolatedThread: thread
+
+	-- Native C-Side Dispatch
+	if type(Function) == "thread" then
+		IsolatedThread = task.defer(Function :: thread, ...)
+
+	else
+		IsolatedThread = task.defer(Function :: (...any) -> (), ...)
+	end
+
+	-- Flag this native thread in the custom dictionary so the engine knows to use task.cancel() instead of the standard boolean flag system.
+	IsolatedThreads[IsolatedThread] = true
+
+	return IsolatedThread
+end
+
+--[[
+	Schedules work to run after a set number of seconds.
+
+	Params:
+	    Duration: number                    -- Seconds to wait before running.
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to discard the work before it runs.
+]]
+function Assignment.Delay(Duration: number, Function: ((...any) -> ()) | thread, ...: any): Handle
+
+	--[[
+		Assignment.Delay: The O(1) Temporal Scheduler.
+
+		The flagship API of the Assignment engine. It schedules a payload to 
+		execute at a precise timestamp in the future using the Hashed Timing Wheel, 
+		bypassing the O(N) array-shifting overhead of traditional wait queues.
+
+		Core Behaviors:
+		    * Temporal Routing: Converts the requested duration into an absolute os.clock() timestamp and hashes it into a specific slot on the 4096-bucket timing wheel.
+		    * Instant Fallback: If the requested duration is 0 or negative, the engine aggressively optimizes the call by rerouting it instantly to Assignment.Defer.
+		    * Variadic Flattening: Flattens up to 4 arguments natively onto the memory shell, completely preventing dynamic array creation for standard delayed logic.
+	]]
+
+	local SafeDuration = Duration or 0
+
+	if SafeDuration <= 0 then
+		return Assignment.Defer(Function, ...) -- The delay is instant. Reroute directly to the defer buffer.
+	end
+
+	-- Token Generation
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+
+	-- Zero-Allocation Shell Retrieval
+	local Entry = acquireEntry()
+
+	-- Establish the absolute future timestamp when this task must fire.
+	Entry.ResumeAt = os.clock() + math.max(SafeDuration, MIN_DELAY)
+	Entry.Handle = NewHandle
+
+	-- Polymorphic Registration
+	if type(Function) == "thread" then
+		ThreadToHandle[Function :: thread] = NewHandle
+		Entry.Thread = Function :: thread
+
+	else
+		Entry.Function = Function :: (...any) -> ()
+	end
+
+	-- Variadic Payload Compilation
+	populateArguments(Entry, select("#", ...), ...)
+
+	-- Route the shell into the physical timing wheel.
+	wheelInsert(Entry)
+
+	return NewHandle
+end
+
+--[[
+	Schedules work to run after a set number of seconds at full engine priority.
+
+	Params:
+	    Duration: number                    -- Seconds to wait before running.
+	    Function: ((...any) -> ()) | thread -- The function to call or thread to resume.
+	    ...: any                            -- Arguments forwarded to the function or thread.
+
+	Returns:
+	    thread -- The dedicated thread. Pass to Assignment.Cancel to stop it.
+]]
+function Assignment.DelayIsolated(Duration: number, Function: ((...any) -> ()) | thread, ...: any): thread
+
+	--[[
+		Assignment.DelayIsolated: The Native Delay Scheduler.
+
+		Schedules a payload to run in the future using Roblox's native C-side 
+		"task.delay" system, operating entirely independently of the custom timing wheel.
+
+		Core Behaviors:
+		    * Native C-Side Scheduling: Utilizes the built-in Roblox scheduler.
+		    * Thread Tracking: Registers the generated thread pointer into the IsolatedThreads dictionary, allowing Assignment.Cancel() to terminate it seamlessly.
+	]]
+
+	-- Enforce the engine's absolute minimum delay threshold.
+	local SafeDuration = math.max(Duration or 0, MIN_DELAY)
+	local IsolatedThread: thread
+
+	-- Native C-Side Dispatch
+	if type(Function) == "thread" then
+		IsolatedThread = task.delay(SafeDuration, Function :: thread, ...)
+
+	else
+		IsolatedThread = task.delay(SafeDuration, Function :: (...any) -> (), ...)
+	end
+
+	-- Flag this native thread in the custom dictionary so the engine knows to use task.cancel() instead of the standard boolean flag system.
+	IsolatedThreads[IsolatedThread] = true
+
+	return IsolatedThread
+end
+
+--[[
+	Pauses the current thread for approximately the requested duration and returns how long it actually waited. Passing zero, nil, or a negative value is valid: the thread pauses for the shortest possible time, resuming on the next frame.
+
+	Params:
+	    Duration: number? -- Seconds to pause.
+
+	Returns:
+	    number -- The actual time elapsed since Wait was called, in seconds.
+]]
+function Assignment.Wait(Duration: number?): number
+
+	--[[
+		Assignment.Wait: The Zero-Allocation Coroutine Yielder.
+
+		Suspends the current coroutine for a specific duration, injecting it into 
+		the isolated WaitWheel. When the requested time elapses, the engine 
+		resumes the thread and natively returns the exact time slept.
+
+		Core Behaviors:
+		    * Native Bypass: If the API detects the calling thread was spawned via an "Isolated" API, it safely falls back to "task.wait()" to prevent execution desyncs.
+		    * The Micro-Yield Fast-Path: If the duration is 0 or less, it bypasses the timing wheel completely and injects the thread directly into the DeferBuffer, acting as a hyper-fast "task.wait()".
+		    * Array Packing: Safely packs the thread, start time, and target time directly into a flat array structure within the wheel, avoiding dictionary allocations.
+	]]
+
+	-- Capture the coroutine that just called this API.
+	local CurrentThread = coroutine.running()
+
+	-- If this thread was spawned outside the custom wheel (e.g., SpawnIsolated), yield it using the native engine to prevent execution desyncs.
+	if IsolatedThreads[CurrentThread] then
+		return task.wait(Duration or 0)
+	end
+
+	-- Temporal Initialization
+	local SafeDuration = Duration or 0
+	local StartTime = os.clock()
+
+	-- The Micro-Yield Reroute (Next-Frame Deferral)
+	if SafeDuration <= 0 then
+		-- The developer wants to wait for a single frame. Grab a shell, pack the thread, and push it strictly into the defer write buffer.
+		local Entry = acquireEntry()
+
+		Entry.Thread = CurrentThread
+		Entry.ArgCount = 0
+
+		DeferWriteCount += 1
+		DeferWriteBuffer[DeferWriteCount] = Entry
+
+		-- Pause the thread. When the Heartbeat loop processes the defer buffer, it will resume this thread, returning the elapsed time natively.
+		coroutine.yield()
+
+		return math.max(0, os.clock() - StartTime)
+	end
+
+	-- Calculate absolute target time and absolute wheel slot.
+	local TargetTime = StartTime + math.max(SafeDuration, MIN_DELAY)
+	local RawSlot = math.floor(TargetTime / SLOT_SIZE)
+
+	-- The "Past" Guard: Nudge the task forward if we are exactly on the current execution line.
+	if RawSlot <= LastRawSlot then
+		RawSlot = LastRawSlot + 1
+	end
+
+	-- Bitwise masking to wrap the infinite timeline into the 4096 array bounds.
+	local Slot = bit32.band(RawSlot, WHEEL_MASK) + 1
+	local Bucket: any = WaitWheel[Slot]
+
+	-- Lazy instantiation of the bucket array.
+	if not Bucket then
+		Bucket = {}
+		WaitWheel[Slot] = Bucket
+	end
+
+	-- Instead of allocating a dictionary to hold these values, we pack them directly into the array sequentially. The Heartbeat loop reads them by skipping 3 indexes at a time.
+	local Count = WaitCounts[Slot]
+
+	Bucket[Count + 1] = CurrentThread
+	Bucket[Count + 2] = TargetTime
+	Bucket[Count + 3] = StartTime
+	WaitCounts[Slot] = Count + 3
+
+	-- Suspend the coroutine. The engine will supply the exact elapsed time when it calls coroutine.resume(Thread, ElapsedTime) during the Heartbeat loop.
+	return coroutine.yield() :: number
+end
+
+--[[
+	Calls a function repeatedly at a fixed interval for a set number of iterations, or indefinitely when Count is -1.
+
+	Params:
+	    Count:    number                         -- Number of times to call Function. Pass -1 to loop forever.
+	    Interval: number?                        -- Seconds between calls.
+	    Function: (number, Handle, ...any) -> () -- Called each iteration with the iteration number and loop handle as the first two arguments.
+	    ...: any                                 -- Extra arguments forwarded to Function after the iteration number and handle.
+
+	Returns:
+	    Handle -- A cancellable handle. Call Handle:Break() or pass it to Assignment.Cancel() to stop the loop before or during execution.
+]]
+function Assignment.Repeat(Count: number, Interval: number?, Function: (number, Handle, ...any) -> (), ...: any): Handle
+
+	--[[
+		Assignment.Repeat: The Temporal State Machine.
+
+		Constructs a self-contained, cancelable loop that executes a function 
+		at fixed intervals. It safely preserves variadic arguments across multiple 
+		yields and natively tracks the iteration count.
+
+		Core Behaviors:
+		    * Self-Cancellation: By passing the Handle into the payload, developers can call Handle:Break() from inside the function, instantly shattering the loop.
+		    * Temporal Persistence: Safely caches variadic arguments in a recycled overflow table so they remain valid across infinite temporal yields.
+		    * Shutdown Awareness: Actively monitors IsShuttingDown; if the server is closing, it dynamically swaps its internal waiting mechanism to ensure the loop finishes its cycle safely.
+	]]
+
+	-- Token Generation
+	local NewHandle: Handle = {
+		_cancelled = false,
+		Break = breakHandle,
+	}
+
+	-- Unlike single-shot delays, a repeat loop must persist variadic arguments across multiple temporal yields. We allocate an array here to safely hold this state in memory.
+	local ArgCount: number = select("#", ...)
+	local Arguments: { any } = { ... }
+
+	-- Enforce the engine's minimum temporal boundary.
+	local SafeInterval = math.max(Interval or 0, MIN_DELAY)
+
+	-- This local function acts as the loop's brain. It keeps track of the iteration count and handles the temporal yielding mechanics.
+	local function repeatLoop(): ()
+		local Iteration = 1
+
+		-- Execute if Count is infinite (-1), or if we haven't reached the target limit.
+		while (Count < 0) or (Iteration <= Count) do
+			-- Double-Tap Cancellation: Pre-Execution Check
+			if NewHandle._cancelled then break end
+
+			-- Pass the current Iteration and the Handle token to the developer's function so they can track progress or cancel the loop from within itself.
+			if ArgCount > 0 then
+				Function(Iteration, NewHandle, table.unpack(Arguments, 1, ArgCount))
+
+			else
+				Function(Iteration, NewHandle)
+			end
+
+			-- If the developer called :Break() method inside the function above, instantly shatter the loop before calculating the next temporal yield.
+			if NewHandle._cancelled then break end
+
+			-- If we just completed the final target iteration, break before yielding.
+			if Iteration == Count then break end
+
+			Iteration += 1
+
+			-- If the server is actively shutting down, the custom timing wheel is dead. We must rely on the native engine to wait. Otherwise, use the hyper-fast custom Wait.
+			if IsShuttingDown then
+				task.wait(SafeInterval)
+
+			else
+				Assignment.Wait(SafeInterval)
+			end
+		end
+	end
+
+	-- Push the newly created state machine directly into the zero-allocation worker pool.
+	spawnInPool(repeatLoop :: (...any) -> ())
+
+	return NewHandle
+end
+
+--[[
+	Stops a scheduled task from running. Accepts either a Handle returned from a pooled call or a thread token returned from an isolated call.
+
+	Params:
+	    Target: Handle | thread -- The handle or thread to cancel.
+
+	Returns:
+	    void
+]]
+function Assignment.Cancel(Target: Handle | thread): ()
+
+	--[[
+		Assignment.Cancel: The Universal Task Terminator.
+
+		The master cancellation API. It safely and instantly aborts any pending task, 
+		whether it is a custom Handle residing in the timing wheel or a native 
+		Roblox thread executing in the C-side task scheduler.
+
+		Core Behaviors:
+		    * O(1) Lazy Teardown: If the target is a custom Handle, it simply flips the _cancelled flag. The Heartbeat loop and Janitor gracefully ignore and recycle the task, completely avoiding O(N) array-shifting.
+		    * Native Bridge: If the target is a native thread, it intercepts the pointer, calls task.cancel(), and prunes the weak-keyed registry to prevent memory leaks.
+		    * Nil-Safe: Silently absorbs nil targets, protecting downstream scripts from fatal errors if they attempt to cancel an already-destroyed variable.
+	]]
+
+	-- Silently absorb nil calls to prevent the engine from crashing if a developer accidentally tries to cancel an already-cleared or uninitialized variable.
+	if Target == nil then return end
+
+	-- Polymorphic Route A: Thread Targets
+	if type(Target) == "thread" then
+		-- Check if this thread bypassed the custom wheel (e.g., via SpawnIsolated).
+		if IsolatedThreads[Target :: thread] then
+			-- Kill the thread immediately via the native C-side engine.
+			task.cancel(Target :: thread)
+
+			-- Prune the registry pointer to prevent memory leaks.
+			IsolatedThreads[Target :: thread] = nil
+
+			return
+		end
+
+		-- The developer passed a thread that is currently asleep inside our custom WaitWheel or Defer buffers. Fetch its associated control handle from the weak-keyed registry.
+		local ExistingHandle = ThreadToHandle[Target :: thread]
+
+		if ExistingHandle then
+			-- O(1) Lazy Teardown: Flag it. The Heartbeat loop will automatically ignore it.
+			ExistingHandle._cancelled = true
+
+			-- Sever the pointer to help the Garbage Collector.
+			ThreadToHandle[Target :: thread] = nil
+		end
+
+	else -- Polymorphic Route B: Standard Handles
+		(Target :: Handle)._cancelled = true -- The target is a standard dictionary Handle (returned by Defer/Delay). Simply flip the boolean flag to trigger O(1) lazy teardown.
+	end
+end
+
+--[[
+	Fetch or create a switch statement comparison.
+	
+	Params:
+		SwitchID: string -- The unique identifier for the switch statement.
+		
+	Returns:
+		SwitchHandle -- The control handle of this specific switch statement.
+]]
+function Assignment.Switch(SwitchID: string): SwitchHandle
+
+	--[[
+		Assignment.Switch: The Global Singleton Getter and Compiler API.
+
+		The primary entry point for the JIT Pattern Matching Engine. It acts as a global 
+		registry manager, allowing developers to define a state machine's static blueprint 
+		in one script, and effortlessly execute it from entirely different scripts without 
+		ever duplicating memory or passing physical table references.
+
+		Core Behaviors:
+		    * Get-Or-Create Singleton: Lazily instantiates a new zero-allocation switch graph the very first time an ID is requested. All subsequent calls instantly return the exact same memory pointer.
+		    * Zero-Allocation Retrieval: Because fetching an existing switch relies on an O(1) global dictionary lookup, developers can safely call "Assignment.Switch("MyID")" continuously inside high-frequency loops without triggering Garbage Collection.
+		    * Decoupled Architecture: Strictly separates the static Compilation Phase from the dynamic Execution Phase. A single script can compile the rules, while multiple isolated other scripts fetch and execute the logic independently.
+	]]
+
+	-- Zero-Allocation Retrieval
+	if SwitchRegistry[SwitchID] then
+		return SwitchRegistry[SwitchID]
+	end
+
+	-- Lazy Instantiation (Runs exactly once per SwitchID)
+	local newSwitch: any = {
+		_Name = SwitchID,
+		_Trie = {},
+		_PendingPaths = {},
+		_Default = nil,
+
+		-- Bind the Builder methods
+		Case = SwitchMeta.Case,
+		Execute = SwitchMeta.Execute,
+		Default = SwitchMeta.Default,
+		Match = SwitchMeta.Match,
+	}
+
+	SwitchRegistry[SwitchID] = newSwitch :: SwitchHandle
+
+	return newSwitch :: SwitchHandle
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Assignment Shutdown Migration Section
+----------------------------------------------------------
+
+if RunService:IsServer() then
+	--[[
+		migrateToTaskLibrary: The Shutdown Migration Protocol.
+
+		The ultimate failsafe mechanism triggered during server closure. It dismantles 
+		the custom timing wheel and translates all pending workloads into the native 
+		Roblox task library. This guarantees that critical delayed logic (like data saving) 
+		successfully executes during the BindToClose yield phase.
+
+		Params:
+		    nil
+
+		Returns:
+		    nil
+
+		Core Behaviors:
+		    * Temporal Preservation: Accurately calculates the exact remaining time for every delayed task, perfectly preserving the developer's intended execution schedule within the native task.delay queue.
+		    * Yield Emulation: Intelligently reconstructs the Assignment.Wait() return signature (elapsed time) using specialized closures, ensuring yielded coroutines wake up with the correct temporal data.
+		    * Hot-Swapping (Monkey-Patching): Dynamically overwrites all public Assignment APIs in memory, seamlessly routing any new tasks created during shutdown directly to the native engine without breaking downstream scripts.
+	]]
+	local function migrateToTaskLibrary(): ()
+		-- Halt the Heartbeat loops instantly to prevent race conditions during migration.
+		IsShuttingDown = true
+		local Now = os.clock()
+
+		-- Routes deferred entries via the zero-allocation migrator graph, falling back to unpack.
+		local function migrateDefer(Entry: WheelEntry): ()
+			local Target = Entry.Thread or Entry.Function
+
+			if not Target then return end
+
+			local Count = Entry.ArgCount
+			local Migrator = DeferMigratorGraph[Count]
+
+			if Migrator then
+				Migrator(Target, Entry)
+
+			else
+				task.defer(Target :: any, table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
+			end
+		end
+
+		-- Routes delayed entries, explicitly preserving their exact remaining time.
+		local function migrateDelay(Entry: WheelEntry, Remaining: number): ()
+			local Target = Entry.Thread or Entry.Function
+
+			if not Target then return end
+
+			local Count = Entry.ArgCount
+			local Migrator = DelayMigratorGraph[Count]
+
+			if Migrator then
+				Migrator(Remaining, Target, Entry)
+
+			else
+				task.delay(Remaining, Target :: any, table.unpack(Entry.OverflowArgs :: { any }, 1, Count))
+			end
+		end
+
+		----------------------------------------------------------------------
+		-- PHASE 1: DEFER BUFFER EXTRACTION
+		----------------------------------------------------------------------
+
+		-- Flush all unexecuted tasks from the active read buffer.
+		for Index = DeferReadIndex, DeferReadCount do
+			local Entry = DeferReadBuffer[Index]
+
+			DeferReadBuffer[Index] = nil :: any
+
+			if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
+				migrateDefer(Entry)
+			end
+
+			if Entry then
+				releaseEntry(Entry) 
+			end
+		end
+
+		DeferReadCount = 0
+		DeferReadIndex = 1
+
+		-- Flush all newly queued tasks from the pending write buffer.
+		for Index = 1, DeferWriteCount do
+			local Entry = DeferWriteBuffer[Index]
+
+			DeferWriteBuffer[Index] = nil :: any
+
+			if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
+				migrateDefer(Entry)
+			end
+
+			if Entry then
+				releaseEntry(Entry) 
+			end
+		end
+
+		DeferWriteCount = 0
+
+		----------------------------------------------------------------------
+		-- PHASE 2: TIMING WHEEL EXTRACTION
+		----------------------------------------------------------------------
+
+		-- Iterate through the entire wheel, extracting functions and standard threads.
+		for Index = 1, WHEEL_SIZE do
+			local Count = WheelCounts[Index]
+
+			if Count == 0 then continue end
+
+			local Bucket = Wheel[Index] :: { WheelEntry }
+
+			for InnerIndex = 1, Count do
+				local Entry: any = Bucket[InnerIndex]
+
+				Bucket[InnerIndex] = nil :: any
+
+				if Entry and not (Entry.Handle and Entry.Handle._cancelled) then
+					-- Calculate the exact time remaining and push to native task.delay.
+					local Remaining = math.max(0, Entry.ResumeAt - Now)
+
+					migrateDelay(Entry, Remaining)
+				end
+
+				if Entry then 
+					releaseEntry(Entry)
+				end
+			end
+
+			Wheel[Index] = nil
+			WheelCounts[Index] = 0
+		end
+
+		----------------------------------------------------------------------
+		-- PHASE 3: WAIT WHEEL EXTRACTION
+		----------------------------------------------------------------------
+
+		-- Extract the flattened arrays holding yielded coroutines.
+		for Index = 1, WHEEL_SIZE do
+			local WaitSlotCount = WaitCounts[Index]
+
+			if WaitSlotCount == 0 then continue end
+
+			local WaitBucket = WaitWheel[Index] :: { any }
+
+			for InnerIndex = 1, WaitSlotCount, 3 do
+				local Thread = WaitBucket[InnerIndex] :: thread
+				local ResumeAt = WaitBucket[InnerIndex + 1] :: number
+				local StartTime = WaitBucket[InnerIndex + 2] :: number
+
+				WaitBucket[InnerIndex] = nil
+				WaitBucket[InnerIndex + 1] = nil
+				WaitBucket[InnerIndex + 2] = nil
+
+				if Thread then
+					local Remaining = math.max(0, ResumeAt - Now)
+					local CapturedAt = StartTime
+
+					-- Wrap the native delay in a closure to ensure it correctly calculates and returns the total elapsed time to the yielding thread.
+					task.delay(Remaining, function()
+						local Elapsed = math.max(0, os.clock() - CapturedAt)
+						local Success, ErrorMessage = coroutine.resume(Thread, Elapsed)
+
+						if not Success then
+							task.spawn(error, debug.traceback(Thread, tostring(ErrorMessage)), 2)
+						end
+					end)
+				end
+			end
+
+			WaitWheel[Index] = nil
+			WaitCounts[Index] = 0
+		end
+
+		----------------------------------------------------------------------
+		-- PHASE 4: API HOT-SWAPPING (Monkey-Patching)
+		----------------------------------------------------------------------
+
+		--[[
+			Dynamically overwrite the public API. Any downstream scripts that attempt to use 
+			Assignment during the server shutdown sequence will silently be routed directly 
+			to the native engine. This prevents script errors and ensures 100% reliability.
+		]]
+
+		Assignment.Spawn = function(Function: ((...any) -> ()) | thread, ...: any): ()
+			task.spawn(Function :: any, ...)
+		end
+
+		Assignment.SpawnIsolated = function(Function: ((...any) -> ()) | thread, ...: any): thread
+			return task.spawn(Function :: any, ...)
+		end
+
+		Assignment.Defer = function(Function: ((...any) -> ()) | thread, ...: any): Handle
+			local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
+
+			task.defer(Function :: any, ...)
+
+			return NewHandle
+		end
+
+		Assignment.DeferIsolated = function(Function: ((...any) -> ()) | thread, ...: any): thread
+			return task.defer(Function :: any, ...)
+		end
+
+		Assignment.Delay = function(Duration: number, Function: ((...any) -> ()) | thread, ...: any): Handle
+			local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
+
+			task.delay(Duration, Function :: any, ...)
+
+			return NewHandle
+		end
+
+		Assignment.DelayIsolated = function(Duration: number, Function: ((...any) -> ()) | thread, ...: any): thread
+			return task.delay(Duration, Function :: any, ...)
+		end
+
+		Assignment.Wait = function(Duration: number?): number
+			return task.wait(Duration or 0)
+		end
+
+		-- Emulate the Assignment.Repeat behavior using a native task.spawn while-loop.
+		Assignment.Repeat = function(Count: number, Interval: number?, Function: (number, Handle, ...any) -> (), ...: any): Handle
+			local NewHandle: Handle = { _cancelled = false, Break = breakHandle }
+			local ArgCount: number = select("#", ...)
+			local Arguments: { any } = { ... }
+			local SafeInterval = math.max(Interval or 0, MIN_DELAY)
+
+			task.spawn(function()
+				local Iteration = 1
+
+				while (Count < 0) or (Iteration <= Count) do
+					if NewHandle._cancelled then break end
+
+					if ArgCount > 0 then
+						Function(Iteration, NewHandle, table.unpack(Arguments, 1, ArgCount))
+
+					else
+						Function(Iteration, NewHandle)
+					end
+
+					if NewHandle._cancelled then break end
+
+					if Iteration == Count then break end
+
+					Iteration += 1
+					task.wait(SafeInterval)
+				end
+			end)
+
+			return NewHandle
+		end
+
+		Assignment.Cancel = function(Target: Handle | thread): ()
+			if Target == nil then return end
+
+			if type(Target) == "thread" then
+				task.cancel(Target :: thread)
+
+			else
+				(Target :: Handle)._cancelled = true
+			end
+		end
+	end
+
+	--[[
+		Signals Assignment to hand all pending scheduled work to the engine's native scheduler, preserving each task's remaining time.
+		After migration, all Assignment functions continue to work as normal but route through the native scheduler.
+
+		This is called automatically when the server closes and requires no code from you.
+		It is exposed as a manual call for controlled shutdown sequences.
+
+		Returns:
+		    void
+	]]
+	function Assignment.Migrate(): ()
+		if not IsShuttingDown then
+			migrateToTaskLibrary()
+		end
+	end
+
+	game:BindToClose(migrateToTaskLibrary)
+end
+
+-------------------------------------------------------------------------------------------------------------
+return Assignment
+-------------------------------------------------------------------------------------------------------------
