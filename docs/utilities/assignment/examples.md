@@ -959,7 +959,7 @@ CombatRouter
 	:Case(Assignment.Op.LessThan, 20)
 	:Execute(handleExecution)
 
--- Compound Math & Exact Matches (If Weapon != "WoodSword" AND Health > 80)
+-- Compound Math & Exact Matches (If Weapon ~= "WoodSword" AND Health > 80)
 	:Case(Assignment.Op.NotEqual, "WoodSword", Assignment.Op.AND) -- Sealed!
 	:Case(Assignment.Op.GreaterThan, 80) -- Continuation!
 	:Execute(handleArmorPenetration)
