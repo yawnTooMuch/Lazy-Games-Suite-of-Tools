@@ -578,6 +578,8 @@ end
 !!! tip "The Golden Rule of Routing"
     Isolate your routers by scenario, and always pass the maximum available context state into `:Match()`. As long as you correctly terminated your deep paths with `:Execute()`, the engine will mathematically guarantee the correct action is returned.
 
+---
+
 ## 12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete
 
 While the `Assignment` engine mechanically allows you to pass multiple arguments into a single `:Case()` call to act as a shorthand AND gate, you should strictly avoid doing this. Compacting arguments breaks Luau’s type-checking and disables auto-complete. To leverage strict typing and intellisense, always use one condition per `:Case()` call.
@@ -622,6 +624,58 @@ ItemRouter
     * **The Shorthand (Avoid):** Passing multiple arguments like `:Case("Weapon", "Sword")` acts as a native AND gate in the engine. However, compressing them into a single variadic call causes the Luau type-solver to go blind, breaking your auto-complete and type-checking.
 
     * **The Explicit Chain (Recommended):** Chaining your conditions like `:Case("Weapon", Assignment.Op.AND):Case("Sword")` achieves the exact same routing, but evaluates step-by-step. This preserves the IDE's ability to track generic types, keeping your intellisense active and your code fully type-safe.
+
+---
+
+## 13. Order Dynamic Rules by Specificity — Narrowest to Broadest
+
+While exact string and number matches are evaluated instantly via an `O(1)` dictionary (meaning their order doesn't matter), **Mathematical Opcodes (`Op.GreaterThan`, `Op.Type`, etc.) are evaluated sequentially in the exact order they were compiled.** Because the engine exits on the first valid match it finds, you must always compile your highly specific, narrow rules before your broad, catch-all rules.
+
+### The Problem
+
+```luau
+local DamageRouter = Assignment.Switch("DamageRouter")
+
+-- A broad catch-all rule (Any number less than 100)
+DamageRouter
+	:Case(Assignment.Op.LessThan, 100)
+	:Execute(handleLightDamage)
+
+-- A highly specific compound rule (Exactly between 15 and 25, AND Poisoned)
+	:Case(Assignment.Op.InRange, 15, 25, Assignment.Op.AND)
+	:Case("Poisoned")
+	:Execute(handleToxicCritical)
+```
+
+**Why this is wrong:** If you call `:Match(20, "Poisoned")`, you expect it to trigger `handleToxicCritical`. However, because `< 100` was compiled first, the engine sees that `20` is less than `100`, says *"Match found!"*, and executes `handleLightDamage`. The engine safely ignores the second argument and completely skips your highly specific rule!
+
+### The Solution
+
+- Narrow Rules First
+
+```luau
+local DamageRouter = Assignment.Switch("DamageRouter")
+
+-- The Highly Specific Rule (Evaluated First)
+DamageRouter
+	:Case(Assignment.Op.InRange, 15, 25, Assignment.Op.AND)
+	:Case("Poisoned")
+	:Execute(handleToxicCritical)
+
+-- The Broad Catch-All Rule (Evaluated Last)
+	:Case(Assignment.Op.LessThan, 100)
+	:Execute(handleLightDamage)
+```
+
+**Why this works:** By placing your most complex and narrow logic at the top of your opcode chains, you guarantee the engine checks for those rare, specific scenarios first. Broad operators like `Op.Type`, `Op.IsA`, or massive numerical ranges should always be pushed to the very bottom of your script, acting as a final safety net right before your `:Default()` fallback.
+
+!!! tip "The Opcode Waterfall"
+    Remember the engine's internal priority: 
+
+    1. **Exact Matches** are checked instantly, regardless of order.
+    2. **Opcodes** are checked sequentially, from top to bottom. 
+
+    Always build your Opcode lists like a funnel. "Narrow at the top, wide at the bottom."
 
 ---
 
