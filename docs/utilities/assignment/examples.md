@@ -977,7 +977,7 @@ CombatRouter
 -- Example A: 10 is less than 20
 local ActionA = CombatRouter:Match(10) 
 
--- Example B: "IronSword" != "WoodSword", and 90 > 80
+-- Example B: "IronSword" ~= "WoodSword", and 90 > 80
 local ActionB = CombatRouter:Match("IronSword", 90)
 
 -- Example C: Prioritized over Example A
