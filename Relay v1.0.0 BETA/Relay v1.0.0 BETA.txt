@@ -1,0 +1,453 @@
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Configuration Section
+----------------------------------------------------------
+
+local Relay_Configuration = {
+	ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE = game:GetService("RunService"):IsStudio(), -- Enables parameter validation in Studio only
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Type Structures Section
+----------------------------------------------------------
+
+export type ConnectionObject = {
+	_cancelled  : boolean,
+	_callback   : (...any) -> (),
+	_signal     : SignalObject,
+	Disconnect  : (self: ConnectionObject) -> (),
+	IsConnected : (self: ConnectionObject) -> boolean,
+	BindTo      : (self: ConnectionObject, TieTarget: any) -> ConnectionObject,
+}
+
+export type ListenerSignal<T...> = {
+	Connect : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Once    : (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Wait    : (self: ListenerSignal<T...>) -> T...,
+}
+
+export type SignalObject = {
+	_id          : string,
+	_connections : { ConnectionObject },
+	_waitThreads : { thread },
+	_cancelled   : boolean,
+	_liveCount   : number,
+	_firingDepth : number,
+
+	Signals            : { OnAbandoned: ListenerSignal<()> }?,
+
+	Connect            : (self: SignalObject, Callback: (...any) -> ()) -> ConnectionObject,
+	Once               : (self: SignalObject, Callback: (...any) -> ()) -> ConnectionObject,
+	Wait               : (self: SignalObject) -> ...any,
+	Fire               : (self: SignalObject, ...any) -> (),
+	DisconnectAll      : (self: SignalObject) -> (),
+	GetConnectionCount : (self: SignalObject) -> number,
+	Destroy            : (self: SignalObject) -> (),
+	BindTo             : (self: SignalObject, TieTarget: any) -> SignalObject,
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Internal States Section
+----------------------------------------------------------
+
+local Relay         = {}
+local ReaperModule: any = nil
+
+local Scheduler = {
+	Spawn  = task.spawn,
+	Defer  = task.defer,
+	Delay  = task.delay,
+	Wait   = task.wait,
+	Cancel = task.cancel,
+}
+
+local SignalRegistry: { [string]: SignalObject } = {}
+setmetatable(SignalRegistry, { __mode = "v" })
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Local Function Section
+----------------------------------------------------------
+
+-- Disconnects a connection and decrements the parent signal's live count
+local function connectionDisconnect(Self: ConnectionObject): ()
+	if Self._cancelled then return end
+	Self._cancelled = true
+
+	local ParentSignal = (Self :: any)._signal :: SignalObject?
+	if ParentSignal then
+		ParentSignal._liveCount -= 1
+
+		if ParentSignal._liveCount == 0 then
+			if ParentSignal._firingDepth == 0 then
+				table.clear(ParentSignal._connections)
+			end
+
+			local SubSignals = ParentSignal.Signals
+			if SubSignals and SubSignals.OnAbandoned then
+				(SubSignals.OnAbandoned :: any):Fire()
+			end
+		end
+	end
+
+	(Self :: any)._signal   = nil
+	(Self :: any)._callback = nil
+end
+
+-- Returns whether this connection is still active
+local function connectionIsConnected(Self: ConnectionObject): boolean
+	return not Self._cancelled
+end
+
+-- Binds a connection's lifetime to a tracked target via Reaper
+local function connectionBindTo(Self: ConnectionObject, TieTarget: any): ConnectionObject
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if not ReaperModule then
+			error("[Relay] BindTo Error: You must inject the 'Reaper' module via Relay.Inject() before using :BindTo().\n" .. debug.traceback(), 2)
+		end
+		if TieTarget == nil then
+			error("[Relay] BindTo Error: TieTarget cannot be nil.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	if Self._cancelled then return Self end
+
+	local TargetTracker = ReaperModule.Track(TieTarget)
+	TargetTracker:Chain(Self)
+
+	return Self
+end
+
+-- Constructs a new connection object for a given signal and callback
+local function makeConnection(ParentSignal: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	local Connection: ConnectionObject = {
+		_cancelled  = false,
+		Disconnect  = connectionDisconnect,
+		IsConnected = connectionIsConnected,
+		BindTo      = connectionBindTo,
+	} :: any
+
+	Connection._callback = Callback
+	Connection._signal   = ParentSignal
+
+	return Connection
+end
+
+-- Registers a callback on the signal and returns the connection
+local function signalConnect(Self: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Callback) ~= "function" then
+			error("[Relay] Connect Error: 'Callback' must be a function.\n" .. debug.traceback(), 2)
+		end
+		if Self._cancelled then
+			error("[Relay] Connect Error: Cannot connect to a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local Connection  = makeConnection(Self, Callback)
+	local Connections = Self._connections
+
+	Connections[#Connections + 1] = Connection
+	Self._liveCount              += 1
+
+	return Connection
+end
+
+-- Registers a one-shot callback that disconnects itself after the first fire
+local function signalOnce(Self: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Callback) ~= "function" then
+			error("[Relay] Once Error: 'Callback' must be a function.\n" .. debug.traceback(), 2)
+		end
+		if Self._cancelled then
+			error("[Relay] Once Error: Cannot connect to a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local Connection: ConnectionObject
+	Connection = signalConnect(Self, function(...: any)
+		Connection:Disconnect()
+		Callback(...)
+	end)
+
+	return Connection
+end
+
+-- Suspends the calling coroutine until the signal fires, then returns the fired values
+local function signalWait(Self: SignalObject): ...any
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] Wait Error: Cannot wait on a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local CurrentThread = coroutine.running()
+	local WaitThreads   = Self._waitThreads
+
+	WaitThreads[#WaitThreads + 1] = CurrentThread
+	return coroutine.yield()
+end
+
+-- Fires the signal, resuming waiting threads and spawning all live connection callbacks
+local function signalFire(Self: SignalObject, ...: any): ()
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] Fire Error: Cannot fire a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local WaitCount = #Self._waitThreads
+	if WaitCount > 0 then
+		local CurrentWaiters = Self._waitThreads
+		Self._waitThreads = {}
+
+		for Index = 1, WaitCount do
+			Scheduler.Spawn(CurrentWaiters[Index], ...)
+		end
+	end
+
+	local Connections = Self._connections
+	local ActiveCount = #Connections
+
+	Self._firingDepth += 1
+
+	for Index = 1, ActiveCount do
+		local Connection = Connections[Index]
+		if Connection and not Connection._cancelled then
+			local Callback = (Connection :: any)._callback
+			if Callback then
+				Scheduler.Spawn(Callback, ...)
+			end
+		end
+	end
+
+	Self._firingDepth -= 1
+
+	if Self._firingDepth == 0 then
+		local WriteIndex = 0
+		local TotalCount = #Connections
+
+		for Index = 1, TotalCount do
+			local Connection = Connections[Index]
+			if not Connection._cancelled then
+				WriteIndex              += 1
+				Connections[WriteIndex]  = Connection
+			end
+		end
+
+		for Index = WriteIndex + 1, TotalCount do
+			Connections[Index] = nil :: any
+		end
+	end
+end
+
+-- Disconnects all live connections on the signal and fires OnAbandoned
+local function signalDisconnectAll(Self: SignalObject): ()
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] DisconnectAll Error: Cannot disconnect from a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	for _, Connection in Self._connections do
+		if not Connection._cancelled then
+			Connection._cancelled         = true
+			(Connection :: any)._signal   = nil
+			(Connection :: any)._callback = nil
+		end
+	end
+	table.clear(Self._connections)
+	Self._liveCount = 0
+
+	local SubSignals = Self.Signals
+	if SubSignals and SubSignals.OnAbandoned then
+		(SubSignals.OnAbandoned :: any):Fire()
+	end
+end
+
+-- Returns the number of live connections on the signal
+local function signalGetConnectionCount(Self: SignalObject): number
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] GetConnectionCount Error: Cannot count connections on a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	return Self._liveCount
+end
+
+-- Destroys the signal, cancels all connections, and resumes waiting threads
+local function signalDestroy(Self: SignalObject): ()
+	if Self._cancelled then return end
+	Self._cancelled = true
+
+	for _, Connection in Self._connections do
+		if not Connection._cancelled then
+			Connection._cancelled         = true
+			(Connection :: any)._signal   = nil
+			(Connection :: any)._callback = nil
+		end
+	end
+	table.clear(Self._connections)
+
+	for _, WaitThread in Self._waitThreads do
+		Scheduler.Spawn(WaitThread)
+	end
+	table.clear(Self._waitThreads)
+
+	local SubSignals = Self.Signals
+	if SubSignals and SubSignals.OnAbandoned then
+		(SubSignals.OnAbandoned :: any):Destroy()
+	end
+
+	SignalRegistry[Self._id] = nil
+end
+
+-- Binds a signal's lifetime to a tracked target via Reaper
+local function signalBindTo(Self: SignalObject, TieTarget: any): SignalObject
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if not ReaperModule then
+			error("[Relay] BindTo Error: You must inject the 'Reaper' module via Relay.Inject() before using :BindTo().\n" .. debug.traceback(), 2)
+		end
+		if TieTarget == nil then
+			error("[Relay] BindTo Error: Bindable target cannot be nil.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	if Self._cancelled then return Self end
+
+	local TargetTracker = ReaperModule.Track(TieTarget)
+	TargetTracker:Chain(Self)
+
+	return Self
+end
+
+-- Constructs a new SignalObject; IsInternal prevents recursive sub-signal creation
+local function buildSignal(SignalID: string, IsInternal: boolean?): SignalObject
+	local NewSignal: SignalObject = {
+		_id                = SignalID,
+		_connections       = {},
+		_waitThreads       = {},
+		_cancelled         = false,
+		_liveCount         = 0,
+		_firingDepth       = 0,
+		Signals            = nil,
+		Connect            = signalConnect,
+		Once               = signalOnce,
+		Wait               = signalWait,
+		Fire               = signalFire,
+		DisconnectAll      = signalDisconnectAll,
+		GetConnectionCount = signalGetConnectionCount,
+		Destroy            = signalDestroy,
+		BindTo             = signalBindTo,
+	}
+
+	if not IsInternal then
+		NewSignal.Signals = {
+			OnAbandoned = buildSignal(SignalID .. "_Abandoned", true) :: any,
+		}
+	end
+
+	return NewSignal
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Public APIs Section
+----------------------------------------------------------
+
+--[[
+Creates or retrieves an existing signal by ID.
+
+Params:
+    SignalID: string -- Unique identifier for the signal
+
+Returns:
+    SignalObject -- The new or existing signal
+]]
+function Relay.Create(SignalID: string): SignalObject
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(SignalID) ~= "string" or #SignalID == 0 then
+			error("[Relay] Create Error: 'SignalID' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local Existing = SignalRegistry[SignalID]
+	if Existing then
+		return Existing
+	end
+
+	local NewSignal          = buildSignal(SignalID)
+	SignalRegistry[SignalID] = NewSignal
+	return NewSignal
+end
+
+--[[
+Returns whether a signal with the given ID currently exists in the registry.
+
+Params:
+    SignalID: string -- The signal ID to check
+
+Returns:
+    boolean -- True if the signal exists, false otherwise
+]]
+function Relay.Exists(SignalID: string): boolean
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(SignalID) ~= "string" or #SignalID == 0 then
+			error("[Relay] Exists Error: 'SignalID' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	return SignalRegistry[SignalID] ~= nil
+end
+
+--[[
+Injects an external library within the Lazy Games Suite of Tools environment.
+Currently supports the "Assignment" and "Reaper" libraries.
+
+Params:
+    moduleName        : string -- The name of the ModuleScript file.
+    moduleTableObject : any    -- The module table to inject.
+
+Returns:
+    nil
+]]
+function Relay.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if Relay_Configuration.ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Relay] Inject Error: 'ModuleName' must be a non-empty string.")
+		end
+		if type(ModuleTableObject) ~= "table" then
+			error("[Relay] Inject Error: 'ModuleTableObject' must be a table.")
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn  = ModuleTableObject.Spawn  or task.spawn
+		Scheduler.Defer  = ModuleTableObject.Defer  or task.defer
+		Scheduler.Delay  = ModuleTableObject.Delay  or task.delay
+		Scheduler.Wait   = ModuleTableObject.Wait   or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+	elseif ModuleName == "Reaper" then
+		ReaperModule = ModuleTableObject
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+return Relay
+-------------------------------------------------------------------------------------------------------------

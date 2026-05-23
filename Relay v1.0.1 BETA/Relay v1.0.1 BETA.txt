@@ -1,0 +1,914 @@
+--[[
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Relay - Signal Library					 							  					                     000
+	000 Version: 1.0.1 Beta	Release												  				                     000
+	000 Platform: Roblox													  					                     000
+	000 License: Apache 2.0												  	  					                     000
+	000																		  					                     000
+	000																		  					                     000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					                     000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			                     000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/relay-cross-script-signal-communication/4586113 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Relay_ReadOnly                    000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/relay/                      000
+	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Configuration Section
+----------------------------------------------------------
+
+local ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE: boolean = game:GetService("RunService"):IsStudio() -- Enables parameter validation in Studio only
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Type Structures Section
+----------------------------------------------------------
+
+-- This is the lightweight token returned to a script whenever it listens to a signal (via :Connect() or :Once()). It acts as a localized controller for a specific Relay Object.
+export type ConnectionObject = {
+	_cancelled: boolean,		-- This acts as the immediate kill-switch for the connection. The engine checks this every :Fire() call.
+	_callback: (...any) -> (),	-- This holds the actual function pointer that the developer passed into :Connect() or :Once().
+	_signal: SignalObject,		-- This is a strong reference back to the master SignalObject that created this connection.
+	
+	Disconnect: (self: ConnectionObject) -> (),
+	IsConnected: (self: ConnectionObject) -> boolean,
+	BindTo: (self: ConnectionObject, TieTarget: any) -> ConnectionObject,
+}
+
+-- This is a strictly-typed, "read-only" view of a signal. Used to safely expose listening methods to external scripts without granting them permission to Fire or Destroy the signal.
+export type ListenerSignal<T...> = {
+	Connect: (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Once: (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Wait: (self: ListenerSignal<T...>) -> T...,
+}
+
+-- It is used exclusively for the Signal.Signals.OnAbandoned event.
+export type OnAbbandonedSignal = {
+	Connect: (self: OnAbbandonedSignal, Callback: (...any) -> ()) -> ConnectionObject,
+	Once: (self: OnAbbandonedSignal, Callback: (...any) -> ()) -> ConnectionObject,
+	Wait: (self: OnAbbandonedSignal) -> ...any,
+}
+
+-- This exposes the full suite of administrative APIs within Relay.
+export type SignalObject = {
+	_id: string,							-- The unique string used to register this signal in the global SignalRegistry (e.g., "MyRelay"). The signal keeps a record of its own ID so that when :Destroy() is called, it knows exactly which key to erase from the global dictionary.
+	_connections: { ConnectionObject },		-- The raw, flat array that stores every connection bound to this signal. When :Fire() is called, the engine iterates through this exact array to trigger the callbacks.
+	_waitThreads: { thread },				-- When a developer calls Signal:Wait(), their script's coroutine yields and is pushed into this array. The next time the signal fires, the engine iterates through this array, resumes every sleeping threads.
+	_cancelled: boolean,					-- This acts as the immediate kill-switch for the connection. The engine checks this every :Fire() call.
+	_liveCount: number,						-- An integer that strictly tracks exactly how many valid, uncancelled connections currently exist.
+	_firingDepth: number,					-- When :Fire() begins iterating through the _connections array, it adds +1 to this depth. If a connection disconnects during that loop, the depth is > 0, so the engine just flags the connection as cancelled but leaves the array untouched.
+
+	Signals: { OnAbandoned: OnAbbandonedSignal },
+
+	Connect: (self: SignalObject, Callback: (...any) -> ()) -> ConnectionObject,
+	Once: (self: SignalObject, Callback: (...any) -> ()) -> ConnectionObject,
+	Wait: (self: SignalObject) -> ...any,
+	Fire: (self: SignalObject, ...any) -> (),
+	DisconnectAll: (self: SignalObject) -> (),
+	GetConnectionCount: (self: SignalObject) -> number,
+	Destroy: (self: SignalObject) -> (),
+	BindTo: (self: SignalObject, TieTarget: any) -> SignalObject,
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Internal States Section
+----------------------------------------------------------
+
+local Relay = {}
+local ReaperModule: any = nil -- The injected Reaper module reference will be stored here.
+
+-- The dynamic task scheduler
+local Scheduler = {
+	Spawn = task.spawn,
+	Defer = task.defer,
+	Delay = task.delay,
+	Wait = task.wait,
+	Cancel = task.cancel,
+}
+
+-- The global dictionary that holds all created signals by string ID.
+local SignalRegistry: { [string]: SignalObject } = {}
+
+setmetatable(SignalRegistry, { 
+	__mode = "v"
+})
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Local Function Section
+----------------------------------------------------------
+
+--[[
+	Severs this connection from its parent signal, stopping the callback from receiving future fires.
+
+	Returns:
+	    nil
+]]
+local function connectionDisconnect(Self: ConnectionObject): ()
+	
+	--[[
+	connectionDisconnect: The Idempotent Kill-Switch.
+
+	The master teardown utility for a specific listener. It safely severs the 
+	connection from its parent signal, gracefully handling disconnections that 
+	occur mid-fire without causing array corruption.
+
+	Core Behaviors:
+	    * Idempotency: Instantly flags "_cancelled = true", ensuring rapid double-calls do not accidentally double-subtract the parent's "_liveCount".
+	    * Safe Compaction Guard: Checks the parent's "_firingDepth". If the signal is actively iterating the array, it refuses to call "table.clear()", preventing O(N) array-shift crashes.
+	    * Abandonment Trigger: Automatically routes a fire call to the "OnAbandoned" sub-signal if this was the last active listener.
+]]
+	
+	-- If it's already cancelled, abort instantly to prevent double-subtracting from the live count.
+	if Self._cancelled then return end
+
+	-- Instantly neutralize the connection. Even if the parent signal is currently looping, it will see this flag and skip execution.
+	Self._cancelled = true
+
+	local ParentSignal = (Self :: any)._signal :: SignalObject?
+
+	if ParentSignal then
+		-- Update the master registry count
+		ParentSignal._liveCount -= 1
+
+		-- If this was the absolute last connection listening to the signal, trigger the .OnAbandoned sub-signal.
+		if ParentSignal._liveCount == 0 then
+
+			-- Only clear the array if the signal is NOT currently looping through it (firing depth is 0).
+			if ParentSignal._firingDepth == 0 then
+				table.clear(ParentSignal._connections)
+			end
+
+			-- Trigger the automatic 'OnAbandoned' sub-signal to alert external scripts that all listeners have disconnected.
+			local SubSignals = ParentSignal.Signals
+
+			if SubSignals and SubSignals.OnAbandoned then
+				(SubSignals.OnAbandoned :: any):Fire()
+			end
+		end
+	end
+
+	-- Sever strong function/table references so the Luau Garbage Collector can consume the developer's payload and prevent memory leaks.
+	(Self :: any)._signal = nil
+	(Self :: any)._callback = nil
+end
+
+--[[
+	Returns whether this connection is currently active and has not been disconnected or cancelled.
+
+	Returns:
+	    boolean -- true if connected, false if cancelled or disconnected.
+]]
+local function connectionIsConnected(Self: ConnectionObject): boolean
+	return not Self._cancelled
+end
+
+--[[
+	Binds this connection's lifetime to a Reaper-tracked target, disconnecting it automatically when the target is destroyed.
+
+	Params:
+	    TieTarget: any -- The instance, table, or ID being tracked by Reaper.
+
+	Returns:
+	    ConnectionObject -- Returns self to allow method chaining.
+]]
+local function connectionBindTo(Self: ConnectionObject, TieTarget: any): ConnectionObject
+	
+	--[[
+		connectionBindTo: The Lifecycle Integrator.
+
+		Routes the connection's lifespan into the injected Reaper lifecycle manager, 
+		ensuring automatic disconnection when a physical Roblox Instance (or tracked table) 
+		is destroyed.
+
+		Core Behaviors:
+		    * Dependency Verification: Actively checks if the Reaper framework was successfully injected, throwing hard errors in Studio to catch setup mistakes early.
+		    * State Locking: Silently ignores the bind request if the connection has already been cancelled, preventing dead memory links.
+		    * Delegated Memory Management: Completely offloads the tracking and cleanup logic to the external Reaper module, keeping Relay's core loop strictly focused on signal execution.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if not ReaperModule then
+			error("[Relay] BindTo Error: You must inject the 'Reaper' module via Relay.Inject() before using :BindTo().\n" .. debug.traceback(), 2)
+		end
+		
+		if TieTarget == nil then
+			error("[Relay] BindTo Error: TieTarget cannot be nil.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- If this connection is already severed, bypass the tracking logic entirely to save CPU cycles.
+	if Self._cancelled then return Self end
+
+	-- Route the physical object into Reaper to acquire a lifecycle tracker.
+	local TargetTracker = ReaperModule.Track(TieTarget)
+
+	-- Chain this specific connection to the tracker. When the TieTarget is destroyed, Reaper will automatically call clean this signal.
+	TargetTracker:Chain(Self)
+
+	-- Return the object to allow method chaining.
+	return Self
+end
+
+-- Constructs a new connection object for a given signal and callback
+local function makeConnection(ParentSignal: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	
+	--[[
+		makeConnection: The Internal Signal Factory.
+
+		The localized constructor responsible for provisioning new ConnectionObjects. 
+		It is strictly an internal utility used by the Connect and Once methods to generate 
+		the lightweight control tokens handed back to the developer.
+
+		Core Behaviors:
+		    * Zero-Closure Method Binding: Instead of creating new functions for "Disconnect", "IsConnected", and "BindTo" every time a connection is made, it binds the object directly to the static local functions defined higher in the script. This completely eliminates closure allocation overhead, saving massive amounts of heap memory for high-frequency listeners.
+		    * State Hydration: Securely caches the callback payload and the parent signal pointer necessary for downstream routing and safe teardown.
+	]]
+	
+	-- Static Method Binding and State Initialization
+	local Connection: ConnectionObject = {
+		-- The default lifecycle state.
+		_cancelled = false,
+
+		-- Bind the methods directly to the static local functions. This prevents the GC from choking on thousands of identical closure allocations.
+		Disconnect = connectionDisconnect,
+		IsConnected = connectionIsConnected,
+		BindTo = connectionBindTo,
+	} :: any
+
+	-- Cache the developer's execution payload.
+	Connection._callback = Callback
+
+	-- Cache the strong reference to the master signal so the connection knows where to check when :Disconnect() is called.
+	Connection._signal = ParentSignal
+
+	return Connection
+end
+
+--[[
+	Registers a persistent callback that executes each time the signal fires.
+
+	Params:
+	    Callback: (...any) -> () -- The function to execute each time the signal fires.
+
+	Returns:
+	    ConnectionObject -- A handle to the active connection.
+]]
+local function signalConnect(Self: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	
+	--[[
+		signalConnect: The Persistent Listener.
+
+		The primary ingestion point for developer payloads. It binds an execution function 
+		to the master signal and returns a localized control handle. It is engineered for 
+		maximum speed, utilizing direct array indexing to ensure high-frequency connections 
+		do not stall the thread.
+
+		Core Behaviors:
+		    * O(1) Array Insertion: Utilizes the "#" length operator for direct memory index mapping, completely bypassing the functional overhead of "table.insert()".
+		    * Zombie Prevention: Actively guards against memory leaks by throwing a strict error if a developer attempts to bind a function to a previously destroyed signal.
+		    * State Tracking: Automatically increments the master "_liveCount" registry, keeping the .OnAbandoned signal lifecycle perfectly synchronized with the active listener pool.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Callback) ~= "function" then
+			error("[Relay] Connect Error: 'Callback' must be a function.\n" .. debug.traceback(), 2)
+		end
+		
+		if Self._cancelled then
+			error("[Relay] Connect Error: Cannot connect to a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	local Connection = makeConnection(Self, Callback)
+	local Connections = Self._connections
+
+	--[[
+		O(1) Array Append: 
+		
+		Map the connection directly to the end of the array. This is measurably faster than table.insert() in Luau.
+	]]
+	Connections[#Connections + 1] = Connection
+
+	-- Update the active listener count to keep the abandonment tracker accurate.
+	Self._liveCount += 1
+
+	return Connection
+end
+
+--[[
+	Registers a one-shot callback that disconnects itself before executing on the next fire.
+
+	Params:
+	    Callback: (...any) -> () -- The function to execute on the next fire.
+
+	Returns:
+	    ConnectionObject -- A handle to the temporary connection.
+]]
+local function signalOnce(Self: SignalObject, Callback: (...any) -> ()): ConnectionObject
+	
+	--[[
+		signalOnce: The Temporary Listener.
+
+		Creates a self-severing connection that listens for a signal exactly once. 
+		It automatically wraps the developer's payload in a teardown closure, guaranteeing 
+		that the listener is destroyed upon its first execution.
+
+		Core Behaviors:
+		    * Pre-Execution Severing: The wrapper function calls :Disconnect() before executing the developer's payload. This absolutely guarantees the connection dies, even if the developer's payload yields infinitely or throws a fatal error.
+		    * Self-Referential Closure: Pre-declares the :Connection" variable as nil to allow the internal wrapper function to safely capture and severe its own memory pointer.
+		    * Pipeline Reuse: Routes the final wrapper directly into the "signalConnect" pipeline, keeping the core array-insertion logic perfectly DRY (Don't Repeat Yourself).
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Callback) ~= "function" then
+			error("[Relay] Once Error: 'Callback' must be a function.\n" .. debug.traceback(), 2)
+		end
+		
+		if Self._cancelled then
+			error("[Relay] Once Error: Cannot connect to a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Pre-declare the pointer. If we didn't do this, the anonymous function below would not be able to reference it.
+	local Connection: ConnectionObject
+
+	-- Wrap the developer's callback inside a custom teardown function and route it into the standard connection pipeline.
+	Connection = signalConnect(Self, function(...: any)
+
+		-- Instantly sever the link to the signal. We do this BEFORE the callback so that if the callback yields or crashes, this listener is already dead and won't accidentally fire twice.
+		Connection:Disconnect()
+
+		-- Execute the developer's actual payload with the forwarded arguments.
+		Callback(...)
+	end)
+
+	return Connection
+end
+
+--[[
+	Yields the calling coroutine until the signal fires, then returns the fired arguments.
+
+	Returns:
+	    ...any -- A tuple of the arguments passed to :Fire().
+]]
+local function signalWait(Self: SignalObject): ...any
+	
+	--[[
+		signalWait: The Coroutine Yielder.
+
+		Suspends the current execution thread until the signal broadcasts data. 
+		It acts as the bridge between imperative script execution and event-driven architecture, 
+		safely parking the thread in the signal's internal memory queue.
+
+		Core Behaviors:
+		    * State Validation: Actively prevents memory leaks by refusing to park threads on a destroyed signal (where they would hang infinitely).
+		    * Thread Stashing: Captures the live pointer of the calling script via "coroutine.running()" and appends it directly to the waiting array.
+		    * Absolute Suspension: Uses "coroutine.yield()" to completely freeze the thread. When the signal fires, it pushes the broadcasted arguments directly through this yield boundary.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] Wait Error: Cannot wait on a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Capture the exact memory pointer of the thread that called this function.
+	local CurrentThread = coroutine.running()
+	local WaitThreads = Self._waitThreads
+
+	-- Safely save the thread pointer into the waiting queue.
+	WaitThreads[#WaitThreads + 1] = CurrentThread
+
+	return coroutine.yield() -- Instantly suspend the thread.
+end
+
+--[[
+	Resumes all yielded Wait threads and executes all live connection callbacks asynchronously.
+
+	Params:
+	    ...any: any -- Any number of arguments forwarded to all waiting threads and connection callbacks.
+
+	Returns:
+	    nil
+]]
+local function signalFire(Self: SignalObject, ...: any): ()
+	
+	--[[
+		signalFire: The Asynchronous Dispatcher.
+
+		The master execution pump of the event emitter. It awakens yielded coroutines 
+		and routes active connection callbacks into the dynamically injected thread pool 
+		(either Roblox's native task.spawn or the Assignment library).
+
+		Core Behaviors:
+		    * Execution Isolation: Processes every single payload asynchronously. If any Listener throws an error, others will still execute perfectly without halting the engine's loop.
+		    * Recursive Wait Prevention: Instantly swaps the "_waitThreads" array into a fresh table before resuming the threads, guaranteeing that a thread calling :Wait() immediately upon waking up isn't accidentally double-fired.
+		    * The Compaction Guard: Increments "_firingDepth" before iterating the connection array. This strictly locks the array, preventing :Disconnect() calls from shifting memory indexes while the loop is actively reading them.
+		    * O(N) Array Compaction: When "_firingDepth" returns to 0, it sweeps the array and performs in-place compaction, mathematically crushing dead pointers without the extreme CPU penalty of "table.remove()".
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] Fire Error: Cannot fire a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	----------------------------------------------------------------------
+	-- PHASE 1: RESUME WAITING THREADS
+	----------------------------------------------------------------------
+	
+	local WaitCount = #Self._waitThreads
+
+	if WaitCount > 0 then
+		local CurrentWaiters = Self._waitThreads
+
+		-- Instantly swap the wait queue with a new table BEFORE resuming the threads. This prevents "Recursive Deadlocks" where a thread wakes up, immediately calls :Wait() again, and gets stuck in an infinite loop inside this exact phase.
+		Self._waitThreads = {}
+
+		for Index = 1, WaitCount do
+			-- Resume the thread asynchronously via the Scheduler to prevent stack trace corruption if the thread crashes.
+			Scheduler.Spawn(CurrentWaiters[Index], ...)
+		end
+	end
+
+	----------------------------------------------------------------------
+	-- PHASE 2: EXECUTE CALLBACKS
+	----------------------------------------------------------------------
+	
+	local Connections = Self._connections
+	local ActiveCount = #Connections
+
+	-- Lock the array compaction by incrementing the depth. This signals to any :Disconnect() calls that they are not allowed to delete array entries right now.
+	Self._firingDepth += 1
+
+	for Index = 1, ActiveCount do
+		local Connection = Connections[Index]
+
+		-- Safely ignore connections that were cancelled mid-loop.
+		if Connection and not Connection._cancelled then
+			local Callback = (Connection :: any)._callback
+
+			if Callback then
+				-- Execute asynchronously to ensure one crashing callback doesn't halt the rest of the listeners in this loop.
+				Scheduler.Spawn(Callback, ...)
+			end
+		end
+	end
+
+	-- Unlock the array compaction. The loop is finished reading.
+	Self._firingDepth -= 1
+
+	----------------------------------------------------------------------
+	-- PHASE 3: ARRAY COMPACTION (The O(N) Shifting Phase)
+	----------------------------------------------------------------------
+	
+	-- If no other nested Fire calls are actively iterating this array, safely sweep and compress dead connections.
+	if Self._firingDepth == 0 then
+		local WriteIndex = 0
+		local TotalCount = #Connections
+
+		for Index = 1, TotalCount do
+			local Connection = Connections[Index]
+
+			-- If the connection is alive, shift it strictly to the left to fill the gaps left by cancelled connections.
+			if not Connection._cancelled then
+				WriteIndex += 1
+				Connections[WriteIndex] = Connection
+			end
+		end
+
+		-- Nullify the trailing dead pointers explicitly. This allows the Luau Garbage Collector to clean them up and frees up memory.
+		for Index = WriteIndex + 1, TotalCount do
+			Connections[Index] = nil :: any
+		end
+	end
+	
+	--[[
+		---------------------------------------------------------------------------------------------------------------
+		=============================================================================================
+		=============	Relay Architectural Note: Array Compaction vs. table.remove()	=============
+		=============================================================================================
+
+		In high-performance event emitters, managing disconnected listeners efficiently is the 
+		difference between a stable 60 FPS and severe system lag. Relay completely abandons the 
+		native "table.remove()" function in favor of a custom "Lazy Array Compaction" algorithm. 
+
+		---------------------------------
+				 THE MECHANISMS
+		---------------------------------
+		
+		- table.remove() (The Per-Event-Driven Shift)
+		   When a listener disconnects, the engine physically pulls every subsequent item one space 
+		   to the left to fill the gap. If you have 5,000 listeners and the 2nd one disconnects, 
+		   the engine performs 4,998 shifting operations instantly. Not only that, it is also 
+		   highly vulnerable to a race condition: if the engine's firing loop races against a 
+		   deletion, the shifting array will cause the loop to permanently skip some callbacks.
+		   More specifically, the item at "index + 1" gets skipped every single time.
+
+		- Array Compaction (The Lazy Sweep)
+		   Separates logical removal from physical removal. When a listener disconnects, it is 
+		   simply flagged "_cancelled = true", costing zero CPU overhead. Because every listener 
+		   remains exactly in its original memory index during the firing phase, the vulnerability 
+		   of skipped callbacks is completely eliminated. As the loop progresses, it is mathematically 
+		   guaranteed that every valid listener will be evaluated. Later, when the engine is idle, 
+		   it performs a single sweep, packing all valid listeners tightly to the front and 
+		   deleting all disconnected callbacks.
+
+		-------------------------------------------------------------------
+			   WHY RELAY USES ARRAY COMPACTION OVER TABLE.REMOVE()
+		-------------------------------------------------------------------
+		
+		While "table.remove()" is fine for small, infrequent arrays, it is structurally dangerous 
+		for an enterprise-grade event emitter. Relay relies on Compaction for three key reasons:
+
+		* Factor 1: The CPU Cost of High-Frequency Events
+		  In a chaotic environment, if 50 listeners disconnect simultaneously, "table.remove()" 
+		  forces the engine to recalculate and shift the array 50 separate times. In Array
+		  Compaction, the engine simply hands out 50 boolean flags, and shifts the array exactly
+		  ONCE after the firing loop finishes. This keeps the system's heartbeat perfectly flat.
+
+		* Factor 2: Loop Integrity (Skips & Crashes)
+		  Using "table.remove()" in a forward loop triggers two fatal flaws. First is the 
+		  "Skipped Listener" bug: if you delete index #2, all items slide down. When the loop 
+		  steps to index #3, it evaluates the old index #4, completely skipping a listener! 
+		  Second is the "Index Nil" crash: because Luau caches the array's length at the exact 
+		  start of a loop, shrinking the array mid-loop guarantees the engine will eventually 
+		  read out-of-bounds and fatally crash the script. Array Compaction's "_firingDepth" 
+		  lock guarantees the array NEVER shifts or shrinks while being read, permanently 
+		  solving both loop integrity problems.
+
+		* Factor 3: Predictable Memory Management
+		  By batching the physical removal of elements to the very end of the execution phase, 
+		  Array Compaction avoids generating unpredictable, mid-loop memory spikes. Memory pointers
+		  are severed in one clean sweep, providing the Luau Garbage Collector with clean, predictable 
+		  memory to consume.
+		---------------------------------------------------------------------------------------------------------------
+	]]
+	
+end
+
+--[[
+	Immediately cancels all active connections on this signal and fires the OnAbandoned sub-signal.
+
+	Returns:
+	    nil
+]]
+local function signalDisconnectAll(Self: SignalObject): ()
+	
+	--[[
+		signalDisconnectAll: The Mass Terminator.
+
+		Instantly severs all active connections tied to this signal, forcefully clears 
+		the connection memory pool, and manually triggers the abandonment lifecycle.
+
+		Core Behaviors:
+		    * O(N) State Annihilation: Iterates through the raw connection array, neutralizing flags and explicitly severing strong function pointers so the Luau Garbage Collector can immediately reclaim the memory.
+		    * Mid-Loop Safety: If called during a :Fire() call loop, "table.clear()" instantly empties the array. Because the :Fire() call loop safely checks "if Connection", it gracefully ignores the sudden "nil" values without crashing.
+		    * Lifecycle Enforcement: Artificially forces the "_liveCount" registry back to 0 and broadcasts the "OnAbandoned" sub-signal, alerting external scripts that the listener pool has been wiped.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] DisconnectAll Error: Cannot disconnect from a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Iterate over the raw array to sever the strong references held by each connection.
+	for _, Connection in Self._connections do
+		if not Connection._cancelled then
+			Connection._cancelled = true
+
+			-- Freeing the memory payload manually prevents the Garbage Collector from having to trace complex circular references.
+			(Connection :: any)._signal = nil
+			(Connection :: any)._callback = nil
+		end
+	end
+
+	-- Instantly empty the array. If a Fire loop is currently running, its cached length will now point to empty nil slots, safely terminating pending executions.
+	table.clear(Self._connections)
+
+	-- Reset the master active listener count to absolute zero.
+	Self._liveCount = 0
+
+	local SubSignals = Self.Signals
+
+	-- Execute a Fire call to the sub-signal to alert external scripts that every listener was just wiped.
+	if SubSignals and SubSignals.OnAbandoned then
+		(SubSignals.OnAbandoned :: any):Fire()
+	end
+end
+
+--[[
+	Returns the count of live, non-cancelled connections currently listening to this signal.
+
+	Returns:
+	    number -- The number of active connections.
+]]
+local function signalGetConnectionCount(Self: SignalObject): number
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if Self._cancelled then
+			error("[Relay] GetConnectionCount Error: Cannot count connections on a destroyed signal.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	return Self._liveCount
+end
+
+--[[
+	Permanently destroys the signal, cancels all connections, resumes any yielded Wait threads with no arguments, and removes it from the global registry.
+
+	Returns:
+	    nil
+]]
+local function signalDestroy(Self: SignalObject): ()
+	
+	--[[
+		signalDestroy: The Memory Annihilator.
+
+		Permanently locks the signal state, forcefully cancels all active listeners, 
+		fires dormant threads, and completely strips the master object from the global 
+		weak registry.
+
+		Core Behaviors:
+		    * The Master Lock: Instantly flips the "_cancelled" flag, guaranteeing that all future :Connect(), :Fire(), or :Wait() calls throw strict errors instead of creating zombie memory links.
+		    * Thread Rescue: If a script called ":Wait()" and is actively sleeping, destroying the signal would normally leave that thread hanging infinitely in RAM. This function dynamically wakes them up with zero arguments to ensure they resume and complete their lifecycle.
+		    * Cascading Teardown: Fires the "OnAbandoned" sub-signal, and then uses Scheduler.Defer to schedule the sub-signal's destruction on the next frame. This ensures external scripts have time to process the abandonment before the sub-signal itself is wiped out.
+		    * Global Unregistration: Erases the "_id" from the SignalRegistry, severing the final strong reference and guaranteeing the Luau Garbage Collector fully deletes the master object.
+	]]
+	
+	-- If the signal is already dead, abort instantly to prevent double-execution.
+	if Self._cancelled then return end
+
+	-- The Master Lock: Instantly neutralize the signal.
+	Self._cancelled = true
+
+	-- Forcefully sever all active connections and nullify their payloads.
+	for _, Connection in Self._connections do
+		if not Connection._cancelled then
+			Connection._cancelled = true
+			(Connection :: any)._signal = nil
+			(Connection :: any)._callback = nil
+		end
+	end
+
+	table.clear(Self._connections)
+
+	-- Iterate through any coroutines currently yielded via Signal:Wait() and force them to resume. 
+	for _, WaitThread in Self._waitThreads do
+		Scheduler.Spawn(WaitThread)
+	end
+
+	table.clear(Self._waitThreads)
+
+	local SubSignals = Self.Signals
+
+	if SubSignals and SubSignals.OnAbandoned then
+		-- Alert external scripts that the signal has died and the listener pool is empty.
+		(SubSignals.OnAbandoned :: any):Fire()
+
+		-- Use the Defer buffer to destroy the sub-signal on the VERY NEXT frame if using Assignment or at the end of the resumption cycle. If destroyed it instantly here, the Fire() call above might crash any listeners currently trying to read it.
+		Scheduler.Defer(function()
+			(SubSignals.OnAbandoned :: any):Destroy()
+		end)
+	end
+
+	-- Remove the master pointer from the weak registry, officially handing the object over to the Luau Garbage Collector.
+	SignalRegistry[Self._id] = nil
+end
+
+--[[
+	Binds this signal's lifetime to a Reaper-tracked target, destroying the signal automatically when the target is destroyed.
+
+	Params:
+	    TieTarget: any -- The instance, table, or ID being tracked by Reaper.
+
+	Returns:
+	    SignalObject -- Returns self to allow method chaining.
+]]
+local function signalBindTo(Self: SignalObject, TieTarget: any): SignalObject
+	
+	--[[
+		signalBindTo: The Master Lifecycle Integrator.
+
+		Routes the entire signal's lifespan into the injected Reaper lifecycle manager. 
+		Unlike "connectionBindTo" (which manages a single listener), this method ensures 
+		that the master SignalObject itself is permanently destroyed when a physical 
+		Roblox Instance (or tracked table) ceases to exist.
+
+		Core Behaviors:
+		    * Dependency Verification: Actively checks if the Reaper framework was successfully injected, throwing hard errors in Studio to catch missing architecture early.
+		    * State Locking: Silently ignores the bind request if the signal has already been destroyed, preventing Reaper from tracking dead memory.
+		    * Delegated Teardown: Completely offloads the master destruction logic to the external Reaper module. When the "TieTarget" is garbage collected or destroyed, Reaper automatically cascades a :Destroy() call down to this signal.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if not ReaperModule then
+			error("[Relay] BindTo Error: You must inject the 'Reaper' module via Relay.Inject() before using :BindTo().\n" .. debug.traceback(), 2)
+		end
+		
+		if TieTarget == nil then
+			error("[Relay] BindTo Error: Bindable target cannot be nil.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- If this signal is already dead, bypass the tracking logic entirely to save CPU cycles.
+	if Self._cancelled then return Self end
+
+	-- Route the physical object into Reaper to acquire a lifecycle tracker.
+	local TargetTracker = ReaperModule.Track(TieTarget)
+
+	-- Chain this entire master signal to the tracker. When the TieTarget is destroyed, Reaper will automatically clean this object.
+	TargetTracker:Chain(Self)
+
+	-- Return the object to allow fluent method chaining.
+	return Self
+end
+
+-- Constructs a new SignalObject; IsInternal prevents recursive sub-signal creation
+local function buildSignal(SignalID: string, IsInternal: boolean?): SignalObject
+	
+	--[[
+		buildSignal: The Master Factory.
+
+		The core allocator that constructs the physical memory footprint of a new event 
+		emitter. It provisions the internal tracking arrays, initializes the critical 
+		lock counters (like "_firingDepth"), and safely wires the sub-signal ecosystem.
+
+		Params:
+		    SignalID   : string   -- The unique identifier for this signal.
+		    IsInternal : boolean? -- A recursive guard flag used to build sub-signals.
+
+		Returns:
+		    SignalObject -- The fully instantiated, ready-to-fire event emitter.
+
+		Core Behaviors:
+		    * Flat-Table Architecture: Direct-binds the master functions to the object table instead of using a traditional "__index" metatable. This microscopic optimization skips the Luau engine's fallback lookup phase, ensuring method calls (like ":Fire()") execute at the absolute maximum possible speed.
+		    * Baseline Provisioning: Sets the foundational state ("_cancelled = false", "_liveCount = 0", "_firingDepth = 0") absolutely required to safely drive the Lazy Array Compaction system.
+		    * The Recursive Guard: The "OnAbandoned" hook is a fully functional SignalObject itself. The "IsInternal" flag acts as a mathematical circuit breaker; without it, "OnAbandoned" would try to construct its own "OnAbandoned" signal, creating an infinite loop that would instantly crash the system.
+	]]
+	
+	-- Allocate the raw memory footprint for the new event emitter.
+	local NewSignal: SignalObject = {
+		_id = SignalID,
+		_connections = {},
+		_waitThreads = {},
+
+		-- Master state locks for the Lazy Array Compaction system.
+		_cancelled = false,
+		_liveCount = 0,
+		_firingDepth = 0,
+		Signals = nil :: any,
+
+		-- Flat-table method binding for extreme lookup speed.
+		Connect = signalConnect,
+		Once = signalOnce,
+		Wait = signalWait,
+		Fire = signalFire,
+		DisconnectAll = signalDisconnectAll,
+		GetConnectionCount = signalGetConnectionCount,
+		Destroy = signalDestroy,
+		BindTo = signalBindTo,
+	}
+
+	-- Only generate sub-signals if this is a primary, developer-facing object.
+	if not IsInternal then
+		NewSignal.Signals = {
+			--[[
+				Fires automatically whenever a signal's connection count drops to zero. This is useful for cleaning up high-level systems that no longer have active listeners.
+				
+				Params:
+					Callback : () -> () -- The function to call when the event fires.
+					
+				Returns:
+					nil
+			]]
+			OnAbandoned = buildSignal(SignalID .. "_Abandoned", true) :: any, -- Construct the sub-signal and explicitly flag it as Internal to trip the recursive guard.
+		}
+	end
+
+	return NewSignal -- Return the completed SignalObject
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Relay Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Creates a new signal for the given ID, or returns the existing signal if one is already registered under that ID.
+
+	Params:
+	    SignalID: string -- A unique non-empty string identifier for the signal.
+
+	Returns:
+	    SignalObject -- The newly created signal, or the existing registered signal if SignalID is already in use.
+]]
+function Relay.Create(SignalID: string): SignalObject
+	
+	--[[
+		Relay.Create: The Global Provisioner.
+
+		The primary developer-facing entry point for the framework. This function acts 
+		as a global singleton factory, provisioning new event emitters or seamlessly 
+		routing developers to existing ones based on their unique String ID.
+
+		Core Behaviors:
+		    * Idempotent Allocation (The Singleton Pattern): If Script A and Script B both call "Relay.Create("MyRelay")", they are mathematically guaranteed to receive the exact same memory pointer. This allows completely disconnected scripts to share an event pipeline without physically passing the object between them.
+		    * Global Tracking: Injects newly minted signals into the master "SignalRegistry", preserving their state and keeping them accessible globally until "Signal:Destroy()" is explicitly called.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(SignalID) ~= "string" or SignalID == "" then
+			error("[Relay] Create Error: 'SignalID' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Look into the global dictionary for an existing signal with this exact ID.
+	local Existing = SignalRegistry[SignalID]
+
+	-- If it already exists, instantly return the cached memory pointer. This is the secret to global, cross-script event communication.
+	if Existing then
+		return Existing
+	end
+
+	-- If it does not exist, trigger the master factory to allocate a fresh footprint.
+	local NewSignal = buildSignal(SignalID)
+
+	-- Store the new signal in the global registry so future scripts can discover it.
+	SignalRegistry[SignalID] = NewSignal
+
+	return NewSignal
+end
+
+--[[
+	Returns whether a signal with the given ID currently exists in the active registry.
+
+	Params:
+	    SignalID: string -- The signal ID to check for an active registration.
+
+	Returns:
+	    boolean -- true if a live signal is registered under this ID, false otherwise.
+]]
+function Relay.Exists(SignalID: string): boolean
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(SignalID) ~= "string" or SignalID == "" then
+			error("[Relay] Exists Error: 'SignalID' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	return SignalRegistry[SignalID] ~= nil
+end
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the "Assignment" and "Reaper" libraries/frameworks.
+
+	Params:
+	    ModuleName        : string -- The name of the ModuleScript file.
+	    ModuleTableObject : any    -- The required module table/object to inject.
+
+	Returns:
+	    nil
+]]
+function Relay.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Relay] Inject Error: 'ModuleName' must be a non-empty string.")
+		end
+		
+		if type(ModuleTableObject) ~= "table" then
+			error("[Relay] Inject Error: 'ModuleTableObject' must be a table.")
+		end
+	end
+
+	if ModuleName == "Assignment" then
+		Scheduler.Spawn = ModuleTableObject.Spawn or task.spawn
+		Scheduler.Defer = ModuleTableObject.Defer or task.defer
+		Scheduler.Delay = ModuleTableObject.Delay or task.delay
+		Scheduler.Wait = ModuleTableObject.Wait or task.wait
+		Scheduler.Cancel = ModuleTableObject.Cancel or task.cancel
+		
+	elseif ModuleName == "Reaper" then
+		ReaperModule = ModuleTableObject
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+return Relay
+-------------------------------------------------------------------------------------------------------------
