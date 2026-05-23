@@ -4,7 +4,7 @@
 
 _**Assignment** is a high-performance, drop-in replacement for Roblox’s native task library and sequential `if/elseif` chains. Engineered specifically for scale, it combines high-frequency event scheduling, system frame-time protection, and a zero-allocation JIT pattern-matching engine (`.Switch()`) to maximize CPU efficiency and memory management._
 
-[Distribution Link:](https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler-and-switch-case-port-implementation-to-luau/4585350) `https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler-and-switch-case-port-implementation-to-luau/4585350`
+[Distribution:](https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler-and-switch-case-port-implementation-to-luau/4585350) `https://devforum.roblox.com/t/assignment-high-performance-timing-wheel-scheduler-and-switch-case-port-implementation-to-luau/4585350`
 
 ---
 
