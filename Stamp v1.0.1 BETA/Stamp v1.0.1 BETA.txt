@@ -974,6 +974,7 @@ function Stamp.Register(TagName: string): StampStream
 		
 		local MasterTrack = Reaper.Track(AddedInstance)
 		
+		MasterTrack:Configure("StampTrack" .. ScopeId, 0)
 		InstanceScope:BindToTrack(MasterTrack) -- Submit this scope to the track object. When Reaper detects the instance is destroyed or not parented anymore in the workspace, it will automatically handle this scope.
 
 		-- Fire the payload through the Relay to all waiting caller scripts.
