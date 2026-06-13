@@ -1,0 +1,1117 @@
+--[[
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	000 Stamp - Tag & Attribute Library										  					  						 000
+	000 Version: 1.0.4 Beta	Release												  				  						 000
+	000 Platform: Roblox													  					  						 000
+	000 License: Apache 2.0												  	  					  						 000
+	000																		  					  						 000
+	000																		  					  						 000
+	000 Maintainer/Developer: BedQuest (@yawnTooMuch)						  					  						 000
+	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    			  						 000
+	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/stamp-tag-driven-entity-component-systemecs/4587575 000
+	000 Github Repo: https://github.com/yawnTooMuch/Lazy-Games-Suite-of-Tools/tree/Stamp_ReadOnly 						 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/utilities/stamp/   						 000
+	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+]]
+
+--!strict
+--!native
+--!optimize 2
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Configuration Section
+----------------------------------------------------------
+
+local ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE: boolean = game:GetService("RunService"):IsStudio()  -- Enables parameter validation in Studio only
+local DEFERRED_TAG_RETRY_INTERVAL: number = 0.5                                                       -- Seconds between each AddTagDeferred retry attempt
+local DEFERRED_TAG_DEFAULT_TIMEOUT: number = 60                                                       -- Default timeout in seconds for AddTagDeferred
+local TAG_NAME_LENGTH_WARNING_THRESHOLD: number = 100                                                 -- Tag name character length that triggers an oversized warning
+local TAG_NAME_DISPLAY_TRUNCATION: number = 20                                                        -- Characters of a tag name shown in truncated warning messages
+local MAX_ATTRIBUTE_KEY_LENGTH: number = 100 														  -- Maximum length of a stamp attribute key
+
+local VALID_ATTRIBUTE_TYPES = {
+	["string"] = true,
+	["number"] = true,
+	["boolean"] = true,
+	["UDim"] = true,
+	["UDim2"] = true,
+	["BrickColor"] = true,
+	["Color3"] = true,
+	["Vector2"] = true,
+	["Vector3"] = true,
+	["NumberRange"] = true,
+	["NumberSequence"] = true,
+	["ColorSequence"] = true,
+	["Rect"] = true,
+	["Font"] = true
+} -- Supported data types for stamp attributes
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Type Structures Section
+----------------------------------------------------------
+
+-- The all methods of the 3rd party tool, the Reaper Framework.
+export type ReaperScope = {
+	AssignID: string,		-- The unique ID of the Scope object
+	
+	Chain: (self: ReaperScope, ChildItem: any, CustomMethod: string?) -> ReaperScope,
+	Unchain: (self: ReaperScope, ChildItem: any) -> ReaperScope,
+	CleanChild: (self: ReaperScope, ChildItem: any) -> ReaperScope,
+	BindToTrack: (self: ReaperScope, Track: any) -> ReaperScope,
+	Connect: (self: ReaperScope, Signal: any, Callback: any) -> RBXScriptConnection,
+	Spawn: (self: ReaperScope, Callback: (...any) -> (), ...any) -> thread,
+	Defer: (self: ReaperScope, Callback: (...any) -> (), ...any) -> any,
+	Delay: (self: ReaperScope, TimeDelay: number, Callback: (...any) -> (), ...any) -> any,
+	Repeat: (self: ReaperScope, Count: number, Interval: number?, Callback: (...any) -> (), ...any) -> any,
+	Destroy: (self: ReaperScope) -> (),
+}
+
+-- The primary signals of the StampStream object.
+export type StampSignals = {
+	Tagged: { 
+		Connect: (self: any, Callback: (Entity: PVInstance, Scope: ReaperScope) -> ()) -> () 
+	},
+	
+	Untagged: { 
+		Connect: (self: any, Callback: (Entity: PVInstance) -> ()) -> () 
+	},
+}
+
+-- This is the primary object that represents a single registered Stamp.
+export type StampStream = {
+	AddTag: (self: StampStream, Entity: PVInstance, IsAtomic: boolean?) -> (),
+	AddTagDeferred: (self: StampStream, ParentFolder: Instance, EntityName: string, IsRecursive: boolean?, TimeoutSeconds: number?) -> (),
+	RemoveTag: (self: StampStream, Entity: PVInstance) -> (),
+	RemoveAllTags: (self: StampStream) -> (),
+	GetAll: (self: StampStream) -> { PVInstance },
+	GetCount: (self: StampStream) -> number,
+	SetAttribute: (self: StampStream, Entity: PVInstance, Key: string, Value: any) -> (),
+	SetAttributeAll: (self: StampStream, Key: string, Value: any) -> (),
+	GetAttribute: (self: StampStream, Entity: PVInstance, Key: string) -> any,
+	GetInstancesWithAttribute: (self: StampStream, Key: string, ExpectedValue: any?) -> { PVInstance },
+	ObserveAttribute: (self: StampStream, Entity: PVInstance, Key: string, Callback: (Value: any) -> (), ScopeToBind: any?) -> RBXScriptConnection,
+	Destroy: (self: StampStream) -> (),
+	
+	Signals: StampSignals,
+
+	_tagName: string,							-- This is the exact string identifier bound to this stream.
+	_relay: any,								-- This is an instantiated Relay object (from the injected Relay library). Dedicated for the Tagged signal.
+	_removedRelay: any,							-- This is an instantiated Relay object (from the injected Relay library). Dedicated for the Untagged signal.
+	_trackedInstances: { [Instance]: any },		-- This is the master query cache. It is a dictionary where the key is the physical Roblox Instance and the value is that instance's unique ReaperScope.
+	_addedConnection: RBXScriptConnection?,		-- This holds the raw connection to Roblox's CollectionService:GetInstanceAddedSignal(). Stamp holds onto this pointer so that if the developer calls Stream:Destroy(), the library can instantly sever the link to the engine, preventing silent memory leaks.
+	_removedConnection: RBXScriptConnection?,	-- This holds the raw connection to Roblox's CollectionService:GetInstanceRemovedSignal(). Same with "_addedConnection" for a reason.
+	_count: number,								-- A strictly managed integer that increments when an entity is tagged and decrements when one is removed.
+}
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Imported Services Section
+----------------------------------------------------------
+
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Internal States Section
+----------------------------------------------------------
+
+local Reaper: any = nil			-- The reference holder of the Reaper Framework.
+local Assignment: any = nil		-- The reference holder of the Assignment Library.
+local Relay: any = nil			-- The reference holder of the Relay Library.
+
+local Stamp = {}
+
+local AttributeRelationships: { [string]: { [PVInstance]: any } } = {}		-- A global reverse-lookup dictionary. The first key is the Attribute Name (e.g., "Health"), which points to an inner dictionary containing every single Entity that has that attribute, along with its specific Value (e.g., 100).
+local ActiveStamps: { [string]: StampStream } = {}							-- A global dictionary mapping a specific Tag Name (e.g., "MyStamp") to its instantiated StampStream master object.
+
+local EntityAttributes: { [PVInstance]: { [string]: boolean } } = setmetatable({}, { 
+	__mode = "k" 
+})																			-- A forward-lookup dictionary. It maps a specific Entity to a set of Attribute Names (stored as booleans for zero-allocation tracking) that the entity currently possesses.
+
+local AttributeListenerBounded: { [PVInstance]: { [string]: boolean } } = setmetatable({}, { 
+	__mode = "k" 
+})																			-- A forward-lookup dictionary that strictly prevents duplicate background connections for attributes caching system.
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Public APIs Section
+----------------------------------------------------------
+
+--[[
+	Injects an external library within the Lazy Games Suite of Tools environment. Currently supports the "Assignment", "Relay" and "Reaper" libraries/framework.
+
+	Params:
+	    ModuleName        : string -- The name of the ModuleScript file.
+	    ModuleTableObject : any    -- The required module table/object to inject.
+
+	Returns:
+	    nil
+]]
+function Stamp.Inject(ModuleName: string, ModuleTableObject: any): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(ModuleName) ~= "string" or ModuleName == "" then
+			error("[Stamp] Inject Error: 'ModuleName' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if type(ModuleTableObject) ~= "table" then
+			error(string.format("[Stamp] Inject Error: 'ModuleTableObject' for '%s' must be a table.\n", ModuleName) .. debug.traceback(), 2)
+		end
+
+		if ModuleName ~= "Reaper" and ModuleName ~= "Assignment" and ModuleName ~= "Relay" then
+			warn(string.format("[Stamp] Inject Warning: '%s' is not a recognized module for injection.", ModuleName))
+		end
+	end
+
+	if ModuleName == "Reaper" then
+		Reaper = ModuleTableObject
+
+	elseif ModuleName == "Assignment" then
+		Assignment = ModuleTableObject
+
+	elseif ModuleName == "Relay" then
+		Relay = ModuleTableObject
+	end
+end
+
+--[[
+	Queries globally across all registered stamps for instances that possess the given attribute key.
+
+	Params:
+	    Key           : string -- The attribute key to search for.
+	    ExpectedValue : any?   -- (Optional) If provided, limits the returned instances to those matching this exact value.
+
+	Returns:
+	    { PVInstance } -- An array of PVInstances matching the criteria.
+]]
+function Stamp.GetInstancesWithAttribute(Key: string, ExpectedValue: any?): { PVInstance }
+	
+	--[[
+		Stamp.GetInstancesWithAttribute: The Global Query API.
+
+		Queries globally across all registered stamps to instantly fetch instances that 
+		possess a specific attribute key. By interacting strictly with Stamp's internal 
+		memory cache rather than the Roblox hierarchy, this function reduces massive 
+		O(N) game-world searches down to localized, high-speed subset iterations.
+
+		Core Behaviors:
+		    * The O(1) Gateway: Instantly skips millions of irrelevant game objects by looking up the specific Key in the "AttributeRelationships" dictionary, instantly returning only the group of entities that actually have the attribute.
+		    * Live-State Authentication: Strictly enforces an "Entity.Parent ~= nil" check during array assembly. This guarantees that callers are never handed "ghost" pointers to instances that were destroyed milliseconds before the query.
+		    * Polymorphic Filtering: Automatically adjusts its assembly logic. If "ExpectedValue" is nil, it returns everything with the key. If a value is provided, it performs a strict equality check before inserting the entity into the payload.
+	]]
+	
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(Key) ~= "string" or Key == "" then
+			error("[Stamp] Global GetInstancesWithAttribute Error: 'Key' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+			error(string.format("[Stamp] Global GetInstancesWithAttribute Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+		end
+
+		if ExpectedValue ~= nil then
+			local valType = typeof(ExpectedValue)
+
+			if not VALID_ATTRIBUTE_TYPES[valType] then
+				error(string.format("[Stamp] Global GetInstancesWithAttribute Error: Cannot query invalid attribute type '%s' for key '%s'.\n", valType, Key) .. debug.traceback(), 2)
+			end
+		end
+	end
+
+	local Matches: { PVInstance } = {}
+
+	-- Instantly fetch the specific dictionary containing ONLY the entities with this key.
+	local RelationshipMap: { [PVInstance]: any }? = AttributeRelationships[Key]
+
+	-- If the map exists (meaning at least one entity in the game has this attribute), assemble the payload.
+	if RelationshipMap then
+
+		-- Iterate through the highly-filtered subset, not the whole game.
+		for Entity, Value in RelationshipMap do
+
+			-- Ensure the instance hasn't been physically destroyed or garbage collected.
+			if Entity and Entity.Parent ~= nil then
+
+				-- Value Filtering Gate
+				if ExpectedValue ~= nil then
+					if Value == ExpectedValue then
+						table.insert(Matches, Entity :: PVInstance)
+					end
+
+				else
+					-- No specific value requested, the entity simply having the key is enough.
+					table.insert(Matches, Entity :: PVInstance)
+				end
+			end
+		end
+	end
+
+	return Matches
+end
+
+--[[
+	Returns the active StampStream for the given tag. If no stream exists yet with a specific TagName, it creates a new one.
+
+	Params:
+	    TagName : string -- The CollectionService tag this stream will manage.
+
+	Returns:
+	    StampStream -- The stream object for this tag.
+]]
+function Stamp.Register(TagName: string): StampStream
+	
+	--[[
+		Stamp.Register: The Master Stream Allocator.
+
+		The primary caller-facing entry point for the Stamp library. This function 
+		provisions a new "StampStream" object (or returns an existing one) to act 
+		as the authoritative controller for a specific CollectionService tag. It 
+		automatically bridges Roblox's native C-side tagging events with the 
+		high-performance Reaper memory manager.
+
+		Core Behaviors:
+		    * The Singleton Guarantee: Mathematically guarantees that only one "StampStream" object ever exists per tag in the game. If multiple disconnected scripts call "Register("MyStamp")", they are seamlessly handed the exact same memory pointer.
+		    * Eager Discovery: The exact millisecond the stream is created, it scans the entire game for instances that already possess the tag and instantly wraps them in safe Reaper scopes.
+		    * Retroactive Listeners: If a script calls "Signals.Tagged:Connect()" on a stream that already has active entities, the callback is automatically fired for those existing entities. This mathematically eliminates the classic Roblox race condition where a script loads after an entity has already spawned.
+	]]
+	
+	if not Reaper or not Relay or not Assignment then
+		error("[Stamp] Critical Error: 'Reaper', 'Assignment', and 'Relay' MUST be injected before registering tags!\n" .. debug.traceback(), 2)
+	end
+
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(TagName) ~= "string" or TagName == "" then
+			error("[Stamp] Register Error: 'TagName' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+
+		if #TagName > TAG_NAME_LENGTH_WARNING_THRESHOLD then
+			warn(string.format("[Stamp] Register Warning: The stamp name '%s' is unusually long. Ensure you are passing a category string, not serialized data.", string.sub(TagName, 1, TAG_NAME_DISPLAY_TRUNCATION) .. "..."))
+		end
+	end
+	
+	-- Look for an existing active stamp stream for this tag. If it exists, return it.
+	if ActiveStamps[TagName] then
+		return ActiveStamps[TagName]
+	end
+	
+	-- If no active stream exists, create a new one.
+	local Stream: StampStream = {
+		_tagName = TagName,
+		_relay = Relay.Create("Stamp_" .. TagName),
+		_removedRelay = Relay.Create("StampRemoved_" .. TagName),
+		
+		_trackedInstances = setmetatable({}, { 
+			__mode = "k" 
+		}) :: any,
+		
+		_count = 0,
+		Signals = {} :: StampSignals,
+
+		--[[
+			Applies this stream's tag to the given entity via CollectionService. This triggers Signals.Tagged for any callbacks connected to this stream.
+
+			Params:
+				Entity   : PVInstance -- The Model or BasePart to tag.
+				IsAtomic : boolean?   -- (Optional) If true, dynamically sets the entity's ModelStreamingMode to Atomic (Models only). Strictly server-only.
+
+			Returns:
+				nil
+		]]
+		AddTag = function(Self: StampStream, Entity: PVInstance, IsAtomic: boolean?)
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(Entity) ~= "Instance" or not Entity:IsA("PVInstance") then
+					error(string.format("[Stamp] AddTag Error: 'Entity' must be a PVInstance (Model, BasePart, etc.) for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if IsAtomic ~= nil and type(IsAtomic) ~= "boolean" then
+					error(string.format("[Stamp] AddTag Error: 'IsAtomic' must be a boolean for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+			end
+
+			if IsAtomic then
+				-- Only the Server has the authority to alter how the game streams memory to clients.
+				if RunService:IsServer() then
+					-- Only Models support the ModelStreamingMode property. BaseParts do not.
+					if Entity:IsA("Model") then
+						-- The client will now only see this entity if 100% of its descendants are fully loaded.
+						Entity.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+
+					else
+						warn(string.format("[Stamp] AddTag Warning: Cannot set IsAtomic=true on %s because it is a %s, not a Model.", Entity.Name, Entity.ClassName))
+					end
+
+				else
+					-- A Client script attempted to change streaming rules. Safely reject it.
+					warn(string.format("[Stamp] AddTag Warning: Cannot set ModelStreamingMode to Atomic from the Client for entity %s.", Entity.Name))
+				end
+			end
+
+			-- Push the tag to the Roblox engine. This will instantly fire the "_addedConnection" listener established in Stamp.Register.
+			CollectionService:AddTag(Entity, Self._tagName)
+		end,
+
+		--[[
+			Polls ParentFolder every 0.5 seconds until a child named EntityName appears, then tags it. Designed to handle Roblox StreamingEnabled on the client, where an instance may not exist locally at the moment your script runs. The polling stops as soon as the instance is found and tagged, if ParentFolder is removed from the game hierarchy, or when the timeout elapses.
+
+			Params:
+				ParentFolder   : Instance -- The container to search within.
+				EntityName     : string   -- The exact name of the instance to wait for.
+				IsRecursive    : boolean? -- (Optional) When true, the search descends into all descendants of ParentFolder. Defaults to false.
+				TimeoutSeconds : number?  -- (Optional) The maximum number of seconds to keep polling before giving up. Defaults to 60.
+
+			Returns:
+				nil
+		]]
+		AddTagDeferred = function(Self: StampStream, ParentFolder: Instance, EntityName: string, IsRecursive: boolean?, TimeoutSeconds: number?)
+			
+			-- Prevent the Server from wasting CPU cycles on asynchronous polling.
+			if RunService:IsServer() then
+				warn("[Stamp] AddTagDeferred is a Client-only method. Use AddTag on the Server.")
+				
+				return
+			end
+
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(ParentFolder) ~= "Instance" then
+					error(string.format("[Stamp] AddTagDeferred Error: 'ParentFolder' must be an Instance for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if type(EntityName) ~= "string" or EntityName == "" then
+					error(string.format("[Stamp] AddTagDeferred Error: 'EntityName' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if IsRecursive ~= nil and type(IsRecursive) ~= "boolean" then
+					error(string.format("[Stamp] AddTagDeferred Error: 'IsRecursive' must be a boolean for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if TimeoutSeconds ~= nil and (type(TimeoutSeconds) ~= "number" or TimeoutSeconds < 0) then
+					error(string.format("[Stamp] AddTagDeferred Error: 'TimeoutSeconds' must be a positive number for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+			end
+
+			local SearchRecursively: boolean = IsRecursive or false
+
+			-- Calculate exactly how many loop iterations are allowed before hitting the max timeout.
+			local MaxRetries = math.ceil((TimeoutSeconds or DEFERRED_TAG_DEFAULT_TIMEOUT) / DEFERRED_TAG_RETRY_INTERVAL)
+
+			Assignment.Repeat(MaxRetries, DEFERRED_TAG_RETRY_INTERVAL, function(_Iteration: number, Handle: any)
+				-- If the container we are searching inside is destroyed while we are waiting, instantly abort the loop to prevent memory leaks.
+				if not ParentFolder:IsDescendantOf(game) then
+					Handle:Break()
+					
+					return
+				end
+
+				-- Scan the local memory graph for the target.
+				local FoundEntity = ParentFolder:FindFirstChild(EntityName, SearchRecursively)
+
+				if FoundEntity and FoundEntity:IsA("PVInstance") then
+					-- Ensure it hasn't somehow already been tagged.
+					if not CollectionService:HasTag(FoundEntity, Self._tagName) then
+						CollectionService:AddTag(FoundEntity, Self._tagName)
+					end
+
+					-- The job is done. Terminate the background polling loop.
+					Handle:Break()
+				end
+			end)
+		end,
+
+		--[[
+			Removes this stream's tag from the given entity. Then fires Signals.Untagged immediately after removal.
+
+			Params:
+				Entity : PVInstance -- The instance to untag.
+
+			Returns:
+				nil
+		]]
+		RemoveTag = function(Self: StampStream, Entity: PVInstance)
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(Entity) ~= "Instance" or not Entity:IsA("PVInstance") then
+					error(string.format("[Stamp] RemoveTag Error: 'Entity' must be a PVInstance for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+			end
+
+			CollectionService:RemoveTag(Entity, Self._tagName)
+		end,
+
+		--[[
+			Removes this stream's tag from every instance in the game that currently carries it. Each removal fires Signals.Untagged immediately.
+
+			Returns:
+				nil
+		]]
+		RemoveAllTags = function(Self: StampStream)
+			for _, ExistingInstance in ipairs(CollectionService:GetTagged(Self._tagName)) do
+				CollectionService:RemoveTag(ExistingInstance, Self._tagName)
+			end
+		end,
+
+		--[[
+			Returns an array containing every instance currently tracked by this stream.
+
+			Returns:
+				{ PVInstance } -- All instances the stream is currently tracking. Returns an empty table if none are tracked.
+		]]
+		GetAll = function(Self: StampStream): { PVInstance }
+			local Instances: { PVInstance } = {}
+			
+			-- Scan all objects currently only bound to this stream.
+			for TrackedInstance in Self._trackedInstances do
+				table.insert(Instances, TrackedInstance :: PVInstance)
+			end
+
+			return Instances
+		end,
+
+		--[[
+			Returns the number of instances currently tracked by this stream.
+
+			Returns:
+				number -- The current tracked instance count.
+		]]
+		GetCount = function(Self: StampStream): number
+			return Self._count -- O(1) query to the count of stamped instances.
+		end,
+
+		--[[
+			Sets a named attribute on the given entity and registers the entity–key–value relationship in Stamp's query cache. Passing nil as the value removes the attribute from both the instance and the query cache.
+
+			Params:
+				Entity : PVInstance -- The instance to set the attribute on.
+				Key    : string     -- The attribute name. Maximum 100 characters.
+				Value  : any        -- The value to assign. Pass nil to remove the attribute and clear it from the query cache.
+
+			Returns:
+				nil
+		]]
+		SetAttribute = function(Self: StampStream, Entity: PVInstance, Key: string, Value: any)
+			
+			-- If the library already perfectly matches the requested state, instantly halt execution to save CPU.
+			if typeof(Entity) == "Instance" and Entity:GetAttribute(Key) == Value and AttributeRelationships[Key] and AttributeRelationships[Key][Entity] ~= nil then
+				return
+			end
+
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(Entity) ~= "Instance" or not Entity:IsA("PVInstance") then
+					error(string.format("[Stamp] SetAttribute Error: 'Entity' must be a PVInstance for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if type(Key) ~= "string" or Key == "" then
+					error(string.format("[Stamp] SetAttribute Error: 'Key' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+					error(string.format("[Stamp] SetAttribute Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+				end
+
+				if Value ~= nil then
+					local valType = typeof(Value)
+
+					if not VALID_ATTRIBUTE_TYPES[valType] then
+						error(string.format("[Stamp] SetAttribute Error: Cannot assign type '%s' to attribute '%s'. Not supported by Roblox.\n", valType, Key) .. debug.traceback(), 2)
+					end
+				end
+
+				if not Entity.Parent then
+					warn(string.format("[Stamp] SetAttribute Warning: Attempted to set '%s' on a destroyed or unparented entity.", Key))
+				end
+			end
+
+			if typeof(Entity) ~= "Instance" then return end
+
+			-- The Deletion Pipeline
+			if Value == nil then
+				-- Sever the Reverse-Lookup (Query Index)
+				if AttributeRelationships[Key] then
+					AttributeRelationships[Key][Entity] = nil
+
+					-- If this was the last entity with this attribute, destroy the master table to free memory.
+					if next(AttributeRelationships[Key]) == nil then
+						AttributeRelationships[Key] = nil
+					end
+				end
+
+				-- Sever the Forward-Lookup (Garbage Collection Ledger)
+				if EntityAttributes[Entity] then
+					EntityAttributes[Entity][Key] = nil
+
+					-- Leaving the empty table prevents brand-new closures from being generated if the attribute is re-added later. The Luau GC will automatically clean the empty table when the Entity dies because EntityAttributes is __mode = "k".
+				end
+
+			else -- The Assignment Pipeline
+				if not AttributeRelationships[Key] then
+					AttributeRelationships[Key] = setmetatable({}, { 
+						__mode = "k" 
+					}) :: any -- Write to the Reverse-Lookup (Query Index)
+				end
+
+				AttributeRelationships[Key][Entity] = Value -- Update the local cache immediately for instant O(1) queries.
+
+				if not EntityAttributes[Entity] then
+					EntityAttributes[Entity] = {} --  Write to the Forward-Lookup (Garbage Collection Ledger)
+
+					-- Automated Memory Teardown: Only need to generate this closure ONCE per entity.
+					local function cleanupAttributeCache()
+						local TrackedKeys = EntityAttributes[Entity]
+
+						if TrackedKeys then
+							for TrackedKey in TrackedKeys do
+								-- Surgically remove the dead entity from the global query index.
+								if AttributeRelationships[TrackedKey] then
+									AttributeRelationships[TrackedKey][Entity] = nil
+									
+									if next(AttributeRelationships[TrackedKey]) == nil then
+										AttributeRelationships[TrackedKey] = nil
+									end
+								end
+							end
+
+							-- Wipe the entity's ledger.
+							EntityAttributes[Entity] = nil
+						end
+					end
+
+					-- Bind the teardown closure to the entity's physical lifespan via the Reaper module.
+					Reaper.Track(Entity):Chain(cleanupAttributeCache)
+				end
+
+				-- Register the key as active on this entity.
+				EntityAttributes[Entity][Key] = true
+				
+				-- Lazy Sync & Echo Cancellation (Prevents the signal from firing into the same environment manipulation)
+				if not AttributeListenerBounded[Entity] then
+					AttributeListenerBounded[Entity] = {}
+				end
+				
+				-- Only bind a native listener if one doesn't exist for this exact Key.
+				if not AttributeListenerBounded[Entity][Key] then
+					AttributeListenerBounded[Entity][Key] = true
+
+					local Connection = Entity:GetAttributeChangedSignal(Key):Connect(function()
+						-- Ensure the entity wasn't destroyed before execution.
+						if Entity.Parent ~= nil then
+							--[[
+								Roblox API Limitation:
+								
+								The signal does not pass the new value, so we must fetch it.
+							]]
+							local NativeValue = Entity:GetAttribute(Key)
+
+							--[[
+								Echo Cancellation: 
+								
+								If the Native Value perfectly matches our Local Cache, it means that the same environment initiated this change. Abort instantly to save CPU.
+							]]
+							if AttributeRelationships[Key] and NativeValue == AttributeRelationships[Key][Entity] then
+								return
+							end
+
+							-- The Server (or another script within the same environment) forced a change. 
+							if NativeValue == nil then
+								-- The Server or Client deleted the attribute. Route it safely through our Deletion Pipeline.
+								Self:SetAttribute(Entity, Key, nil)
+								
+							else
+								-- The Server changed the value. Forcefully overwrite the local cache matrix.
+								if not AttributeRelationships[Key] then
+									AttributeRelationships[Key] = setmetatable({}, {
+										__mode = "k"
+									})
+								end
+								
+								AttributeRelationships[Key][Entity] = NativeValue
+							end
+						end
+					end)
+
+					--[[
+						The internal caches (AttributeRelationships) are GLOBAL to the entire Stamp library. 
+						Therefore, this background listener MUST be bound to the Entity's physical lifespan, NEVER a localized Tag Scope. 
+						If it was bound to a Tag, removing the Tag would break the cache sync for any OTHER Tags still attached to this entity.
+					]]
+					Reaper.Track(Entity):Chain(Connection)
+				end
+			end
+
+			-- Finally, physically write the data to the Roblox engine, provided the instance is still alive.
+			if Entity.Parent ~= nil then
+				Entity:SetAttribute(Key, Value)
+			end
+		end,
+
+		--[[
+			Sets the named attribute to the given value on every instance currently tracked by this stream.
+
+			Params:
+				Key   : string -- The attribute name.
+				Value : any    -- The value to assign to all tracked instances. Pass nil to remove the attribute from all of them.
+
+			Returns:
+				nil
+		]]
+		SetAttributeAll = function(Self: StampStream, Key: string, Value: any)
+			-- If the stream is completely empty, instantly abort.
+			if Self._count == 0 then return end
+
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if type(Key) ~= "string" or Key == "" then
+					error(string.format("[Stamp] SetAttributeAll Error: 'Key' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+					error(string.format("[Stamp] SetAttributeAll Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+				end
+
+				if Value ~= nil then
+					local valType = typeof(Value)
+
+					if not VALID_ATTRIBUTE_TYPES[valType] then
+						error(string.format("[Stamp] SetAttributeAll Error: Cannot assign type '%s' to attribute '%s'. Not supported by Roblox.\n", valType, Key) .. debug.traceback(), 2)
+					end
+				end
+			end
+
+			-- Iterate through the internal memory dictionary. Because it's a dictionary, the key is the Instance itself.
+			for TrackedInstance in Self._trackedInstances do
+				-- Delegate the heavy lifting to the master SetAttribute function, ensuring the O(1) query matrices and Reaper scopes are perfectly updated.
+				Self:SetAttribute(TrackedInstance :: PVInstance, Key, Value)
+			end
+		end,
+
+		--[[
+			Returns the current value of the named attribute on the given entity.
+
+			Params:
+				Entity : PVInstance -- The instance to read the attribute from.
+				Key    : string     -- The attribute name.
+
+			Returns:
+				any -- The current attribute value, or nil if the attribute does not exist on this entity.
+		]]
+		GetAttribute = function(Self: StampStream, Entity: PVInstance, Key: string): any
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(Entity) ~= "Instance" or not Entity:IsA("PVInstance") then
+					error(string.format("[Stamp] GetAttribute Error: 'Entity' must be a PVInstance for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if type(Key) ~= "string" or Key == "" then
+					error(string.format("[Stamp] GetAttribute Error: 'Key' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+					error(string.format("[Stamp] GetAttribute Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+				end
+			end
+
+			if typeof(Entity) ~= "Instance" then return nil end
+
+			local RelationshipMap = AttributeRelationships[Key]
+
+			-- If the attribute is actively tracked by Stamp, serve the value instantly from local Luau memory.
+			if RelationshipMap and RelationshipMap[Entity] ~= nil then
+				return RelationshipMap[Entity]
+			end
+
+			-- The attribute is unmanaged by the matrix. Ask the native Roblox engine for the value.
+			return Entity:GetAttribute(Key)
+		end,
+
+		--[[
+			Subscribes to changes on the named attribute. The callback fires on the next available frame with the attribute's current value (if one exists and the entity is alive), then fires again each time the attribute changes in the future. Both the initial delivery and future deliveries only occur while the entity has a live parent.
+
+			Params:
+				Entity     : PVInstance          -- The instance holding the attribute to observe.
+				Key        : string              -- The attribute name to observe.
+				Callback   : (Value: any) -> ()  -- The function to call immediately with the current value, and again on every future change.
+				ScopeToBind: any?                -- (Optional) A custom scope to bind the connection to. When omitted, the scope is chosen automatically using the waterfall memory management approach.
+
+			Returns:
+				RBXScriptConnection -- The raw event connection.
+		]]
+		ObserveAttribute = function(Self: StampStream, Entity: PVInstance, Key: string, Callback: (Value: any) -> (), ScopeToBind: any?): RBXScriptConnection
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if typeof(Entity) ~= "Instance" or not Entity:IsA("PVInstance") then
+					error(string.format("[Stamp] ObserveAttribute Error: 'Entity' must be a PVInstance for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if type(Key) ~= "string" or Key == "" then
+					error(string.format("[Stamp] ObserveAttribute Error: 'Key' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+					error(string.format("[Stamp] ObserveAttribute Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+				end
+
+				if type(Callback) ~= "function" then
+					error(string.format("[Stamp] ObserveAttribute Error: 'Callback' must be a function for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+			end
+
+			if typeof(Entity) ~= "Instance" then return nil :: any end
+
+			local InitialValue = Self:GetAttribute(Entity, Key)
+
+			-- If data exists, and the entity is physically alive in the world, execute the callback immediately to synchronize the caller's logic.
+			if InitialValue ~= nil and Entity.Parent ~= nil then
+				Assignment.Spawn(Callback, InitialValue)
+			end
+
+			-- The C-Side Event Listener
+			local Connection: RBXScriptConnection = Entity:GetAttributeChangedSignal(Key):Connect(function()
+				-- Ignore the event if the entity was destroyed in the microscopic gap between the engine firing the signal and Luau processing it.
+				if Entity.Parent ~= nil then
+					local NewValue = Self:GetAttribute(Entity, Key)
+					
+					Callback(NewValue)
+				end
+			end)
+
+			-- The caller provided an explicit scope to manage this connection.
+			if ScopeToBind and type(ScopeToBind.Chain) == "function" then
+				ScopeToBind:Chain(Connection)
+
+			else
+				-- Check if this specific stream is tracking the entity.
+				local ActiveTagScope = Self._trackedInstances[Entity]
+
+				if ActiveTagScope then
+					-- Bind the connection to the localized tag scope. If the entity loses the tag, this connection is automatically severed.
+					ActiveTagScope:Chain(Connection)
+
+				else
+					-- The entity is alive, but not managed by this specific stream. 
+					if Entity.Parent ~= nil then
+						-- Bind the connection directly to the entity's physical lifespan via Reaper.
+						Reaper.Track(Entity):Chain(Connection)
+
+					else
+						-- The entity died during the setup phase. Instantly sever the connection to prevent a memory leak.
+						Connection:Disconnect()
+					end
+				end
+			end
+
+			return Connection
+		end,
+
+		--[[
+			Searches within this stream for instances that possess the named attribute. Only instances currently tracked by this stream are considered; instances from other streams that carry the same attribute are excluded. Only instances with a live parent are included.
+
+			Params:
+				Key          : string -- The attribute name to search for.
+				ExpectedValue: any?   -- (Optional) When provided, only instances whose cached attribute value exactly matches this are returned.
+
+			Returns:
+				{ PVInstance } -- An array of matching instances from this stream. Returns an empty table if nothing matches or the stream is empty.
+		]]
+		GetInstancesWithAttribute = function(Self: StampStream, Key: string, ExpectedValue: any?): { PVInstance }
+			-- If this stream doesnt have any instances stamped yet, return an empty table.
+			if Self._count == 0 then return {} end
+
+			if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+				if type(Key) ~= "string" or Key == "" then
+					error(string.format("[Stamp] GetInstancesWithAttribute Error: 'Key' must be a non-empty string for stamp '%s'.\n", Self._tagName) .. debug.traceback(), 2)
+				end
+
+				if #Key > MAX_ATTRIBUTE_KEY_LENGTH then
+					error(string.format("[Stamp] GetInstancesWithAttribute Error: Key '%s' exceeds Roblox's 100-character limit.\n", Key) .. debug.traceback(), 2)
+				end
+
+				if ExpectedValue ~= nil then
+					local valType = typeof(ExpectedValue)
+
+					if not VALID_ATTRIBUTE_TYPES[valType] then
+						error(string.format("[Stamp] GetInstancesWithAttribute Error: Cannot query invalid attribute type '%s' for key '%s'.\n", valType, Key) .. debug.traceback(), 2)
+					end
+				end
+			end
+
+			local Matches: { PVInstance } = {}
+			local RelationshipMap: { [PVInstance]: any }? = AttributeRelationships[Key]
+
+			-- If the attribute exists globally, begin the filtering cascade.
+			if RelationshipMap then
+				for Entity, Value in RelationshipMap do
+					-- Instantly reject the entity if it does not belong to this specific StampStream.
+					if Self._trackedInstances[Entity] then
+						-- Ensure the entity is fully alive
+						if Entity.Parent ~= nil then
+							-- The Value Gate: Only pass if the Value is nil OR the Value matches the expected value.
+							if ExpectedValue ~= nil then
+								if Value == ExpectedValue then
+									table.insert(Matches, Entity :: PVInstance)
+								end
+
+							else
+								-- The entity passed all matrix and liveness checks, and no specific value was required.
+								table.insert(Matches, Entity :: PVInstance)
+							end
+						end
+					end
+				end
+			end
+
+			return Matches
+		end,
+
+		--[[
+			Initiate a cleanup event for this stream, destroying everything this stream associated with.
+
+			Returns:
+				nil
+		]]
+		Destroy = function(Self: StampStream)
+			-- Strip the tag from all entities, forcing their individual Reaper scopes to clean up any bound connections/data.
+			Self:RemoveAllTags()
+
+			-- Disconnect the native Roblox engine bridges.
+			if Self._addedConnection then
+				Self._addedConnection:Disconnect()
+				Self._addedConnection = nil
+			end
+
+			if Self._removedConnection then
+				Self._removedConnection:Disconnect()
+				Self._removedConnection = nil
+			end
+
+			-- Destroy the internal event broadcasters to sever any remaining caller connections.
+			if Self._relay and type(Self._relay.Destroy) == "function" then
+				Self._relay:Destroy()
+			end
+
+			if Self._removedRelay and type(Self._removedRelay.Destroy) == "function" then
+				Self._removedRelay:Destroy()
+			end
+
+			-- Remove this stream from the global matrix so it can be overwritten or reset.
+			if ActiveStamps[Self._tagName] then
+				ActiveStamps[Self._tagName] = nil
+			end
+
+			-- Instantly nil all keys in the Self table to guarantee no strong reference left.
+			table.clear(Self)
+		end,
+	}
+
+	Stream.Signals = {
+		--[[
+			Fires each time an instance receives this stream's tag.
+
+			Params:
+				Callback : (Entity: PVInstance, Scope: ReaperScope) -> () -- The callback function to connect.
+
+			Returns:
+				nil
+		]]
+		Tagged = {
+			--[[
+				Params:
+					Entity : PVInstance  -- The instance that was tagged.
+					Scope  : ReaperScope -- A unique garbage-collection scope bound to this entity's tag lifecycle.
+
+				Returns:
+					nil
+			]]
+			Connect = function(_Self: any, Callback: (Entity: PVInstance, Scope: ReaperScope) -> ())
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					if type(Callback) ~= "function" then
+						error(string.format("[Stamp] Signals.Tagged Error: 'Callback' must be a function for stamp '%s'.\n", Stream._tagName) .. debug.traceback(), 2)
+					end
+				end
+
+				-- Route the callback into the high-speed Relay library to listen for all future tagging events.
+				local Connection = Stream._relay:Connect(Callback)
+
+				-- If the game world already contains entities with this tag, we MUST fire the callback for them immediately.
+				if Stream._count > 0 then
+					-- Iterate through the internal O(1) query cache.
+					for TrackedInstance, InstanceScope in Stream._trackedInstances do
+						-- Stop the catch-up loop immediately if the caller severs the connection.
+						if not Connection:IsConnected() then break end
+
+						-- Ensure the entity wasn't destroyed in the exact microsecond this loop is running.
+						if TrackedInstance.Parent ~= nil then
+
+							--[[
+								Asynchronous Firing: 
+								
+								Fire the callback on a separate background thread. This prevents caller yields inside the callback from bottlenecking the internal library.
+							]]
+							Assignment.Spawn(Callback, TrackedInstance :: PVInstance, InstanceScope)
+						end
+					end
+				end
+
+				return
+			end,
+		},
+		--[[
+			Fires when an instance loses the tag, or when the instance is destroyed.
+
+			Params:
+				Callback : (Entity: PVInstance) -> () -- The callback function to connect.
+
+			Returns:
+				nil
+		]]
+		Untagged = {
+			--[[
+				Params:
+					Entity : PVInstance -- The instance that lost the tag.
+
+				Returns:
+					nil
+			]]
+			Connect = function(_Self: any, Callback: (Entity: PVInstance) -> ())
+				if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+					if type(Callback) ~= "function" then
+						error(string.format("[Stamp] Signals.Untagged Error: 'Callback' must be a function for stamp '%s'.\n", Stream._tagName) .. debug.traceback(), 2)
+					end
+				end
+
+				Stream._removedRelay:Connect(Callback) -- Connect to the relay signal to listen for future untagging events.
+				
+				return
+			end,
+		},
+	}
+
+	-- Removes a tagged instance from tracking and fires the removed relay
+	local function handleRemoved(RemovedInstance: Instance)
+		local InstanceScope = Stream._trackedInstances[RemovedInstance]
+
+		if InstanceScope then
+			-- Strip the entity from the internal tracking matrix.
+			Stream._trackedInstances[RemovedInstance] = nil
+			Stream._count -= 1
+
+			local ScopeId: string = InstanceScope.AssignID
+
+			-- Force Reaper to execute the teardown cascade. This guarantees that any loops, events, or attributes bound to this specific entity's tag are destroyed.
+			Reaper.Clean(ScopeId)
+
+			-- Notify the caller's Untagged listeners.
+			Stream._removedRelay:Fire(RemovedInstance)
+		end
+	end
+
+	-- Registers a newly tagged instance, sets up its Reaper scope, and fires the added relay
+	local function handleAdded(AddedInstance: Instance)
+		-- Ensure we don't accidentally generate two scopes for the same entity.
+		if Stream._trackedInstances[AddedInstance] then return end
+
+		--[[
+			The Masterstroke: 
+			
+			Generate a mathematically unique GUID for this specific instance's tag lifecycle. This guarantees that if a PVInstance gets tagged, untagged, and tagged again, it gets a completely fresh, uncontaminated memory sandbox.
+		]]
+		local ScopeId: string = "Stamp_" .. TagName .. "_" .. HttpService:GenerateGUID(false)
+		local InstanceScope = Reaper.Scope(ScopeId)
+
+		-- Cache the entity and its unique scope in the O(1) query matrix.
+		Stream._trackedInstances[AddedInstance] = InstanceScope
+		Stream._count += 1
+		
+		local MasterTrack = Reaper.Track(AddedInstance, nil, nil, true)
+		
+		MasterTrack:Configure("StampTrack" .. ScopeId, 0)
+		InstanceScope:BindToTrack(MasterTrack) -- Submit this scope to the track object. When Reaper detects the instance is destroyed or not parented anymore in the workspace, it will automatically handle this scope.
+
+		-- Fire the payload through the Relay to all waiting caller scripts.
+		Stream._relay:Fire(AddedInstance, InstanceScope)
+	end
+	
+	-- Wire the bridges directly to Roblox's C-side engine.
+	Stream._addedConnection = CollectionService:GetInstanceAddedSignal(TagName):Connect(handleAdded)
+	Stream._removedConnection = CollectionService:GetInstanceRemovedSignal(TagName):Connect(handleRemoved)
+	
+	-- Automatically fire those already tagged entities so that at any given time, the caller is guaranteed to receive all the tagged entities every single time any stream is created.
+	for _, ExistingInstance in ipairs(CollectionService:GetTagged(TagName)) do
+		handleAdded(ExistingInstance)
+	end
+
+	-- Cache the finalized Stream object globally so any future scripts requesting this TagName receive this exact pointer.
+	ActiveStamps[TagName] = Stream
+	
+	return Stream
+end
+
+--[[
+	Destroys a registered StampStream by name.
+
+	Params:
+	    TagName : string -- The name of the tag stream to destroy.
+
+	Returns:
+	    nil
+]]
+function Stamp.Destroy(TagName: string): ()
+	if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+		if type(TagName) ~= "string" or TagName == "" then
+			error("[Stamp] Destroy Error: 'TagName' must be a non-empty string.\n" .. debug.traceback(), 2)
+		end
+	end
+
+	-- Attempt to retrieve the authoritative pointer from the master Singleton registry.
+	local ExistingStream = ActiveStamps[TagName]
+
+	if ExistingStream then
+		-- The stream exists. Trigger the Master Teardown Cascade (removing tags, severing C-side bridges, and wiping memory).
+		ExistingStream:Destroy()
+
+	else
+		-- The stream does not exist.
+		if ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE then
+			warn(string.format("[Stamp] Destroy Warning: Stamp '%s' does not exist or was already destroyed.", TagName))
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------------------------
+--#########################################################################################################--
+-------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------
+-- Stamp Utilities Section
+----------------------------------------------------------
+
+Stamp.Utility = {}
+
+--[[
+	Takes an input string and removes all whitespace (spaces, tabs, newlines).
+
+	Params:
+	    InputString : string -- The string to compact.
+
+	Returns:
+	    string -- The compacted string.
+]]
+function Stamp.Utility.CompactString(InputString: string): string
+	if type(InputString) ~= "string" or InputString == "" then
+		warn(string.format("[Stamp] Utility.CompactString Warning: Expected a non-empty string, but received a '%s'. Returning empty string.", type(InputString)))
+		
+		return ""
+	end
+
+	local CompactedString, _ = string.gsub(InputString, "%s+", "")
+
+	return CompactedString
+end
+
+-------------------------------------------------------------------------------------------------------------
+return Stamp
+-------------------------------------------------------------------------------------------------------------
