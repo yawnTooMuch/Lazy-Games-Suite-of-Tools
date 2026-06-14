@@ -105,6 +105,20 @@ local track = Reaper.Track(conn)
 -- within 3 seconds and removes it from the registry automatically
 ```
 
+**Scenario F — Using `Reaper.Classifications` instead of string literals**
+
+```luau
+-- Reaper.Classifications exposes all seven classification strings as named keys.
+-- Use them instead of bare strings to get IDE autocomplete and avoid typos.
+
+-- Without Classifications:
+Reaper.Track(weaponController, "Table", "Dispose")
+
+-- With Classifications:
+Reaper.Track(weaponController, Reaper.Classifications.Table, "Dispose")
+    :Configure("Weapon_" .. player.UserId, 0)
+```
+
 ---
 
 ### Reaper.Scope
@@ -351,6 +365,44 @@ local character = player.Character
 -- passing any other value here is silently treated as 0.
 local charTrack = Reaper.Track(character)
     :Configure("Char_" .. player.UserId, 0)
+```
+
+---
+
+### :IsConfigured
+
+Returns `true` if this handle has already been assigned a string identifier via `:Configure()`.
+
+**Scenario A — Guarding a shared utility function against double-configuration**
+
+```luau
+-- A shared helper that may receive either a fresh or already-configured handle
+local function ensureConfigured(track: TrackObject, id: string)
+    if track:IsConfigured() then
+        -- Already named — safe to retrieve it, nothing to do here
+        return
+    end
+    -- Not yet configured — assign the identity now
+    track:Configure(id, 0)
+end
+
+local charTrack = Reaper.Track(player.Character)
+ensureConfigured(charTrack, "Char_" .. player.UserId)
+ensureConfigured(charTrack, "Char_" .. player.UserId) -- second call is safely ignored
+```
+
+**Scenario B — Branching logic based on configuration state**
+
+```luau
+local track = Reaper.Track(someConnection)
+
+-- Some systems pre-configure handles; others leave them anonymous.
+-- IsConfigured lets you adapt without throwing in Studio.
+if track:IsConfigured() then
+    print("Already registered as:", track.AssignID)
+else
+    track:Configure("FallbackConn_" .. os.clock(), 5)
+end
 ```
 
 ---
@@ -681,6 +733,21 @@ local animScope = Reaper.Scope("BurstAnim_" .. userId)
 animScope:Repeat(5, 0.2, function(i, handle)
     character.Humanoid.RootPart.Transparency = (i % 2 == 0) and 0 or 0.5
 end)
+```
+
+**Scenario C — Manually breaking a loop early without cleaning the Scope**
+
+```luau
+local matchScope = Reaper.Scope("Match_" .. matchId)
+
+-- Start an infinite sync loop and keep the handle for manual control
+local syncHandle = matchScope:Repeat(-1, 5, function(iteration, handle)
+    syncLeaderboard()
+end)
+
+-- Leaderboard sync is no longer needed mid-match, but the match itself continues
+-- Break only this loop — matchScope and all its other children remain alive
+syncHandle:Break()
 ```
 
 ---

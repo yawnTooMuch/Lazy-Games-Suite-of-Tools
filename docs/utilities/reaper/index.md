@@ -22,7 +22,7 @@ Reaper is used across both server-side and client-side scripts wherever game sta
 | Name | Role | Injection |
 | :--- | :--- | :--- |
 | **Assignment** | Provides advanced thread scheduling methods (`Spawn`, `Defer`, `Delay`, `Wait`, `Cancel`, `Repeat`) used internally by `ScopeObject` helper methods. Without injection, Reaper falls back to native `task.*` equivalents for all methods except `Repeat`, which is unavailable. | `Reaper.Inject("Assignment", AssignmentModule)` |
-| **Relay** | Powers the three global lifecycle signals (`OnTracked`, `OnCleaned`, `OnRemoved`). Without injection, these signals exist as no-op stubs that emit a Studio warning when connected to. | `Reaper.Inject("Relay", RelayModule)` |
+| **Relay** | Powers the three global lifecycle signals (`OnTracked`, `OnCleaned`, `OnRemoved`). Without injection, these signals exist as no-op stubs that emit a Studio warning when connected to. Relay also exposes an `OnAbandoned` signal on every signal object it creates, which fires automatically when its last listener disconnects. When Reaper tracks a Relay signal object and Relay is injected, Reaper hooks `OnAbandoned` to detect the object's end-of-life and trigger teardown automatically. This behavior is entirely invisible to the developer so no additional setup is required. | `Reaper.Inject("Relay", RelayModule)` |
 
 ---
 
@@ -42,12 +42,12 @@ When `Reaper.Track()` is called, the item's type determines which monitoring tie
 
 - **Frequency-polled tier** — Connections and Threads that have been configured with a non-zero check frequency via `:Configure()`. Reaper evaluates each item against its frequency interval on a recurring frame cycle. This tier is the only one where the `Frequency` argument to `:Configure()` has any effect.
 - **Background batch tier** — Connections and Threads that have not yet been configured. Evaluated in a rolling batch sweep every thirty seconds, spread across frames so no single frame is overwhelmed.
-- **Event-driven tier** — Instances and Suite-integrated objects. Instances are monitored via an `AncestryChanged` hook; certain objects from the Lazy Games Suite that expose a dedicated abandonment signal are similarly hooked at registration time. Both are detected in zero background CPU time — the check fires only when the underlying engine event occurs.
+- **Event-driven tier** — Instances and Relay signal objects. Instances are monitored via an `AncestryChanged` hook. When Relay is injected, Reaper also recognizes any tracked Relay signal object by detecting the presence of its `OnAbandoned` signal — a Relay-internal event that fires when the last listener on that signal disconnects. Reaper hooks this automatically at tracking time to trigger teardown when the object is no longer in use. Both objects are detected in zero background CPU time, the check fires only when the underlying engine event occurs, with no polling involved.
 - **Manual tier** — Tables, Functions, Scopes, unrecognised types, and any Connection or Thread configured with `Frequency = 0`. Because these have no concept of a "dead" state that Reaper can poll for, placing them in a polling loop would waste CPU asking a question that can never return `true`. They are registered at zero cost and cleaned only through teardown cascades or explicit `Reaper.Clean()` calls. A Studio warning is emitted when abstract types are tracked without a lifecycle anchor.
 
 ### Traceable Memory Hierarchy via Tracks and Scopes
 
-Reaper enforces a two-tier ownership model. `TrackObject`s represent physical, tangible game entities — Players, Cars, Weapons — and act as root anchors in the memory tree. `ScopeObject`s represent temporary logic states — Combat, Trading, Stunned — and must always be parented under a Track or another Scope.
+Reaper enforces a two-tier ownership model. `TrackObject`s represent physical, tangible game entities — Players, Cars, Weapons — and act as root anchors in the memory tree. `ScopeObject`s represent temporary logic states — Combat, Trading, Status — and must always be parented under a Track or another Scope.
 
 This hierarchy is enforced structurally. The binding methods validate their arguments and reject incorrect combinations: Scopes cannot own Tracks, and Tracks cannot adopt other Tracks as subordinate children. When a parent Track is cleaned, all chained children and all bound Scopes are torn down in a single cascade pass.
 

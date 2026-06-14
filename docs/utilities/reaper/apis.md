@@ -23,6 +23,36 @@ The global singleton module used to register items for tracking, instantiate Sco
 
 ---
 
+### Module Properties
+
+#### Classifications
+
+```luau
+Reaper.Classifications: { [string]: Classification }
+```
+
+A public constant table that exposes all seven classification strings as named keys. Provided as an ergonomic alternative to bare string literals when passing an explicit `ItemClassification` to `Reaper.Track()`.
+
+| Key | Value |
+| :--- | :--- |
+| `Reaper.Classifications.Instance` | `"Instance"` |
+| `Reaper.Classifications.Connection` | `"Connection"` |
+| `Reaper.Classifications.Thread` | `"Thread"` |
+| `Reaper.Classifications.Function` | `"Function"` |
+| `Reaper.Classifications.Table` | `"Table"` |
+| `Reaper.Classifications.Scope` | `"Scope"` |
+| `Reaper.Classifications.Unknown` | `"Unknown"` |
+
+```luau
+-- Without Classifications
+Reaper.Track(myObject, "Table", "Dispose")
+
+-- With Classifications — less error-prone, IDE-autocomplete friendly
+Reaper.Track(myObject, Reaper.Classifications.Table, "Dispose")
+```
+
+---
+
 ### Function Details
 
 #### Inject
@@ -233,6 +263,7 @@ The core handle representing a tracked item. Returned by `Reaper.Track()`. Holds
 | Name | Returns | Description |
 | :--- | :--- | :--- |
 | **[Configure](#configure)** | `TrackObject` | Assigns a unique string identifier and a dead-state check interval to this handle, making it reachable by name from any script. |
+| **[IsConfigured](#isconfigured)** | `boolean` | Returns `true` if this handle has already been configured with a string identifier via `:Configure()`. |
 | **[Chain](#chain)** | `TrackObject` | Subordinates a raw item to this handle so it is destroyed alongside it when this handle is cleaned. |
 | **[HandleScope](#handlescope)** | `TrackObject` | Subordinates an entire Scope to this handle so it is cleaned when this handle is cleaned. |
 | **[Destroy](#destroy)** | `void` | Immediately destroys this handle and everything it owns — equivalent to calling `Reaper.Clean` with this handle. |
@@ -267,6 +298,35 @@ Assigns a unique string identifier and a dead-state check interval to this handl
 
 !!! danger "Throws"
     Throws in Studio if `AssignID` is empty or already registered, if `Frequency` is negative, or if this handle has already been configured, cleaned, or evicted.
+
+---
+
+#### IsConfigured
+
+```luau
+TrackObject:IsConfigured(): boolean
+```
+
+Returns `true` if this handle has already been assigned a string identifier via a previous `:Configure()` call. Useful as a guard before conditionally configuring a handle in code paths where the configuration state is uncertain.
+
+**Parameters:** `void`
+
+**Returns:**
+
+| Type | Description |
+| :--- | :--- |
+| `boolean` | `true` if `:Configure()` has been called on this handle and an `AssignID` is set; `false` otherwise. |
+
+```luau
+local track = Reaper.Track(someConnection)
+
+if not track:IsConfigured() then
+    track:Configure("EventConn_" .. player.UserId, 5)
+end
+```
+
+!!! tip "Defensive Use"
+    `:IsConfigured()` is most useful in shared utility functions that receive a `TrackObject` from an external caller and need to know whether to configure it or treat it as already named. Calling `:Configure()` on an already-configured handle throws in Studio — guard with `:IsConfigured()` to avoid that in uncertain code paths.
 
 ---
 
@@ -551,7 +611,7 @@ Schedules a callback to repeat a fixed number of times and adds the task to this
 
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `Count` | `number` | Total number of times to execute the callback. |
+| `Count` | `number` | Total number of times to execute the callback. Pass `-1` to repeat indefinitely until the Scope is cleaned or the returned handle is broken manually. |
 | `Interval` | `number?` | *(Optional)* Seconds between repetitions. Behaviour when omitted is defined by the injected Assignment scheduler. |
 | `Callback` | `function` | The function to repeat. |
 | `...` | `any` | Variadic arguments forwarded to the callback on each execution. |
@@ -560,7 +620,7 @@ Schedules a callback to repeat a fixed number of times and adds the task to this
 
 | Type | Description |
 | :--- | :--- |
-| `any` | The handle returned by the Assignment scheduler. |
+| `any` | The loop control handle returned by the Assignment scheduler. Exposes a `:Break()` method that immediately cancels all remaining repetitions without cleaning the parent Scope. Use this when you need to stop a specific loop early while keeping the Scope and its other children alive. |
 
 !!! danger "Strict Dependency: Assignment Library"
     `:Repeat()` requires the **Assignment** library to be injected via `Reaper.Inject("Assignment", ...)`. Without it, this method is a no-op stub and produces no repetitions.
@@ -719,7 +779,7 @@ A string literal union representing the seven item categories Reaper recognises.
 
 ### `TrackObject`
 
-The handle returned by `Reaper.Track()`. Contains the four public methods described above plus the following readable fields. Internal state fields are not part of the public API and should not be accessed directly.
+The handle returned by `Reaper.Track()`. Contains the five public methods described above plus the following readable fields. Internal state fields are not part of the public API and should not be accessed directly.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
