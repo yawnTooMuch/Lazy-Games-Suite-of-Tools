@@ -1,7 +1,10 @@
 # Twin
 
 **Type:** Framework  
+
 _A parallel job scheduler for Roblox that distributes work across Actor-based workers, protecting the main thread from expensive computation._
+
+[Distribution:](https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855) `https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855`
 
 ---
 
