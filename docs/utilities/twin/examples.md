@@ -58,6 +58,7 @@ function PathModule.FindPath(payload)
     -- payload is the plain table passed as Payload in the Twin.Split call.
     -- All computation happens here in the parallel worker — the main thread is free.
     local waypoints = runAStarSearch(payload.Start, payload.Goal, payload.Radius)
+
     -- Return a plain table of waypoints. This becomes `path` in the Split callback.
     return waypoints
 end
@@ -97,6 +98,7 @@ function MeshModule.Build(payload)
     -- Expensive geometry construction that takes tens of milliseconds.
     -- Runs entirely in the parallel worker; the game loop is unaffected.
     local mesh = buildProceduralMesh(payload.vertexCount, payload.seed, payload.lod)
+
     -- `mesh` is returned as the Result in the Split callback.
     return mesh
 end
@@ -119,7 +121,9 @@ Twin.Split(MeshModule, "Build", {
     -- Apply the finished mesh on the main thread where DataModel writes are safe.
     part.MeshId = mesh.id
     part.Size   = mesh.bounds
-end, { ____Weight = "heavy" })
+end, { 
+____Weight = "heavy" 
+})
 ```
 
 ---
@@ -148,7 +152,9 @@ The caller:
 -- Use this for fast, non-blocking jobs where waiting for bulk to clear is unnecessary.
 Twin.Split(ScoreModule, "ComputeBonus", { playerId = localPlayer.UserId }, function(bonus)
     bonusLabel.Text = "+" .. tostring(bonus)
-end, { ____Weight = "light" })
+end, { 
+____Weight = "light" 
+})
 ```
 
 ---
@@ -182,6 +188,7 @@ local resultA, resultB
 
 Twin.Split(ModuleA, "Analyze", datasetA, function(result)
     resultA = result
+
     if resultB then
         finalize(resultA, resultB)  -- only runs once both callbacks have fired
     end
@@ -189,10 +196,12 @@ end)
 
 Twin.Split(ModuleB, "Analyze", datasetB, function(result)
     resultB = result
+
     if resultA then
         finalize(resultA, resultB)
     end
 end)
+
 -- For ordered pipelines where step B depends on step A's output, use Twin.Sequence instead.
 ```
 
@@ -223,7 +232,7 @@ values you need before the callback returns.
 
     | Argument | Type | Description |
     | :--- | :--- | :--- |
-    | `Results` | `{ any }` | The fully reassembled results table. `Results[i]` corresponds to `Items[i]` from your original list. This buffer is recycled immediately after your callback exits — copy anything you need before returning. |
+    | `Results` | `{ any }` | The fully reassembled results table. `Results[i]` corresponds to `Items[i]` from your original list. This buffer is scheduled for recycling after your callback exits — copy anything you need before returning. |
 
     The required function signature inside your ModuleScript is:
 
@@ -232,9 +241,11 @@ values you need before the callback returns.
 
     function MyModule.FunctionName(slice: { any }, sharedArgs: any?): { any }
         local results = table.create(#slice)
+
         for i, item in slice do
             results[i] = processItem(item, sharedArgs)
         end
+
         -- Must return a table of the same length as `slice`.
         return results
     end
@@ -256,9 +267,11 @@ function ThreatModule.Assess(slice, sharedArgs)
     -- `slice` is one batch of npcData records for this worker to process.
     -- `sharedArgs` is the { playerPosition } table passed as ____SharedArgs.
     local results = table.create(#slice)
+
     for i, npc in slice do
         results[i] = computeThreatScore(npc.position, npc.health, sharedArgs.playerPosition)
     end
+
     -- Return a table the same length as slice — one score per NPC record.
     return results
 end
@@ -273,18 +286,25 @@ The caller:
 -- Shown explicitly here with ____Priority = "normal" for clarity.
 local npcs = workspace.NPCFolder:GetChildren()
 local npcData = {}
+
 for i, npc in npcs do
-    npcData[i] = { position = npc.PrimaryPart.Position, health = npc:GetAttribute("Health") }
+    npcData[i] = { 
+    position = npc.PrimaryPart.Position, 
+    health = npc:GetAttribute("Health") 
+}
 end
 
 Twin.BulkSplit(ThreatModule, "Assess", npcData, function(threats)
     -- threats[i] is the score for npcData[i] — index mapping is preserved.
     -- Copy the scores out before the callback exits; the buffer will be recycled.
     local scores = table.create(#threats)
+
     table.move(threats, 1, #threats, 1, scores)
     updateThreatDisplay(scores)
 end, {
-    ____SharedArgs = { playerPosition = localPlayer.Character.PrimaryPart.Position },
+    ____SharedArgs = { 
+playerPosition = localPlayer.Character.PrimaryPart.Position 
+},
     ____Priority   = "normal",
 })
 ```
@@ -303,9 +323,11 @@ function PhysicsModule.PreSolve(slice, sharedArgs)
     -- Each item in `slice` is a physics body record.
     -- `sharedArgs` carries the current timestep for this solve pass.
     local solutions = table.create(#slice)
+
     for i, body in slice do
         solutions[i] = solveConstraints(body, sharedArgs.dt)
     end
+
     return solutions
 end
 
@@ -324,7 +346,9 @@ Twin.BulkSplit(PhysicsModule, "PreSolve", bodyList, function(solutions)
 end, {
     ____Priority    = "critical",
     ____MaxWaitTime = 0.010,
-    ____SharedArgs  = { dt = workspace:GetRealPhysicsFPS() },
+    ____SharedArgs  = { 
+    dt = workspace:GetRealPhysicsFPS() 
+},
 })
 ```
 
@@ -342,9 +366,11 @@ function WorldModule.GenerateTile(slice, sharedArgs)
     -- `slice` is a batch of tile coordinate records to generate.
     -- `sharedArgs` carries the world seed used for procedural generation.
     local tiles = table.create(#slice)
+
     for i, coord in slice do
         tiles[i] = generateTileData(coord.x, coord.z, sharedArgs.seed)
     end
+
     return tiles
 end
 
@@ -366,6 +392,7 @@ local generationHandle = Twin.BulkSplit(
         for i, coord in pendingTileCoords do
             tileCache[coord] = tiles[i]
         end
+
         renderNewTiles()
     end,
     {
@@ -395,9 +422,11 @@ function FilterModule.ApplyRules(slice, sharedArgs)
     -- `sharedArgs` is the same configuration table delivered to every batch.
     -- It carries a ruleset, timestamp, and a strict mode flag set by the caller.
     local results = table.create(#slice)
+
     for i, item in slice do
         results[i] = applyRuleSet(item, sharedArgs.rules, sharedArgs.strictMode)
     end
+
     return results
 end
 
@@ -411,11 +440,13 @@ The caller:
 -- Use it for read-only configuration that applies equally to every item.
 Twin.BulkSplit(FilterModule, "ApplyRules", itemList, function(filtered)
     local kept = {}
+
     for i, result in filtered do
         if result ~= nil then
             table.insert(kept, result)
         end
     end
+
     publishResults(kept)
 end, {
     ____SharedArgs = {
@@ -514,29 +545,35 @@ The worker modules:
 ```luau
 -- FetchModule (ModuleScript) — Step 1
 local FetchModule = {}
+
 function FetchModule.Load(payload)
     -- payload.datasetId identifies which dataset to load from a pre-cached store.
     -- Whatever is returned here becomes Results[1] in the final callback.
     return dataCache[payload.datasetId]
 end
+
 return FetchModule
 
 -- TransformModule (ModuleScript) — Step 2
 local TransformModule = {}
+
 function TransformModule.Normalise(payload)
     -- payload.schema is the static ____Payload value defined on this step.
     -- Note: the previous step's result is NOT forwarded automatically with a static payload.
     -- Use a dynamic payload function (see Scenario B) to pass results between steps.
     return normaliseData(rawDataset, payload.schema)
 end
+
 return TransformModule
 
 -- ValidateModule (ModuleScript) — Step 3
 local ValidateModule = {}
+
 function ValidateModule.Check(payload)
     -- payload is nil — this step inspects shared state set by the prior steps.
     return { valid = runValidation(), errors = collectErrors() }
 end
+
 return ValidateModule
 ```
 
@@ -580,28 +617,34 @@ The worker modules:
 ```luau
 -- AnalysisModule (ModuleScript) — Step 1
 local AnalysisModule = {}
+
 function AnalysisModule.Run(payload)
     -- payload is rawSensorData passed directly from the caller.
     -- Returns a feature vector that Step 2 will use.
     return { features = extractFeatures(payload), confidence = 0.85 }
 end
+
 return AnalysisModule
 
 -- ClassifierModule (ModuleScript) — Step 2
 local ClassifierModule = {}
+
 function ClassifierModule.Classify(payload)
     -- payload is the table built by the dynamic ____Payload function for this step,
     -- which received AnalysisModule.Run's return value as `prevResult`.
     return { label = classify(payload.features, payload.threshold), score = payload.confidence }
 end
+
 return ClassifierModule
 
 -- ActionModule (ModuleScript) — Step 3
 local ActionModule = {}
+
 function ActionModule.Decide(payload)
     -- payload is built from ClassifierModule.Classify's return value by the function below.
     return selectAction(payload.classification, payload.context)
 end
+
 return ActionModule
 ```
 
@@ -697,6 +740,7 @@ task.spawn(function()
     while true do
         task.wait(10)
         local report = Twin.Report()
+
         if report then
             print(("Twin health [%s] over %.1fs (%d samples)"):format(
                 report.Overall,
@@ -714,6 +758,7 @@ end)
 
 ```luau
 local report = Twin.Report()
+
 if not report then return end -- telemetry disabled or no frames sampled yet
 
 if report.Overall == "Red" then
@@ -733,6 +778,7 @@ if report.Overall == "Red" then
     if report.Workers.Status == "Red" then
         print("Worker performance degraded:")
         print("  Watchdog recoveries this window:", report.Workers.WatchdogInterventions.Value)
+
         for workerId, execEntry in report.Workers.AvgExecTime do
             if execEntry.Status ~= "Healthy" then
                 print(("  Worker %d avg exec time: %.3fs [%s]"):format(
@@ -758,13 +804,109 @@ end
 -- Always guard against nil — Report() returns nil when telemetry is off.
 local function checkHealth()
     local report = Twin.Report()
+
     if not report then
         -- Either TELEMETRY_ENABLED is false, or startup just occurred with no frames yet.
         return
     end
+
     -- Safe to read report fields here.
     return report.Overall
 end
+```
+
+---
+
+## Twin.GetTaskLoad
+
+Returns the Job Manager's live CPU utilization snapshot. Values update once per second and
+reflect the most recently completed one-second window. `GetTaskLoad` is always safe to call
+and always returns a table — it never returns `nil`.
+
+---
+
+**Scenario A — Warning when workers are saturated**
+
+```luau
+-- Log a warning if any worker is busy for more than 90% of sampled frames.
+-- Sustained high utilization suggests the queue is deeper than the pool can drain.
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local load = Twin.GetTaskLoad()
+
+        for workerId, percentage in load.Workers do
+            if percentage > 90 then
+                warn(("[Twin] Worker %d is at %d%% utilization — consider increasing worker count."):format(
+                    workerId, percentage 
+                ))
+            end
+        end
+    end
+end)
+```
+
+---
+
+**Scenario B — Live environment monitoring via RemoteEvent**
+
+In Studio, server internals are directly observable by switching to the server context or
+reading the Microprofiler. In a live production server, neither option is available — a
+developer in an active game session has no built-in way to inspect server-side state. This
+is the primary reason `Twin.GetTaskLoad()` exists as a programmable API: by wiring it to a
+RemoteEvent, any authorized client can pull a real-time snapshot of the server's worker
+utilization without leaving the live session.
+
+```luau
+
+-- Server Side
+
+-- Server: expose Twin's load data over a RemoteEvent.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local TwinMonitor = Instance.new("RemoteEvent")
+
+TwinMonitor.Name = "TwinMonitor"
+TwinMonitor.Parent = ReplicatedStorage
+
+TwinMonitor.OnServerEvent:Connect(function(player)
+    -- Restrict to admin players in production to avoid exposing internal metrics.
+    if not AdminService:IsAdmin(player) then return end
+
+    TwinMonitor:FireClient(player, Twin.GetTaskLoad())
+end)
+```
+
+```luau
+
+-- Client Side
+
+-- Client: request and display the server-side Twin load snapshot.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local TwinMonitor = ReplicatedStorage:WaitForChild("TwinMonitor")
+
+-- Receive and display the snapshot when the server responds.
+TwinMonitor.OnClientEvent:Connect(function(load)
+    print(("[Twin Live Monitor] Server Environment: %s"):format(load.Environment))
+    print(("  Main Thread: %.2f%%"):format(load.MainThread))
+
+    for workerId, percentage in load.Workers do
+        local status = if percentage > 90 then "CRITICAL"
+            elseif percentage > 30 then "WARN"
+            else "OK"
+        print(("  Worker %d: %d%% [%s]"):format(workerId, percentage , status))
+    end
+end)
+
+-- Poll every 5 seconds. Trigger this from a button press or an admin command
+-- rather than running unconditionally to avoid unnecessary RemoteEvent traffic.
+task.spawn(function()
+    while true do
+        TwinMonitor:FireServer()
+        task.wait(5)
+    end
+end)
 ```
 
 ---
@@ -783,6 +925,7 @@ equivalents automatically.
 -- Call Inject once, as early as possible, before any Twin.Split / BulkSplit calls.
 -- ModuleTableObject must be the table returned by require(AssignmentModule).
 local Assignment = require(AssignmentModule)
+
 Twin.Inject("Assignment", Assignment)
 
 -- All subsequent Twin calls now route through Assignment's scheduler
@@ -805,5 +948,6 @@ local PartialScheduler = {
     Wait  = Assignment.Wait,
     -- Defer, Delay and Cancel will fall back to task.defer, task.delay, etc.
 }
+
 Twin.Inject("Assignment", PartialScheduler)
 ```

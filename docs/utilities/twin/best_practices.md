@@ -7,8 +7,8 @@ consequence of getting it wrong and what the correct pattern gives you in return
 
 ## 1. Never Store the BulkSplit Result Buffer
 
-The table delivered to a `BulkSplit` callback is a reusable buffer that Twin recycles
-immediately after your callback returns. It is not a permanent allocation.
+The table delivered to a `BulkSplit` callback is a reusable buffer that Twin schedules for
+recycling after your callback returns. It is not a permanent allocation.
 
 ### The Problem
 
@@ -24,10 +24,11 @@ end)
 print(savedResults[1])  -- could be stale data from a completely different job
 ```
 
-**Why this is wrong:** After your callback exits, Twin clears and returns that table to
-its buffer pool. The next `BulkSplit` job will reuse the same table, overwriting every
-index with new data. Any code holding the old reference now reads whatever the next job
-put there — silently wrong results, with no error to indicate the problem.
+**Why this is wrong:** After your callback exits, Twin schedules that table to be cleared
+and returned to its buffer pool. Once recycled, the next `BulkSplit` job can reuse the same
+table, overwriting every index with new data. Any code holding the old reference may then
+read whatever the next job wrote there — silently wrong results, with no error to indicate
+the problem.
 
 ### The Solution
 
@@ -502,6 +503,82 @@ function ThreatModule.Assess(payload)
     return result.score  -- one number; the rest is discarded before the boundary
 end
 ```
+
+---
+
+## 10. Keep Worker CPU Utilization Below 30%
+
+Twin's parallel workers do not run in isolation. Each worker Actor shares the same physical
+CPU cores as the Roblox engine — the physics solver, the task scheduler, network processing,
+and animation evaluation all compete for time on the same hardware. A worker that is busy
+for 80% of a second has claimed 80% of a core's time, leaving only 20% for everything else
+the engine needs to do on that core.
+
+The safe operating ceiling is **30% per worker**. Keeping every worker below this threshold
+ensures the Roblox engine always has sufficient headroom on its cores, regardless of what
+Twin is doing at the same moment.
+
+### The Problem
+
+```luau
+-- Dispatching a BulkSplit on every Heartbeat with no utilization check.
+-- If the dataset is large, workers can climb to 80–90% busy-rate within seconds.
+game:GetService("RunService").Heartbeat:Connect(function()
+    Twin.BulkSplit(SimModule, "Tick", allEntities, function(results)
+        applyResults(results)
+    end)
+end)
+```
+
+**Why this is wrong:** Dispatching on every frame with a large dataset can saturate every
+worker core. At 80–90% utilization, the Roblox engine's own parallel work — physics
+constraint solving, spatial queries, task resume scheduling — is forced to compete for the
+remaining fraction of each core. The visible result is not just slow Twin jobs; it is
+frame hitches, physics instability, and degraded engine responsiveness that appear entirely
+unrelated to Twin.
+
+### The Solution
+
+The correct fix is not a runtime guard — it is a design correction made during development.
+Enable the Job Manager while building and testing your feature, watch the overlay during
+representative gameplay, and if any worker climbs above 30%, treat that as a signal to
+investigate and restructure the workload. The goal is to ship code whose steady-state
+utilization sits comfortably below the ceiling, not code that detects the ceiling being
+breached and reacts to it at runtime.
+
+**Investigating a spike above 30%:** when the Job Manager overlay shows a worker
+consistently above the ceiling under realistic load, work through the following in order:
+
+- **Reduce payload size.** The most common cause of high utilization is sending more data
+  to the worker than it actually needs. Strip the payload down to only the fields the
+  function reads. Smaller payloads cross the Actor boundary faster and give the worker less
+  to iterate over.
+- **Scatter the workload across frames.** If dispatching on every Heartbeat, consider
+  dispatching on every other frame, every third frame, or on a fixed interval instead.
+  Many simulation workloads tolerate a one or two frame result lag without any visible
+  gameplay impact.
+- **Partition the dataset.** Rather than sending all active entities in one `BulkSplit`,
+  divide them into groups and rotate which group is dispatched each frame. Each frame
+  processes a fraction of the full set, keeping per-frame worker time low.
+- **Use background priority.** For work that does not need to complete within the current
+  frame, `____Priority = "background"` allows the scheduler to defer batches when workers
+  are under pressure, naturally distributing load over time without manual intervention.
+- **Move work out of the hot path.** If a computation does not depend on per-frame state,
+  it does not need to run every frame. Cache the result and recompute only when the
+  relevant input changes.
+
+!!! warning "Disable the Job Manager in production"
+    The Job Manager overlay is a development and testing tool. Set `JOB_MANAGER_ENABLED =
+    false` before publishing. Leaving it enabled in production adds a persistent `ScreenGui`
+    to every player's client and exposes internal scheduler metrics to any player who
+    inspects the UI hierarchy.
+
+!!! info "What the percentage means"
+    The Job Manager displays `Workers[i]` as the percentage of Heartbeat frames in the last
+    one-second window during which Worker `i` was busy running a job. A value of `30` means
+    the worker was occupied for 30% of those frames — not that it consumed 30% of the core's
+    clock cycles. On a 60 fps server, 30% corresponds to the worker being active for roughly
+    18 out of every 60 frames per second.
 
 ---
 

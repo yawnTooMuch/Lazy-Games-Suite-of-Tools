@@ -3,8 +3,6 @@
 **Type:** Framework  
 _A parallel job scheduler for Roblox that distributes work across Actor-based workers, protecting the main thread from expensive computation._
 
-[Distribution:](https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855) `https://devforum.roblox.com/t/twin-parallel-job-scheduler/4591855`
-
 ---
 
 ## Overview
@@ -108,6 +106,15 @@ is taking on average, what fraction of frames exceeded the budget, and whether a
 needed recovery. Each metric carries a three-level health status — Healthy, Warm, or
 Overloaded — and each group rolls up to a Green/Yellow/Red signal. The overall status is the
 worst signal across all groups.
+
+### Live Job Manager Overlay
+
+When the Job Manager is enabled, Twin generates an in-game `ScreenGui` overlay at startup
+that displays live CPU utilization, updated every second. The overlay shows the percentage
+of main-thread script time Twin has consumed and the busy-frame rate for each parallel
+worker. Server and client contexts each produce their own named overlay. The same data
+driving the overlay is accessible programmatically at any time by calling
+`Twin.GetTaskLoad()`, which returns an instantaneous snapshot with no computation overhead.
 
 ### Developer-Friendly Option Tables
 

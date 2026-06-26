@@ -22,6 +22,7 @@ the job when `Disconnect()` is called._
 | Name | Returns | Description |
 | :--- | :--- | :--- |
 | **[Twin.Report](#twinreport)** | `TelemetryReport?` | Returns a structured health snapshot of the scheduler's current state, or `nil` when telemetry is disabled. |
+| **[Twin.GetTaskLoad](#twingettaskload)** | `{ Environment: string, MainThread: number, Workers: { number } }` | Returns the Job Manager's live CPU utilization snapshot for the main thread and all workers. |
 | **[Twin.Inject](#twininject)** | `void` | Replaces Twin's internal task scheduler with an external library from the Lazy Games Suite. |
 
 ---
@@ -83,6 +84,11 @@ callback fires synchronously on the main thread with no additional frame delay.
     is callable before the job is enqueued. This check does not run in live servers or
     published clients.
 
+!!! warning "Worker Errors Deliver nil"
+    If the worker function throws an error, Twin catches it via `pcall`, logs a warning to
+    the output, and delivers `nil` as the `Result` to your callback. Guard against `nil` in
+    your callback whenever the worker function might fail.
+
 ---
 
 #### Twin.BulkSplit
@@ -119,11 +125,12 @@ result table where `results` is identical to `items` fully assembled back automa
 | `Handle` | Call `Disconnect()` on this to cancel all remaining batches. Batches already delivered to workers will finish, but the callback will never fire. |
 
 !!! danger "Do Not Store the Result Buffer"
-    The results table passed to your callback is a pooled buffer that Twin recycles
-    immediately after your callback returns. Storing the table reference — assigning it to a
-    module-level variable, inserting it into another table, capturing it in a closure — will
-    cause that variable to be silently overwritten by a future job's results. Copy any values
-    you need before the callback exits.
+    The results table passed to your callback is a pooled buffer. Twin schedules it for
+    recycling after your callback returns — treat the buffer as invalid the moment your
+    callback exits. Storing the table reference — assigning it to a module-level variable,
+    inserting it into another table, capturing it in a closure — will cause that variable to
+    be silently overwritten once the buffer is reused by a future job. Copy any values you
+    need before the callback exits.
 
     ```luau
     -- Wrong — the table will be overwritten
@@ -153,6 +160,11 @@ result table where `results` is identical to `items` fully assembled back automa
     `"background"`. Workers always drain critical jobs first, then normal, then background.
     Background jobs are never starved indefinitely — they are periodically force-promoted
     regardless of what else is queued.
+
+!!! warning "Worker Errors Produce nil Entries"
+    If a batch function throws an error, Twin catches it, logs a warning, and treats that
+    batch's result as `nil`. Affected indices in the reassembled results table will contain
+    `nil`. Guard against nil entries in your callback if the batch function can fail.
 
 ---
 
@@ -199,11 +211,15 @@ Step 2's, and so on.
     }
     ```
 
-!!! warning "Step Errors Stop the Chain"
+!!! warning "Payload Function Errors Stop the Chain"
     If a dynamic payload function throws an error, the chain halts at that step and the final
-    callback never fires. Errors inside the worker functions are caught and logged, and the
-    step's result is set to `nil`, but the chain continues. Only payload function errors stop
-    the chain entirely.
+    callback never fires. Only payload function errors stop the chain entirely.
+
+!!! warning "Worker Errors Set the Step Result to nil"
+    If a step's worker function throws an error, Twin catches it, logs a warning, and sets
+    that step's result to `nil` in the final `Results` array. A worker error does not halt
+    the chain — subsequent steps still dispatch. Check each entry in `Results` if any step's
+    worker function might fail.
 
 ---
 
@@ -241,6 +257,43 @@ Calling `Report` is safe at any frequency and does not reset the sample buffer.
     to a `"Green"`, `"Yellow"`, or `"Red"` group status. The top-level `Overall` field is
     the worst group status across all five groups. Use `Overall == "Red"` as your alert
     threshold and drill into the individual groups to find the cause.
+
+---
+
+#### Twin.GetTaskLoad
+
+```luau
+Twin.GetTaskLoad(): { Environment: string, MainThread: number, Workers: { number } }
+```
+
+Returns a lightweight, instantaneous snapshot of the Job Manager's live CPU utilization.
+Unlike `Twin.Report`, this call reads directly from a pre-computed report table updated once
+per second — it performs no ring-buffer computation and carries zero overhead.
+
+**Parameters:** `void`
+
+**Returns:**
+
+| Type | Description |
+| :--- | :--- |
+| `{ Environment: string, MainThread: number, Workers: { number } }` | A table containing the execution context, main-thread script cost, and a per-worker utilization array. |
+
+**Return table fields:**
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `Environment` | `string` | `"Server"` or `"Client"`, indicating which context this instance is running in. |
+| `MainThread` | `number` | Main-thread script time as a percentage over the last one-second window (e.g. `2.34` means 2.34%). |
+| `Workers` | `{ number }` | Array where index `i` is Worker `i`'s busy-frame percentage over the last one-second window (e.g. `Workers[1] = 80` means Worker 1 was busy 80% of sampled frames). |
+
+!!! note "Job Manager Must Be Enabled"
+    `GetTaskLoad` reads the report table produced by the Job Manager. If `JOB_MANAGER_ENABLED`
+    is `false`, this table is never populated and all fields remain at their zero state. The
+    Job Manager is enabled by default.
+
+!!! info "One-Second Resolution"
+    The report table updates once per second. Calling `GetTaskLoad` more frequently returns
+    the same snapshot until the next one-second window closes.
 
 ---
 
@@ -381,8 +434,8 @@ Optional options table for [`Twin.BulkSplit`](#twinbulksplit).
 
 ```luau
 export type ChainStep = {
-    ____Module       : ModuleScript?,
-    ____FunctionName : string?,
+    ____Module       : ModuleScript,
+    ____FunctionName : string,
     ____Payload      : any?,
     ____Weight       : ("light" | "heavy")?
 }
@@ -550,3 +603,203 @@ export type TelemetryWorkerExec = {
 | :--- | :--- | :--- |
 | `Value` | `number` | Mean execution time for this worker in seconds, averaged over the sample window using an exponential moving average. |
 | `Status` | `TelemetryStatus` | Health derived from the mean execution time against configured warn and critical thresholds. |
+
+---
+
+## Configuration
+
+All configuration constants are defined in the `TwinConfiguration` block at the top of the
+Twin source file. Edit them directly before deploying. No external config file is required.
+
+Constants that default to `game:GetService("RunService"):IsStudio()` are active only in
+Roblox Studio and automatically inactive in live servers and published clients.
+
+---
+
+### Worker Pool
+
+Controls how many parallel Actor workers Twin spawns at startup. Workers are the execution
+kernels that run your functions off the main thread. Spawning more workers increases
+throughput for concurrent jobs but also increases memory overhead and Actor initialization
+time.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `SERVER_WORKER_COUNT` | `3` | Number of parallel Actor workers spawned on the server. Server workloads are typically lower-frequency than client-side simulation, so a smaller pool is the default. |
+| `CLIENT_WORKER_COUNT` | `5` | Number of parallel Actor workers spawned on the client. Higher than the server default to accommodate the greater job throughput typical of client-side simulation. |
+
+!!! tip "Understanding server and client worker counts"
+    **On the server**, adding more workers does not grant more CPU cores.
+    Roblox allocates server cores based exclusively on a game's maximum player
+    count — not on whether parallel Luau is used. Community testing has
+    established the following approximate scale: 1–19 players receive 1 core,
+    20+ players receive 2, 30+ players receive 3, and 100 players receive 5.
+    This is by design; a Roblox engine engineer confirmed in 2025 that reducing
+    thread count actually improved performance for most games due to thread
+    switching costs and cache pressure from under-utilized cores. `SERVER_WORKER_COUNT`
+    should not exceed the core count your player cap realistically earns —
+    workers beyond that share the same core and add contention with no throughput
+    gain. The default of `3` aligns with the allocation for a 30-player server.
+
+    **On the client**, there is no equivalent platform restriction. Workers run
+    on the player's own hardware, which varies widely. When scoping
+    `CLIENT_WORKER_COUNT`, the developer should assess the range of devices their
+    audience is likely to use. A minimum gaming device — an entry-level PC or
+    current-generation mobile — typically has between 5 and 7 CPU cores available.
+    `5` is therefore a reasonable conservative floor for most games, with higher
+    values appropriate if the game's minimum supported device is known to have
+    more cores.
+
+---
+
+### Dispatch Behavior
+
+Controls how the scheduler prioritises, promotes, and gates work each frame.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `ENABLE_STRICT_API_PARAMETER_CHECKER_POLICE` | Studio only | When true, validates all parameters on every API call and raises a descriptive error if a value is the wrong type or missing. Has no runtime cost outside Studio. |
+| `ENABLE_TYPO_POLICE` | Studio only | When true, requires and inspects the target ModuleScript before enqueueing a job, catching missing function names early. Has no runtime cost outside Studio. |
+| `DEFAULT_MAX_WAIT` | `0.050` | The fallback `____MaxWaitTime` used by `BulkSplit` calls that do not provide their own. A bulk job waiting longer than this may preempt single-job dispatch to reach workers faster. In seconds. |
+| `STARVATION_THRESHOLD` | `10` | Number of consecutive frames a heavy single job may be skipped while bulk work is active before being force-promoted to the light lane. |
+| `BG_STARVATION_THRESHOLD` | `50` | Number of consecutive frames a background bulk job may be skipped before being force-promoted past normal-priority bulk work. |
+| `SPECULATIVE_THRESHOLD` | `0.016` | Average worker execution time in seconds above which the scheduler treats a worker as running slow and allows light single jobs to dispatch speculatively alongside active bulk work. |
+| `EMA_ALPHA` | `0.25` | Smoothing factor for the per-worker exponential moving average of execution time. Higher values make the average react faster to recent samples; lower values smooth over spikes. |
+| `FRAME_BUDGET_SEC` | `0.017` | Maximum main-thread time in seconds Twin may spend dispatching single jobs in a single frame. Bulk batch dispatch is exempt from this gate. |
+
+---
+
+### Memory Pools
+
+Twin pre-allocates all internal objects at startup and recycles them after each job. Pool
+sizes are fixed at startup. A pool that runs out of free slots will cause dispatch to stall
+until a slot is released, which is reported as `"Overloaded"` in `Twin.Report()`.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `NODE_POOL_SIZE` | `256` | Pre-allocated queue node structs used to link jobs in the dispatch queues. One node is consumed per queued job and returned when the job is dispatched. |
+| `SINGLE_JOB_POOL_SIZE` | `64` | Pre-allocated job descriptor structs for `Split` and `Sequence` step jobs. One is borrowed per in-flight single job. |
+| `BULK_ENTRY_POOL_SIZE` | `16` | Pre-allocated master descriptors for `BulkSplit` jobs. One is borrowed per active `BulkSplit` call and returned when all batches complete. This caps how many concurrent `BulkSplit` calls can be in flight simultaneously. |
+| `BULK_BATCH_POOL_SIZE` | `64` | Pre-allocated batch slice descriptors. One is borrowed per in-flight batch sent to a worker. |
+| `RESULT_BUFFER_POOL_SIZE` | `16` | Pre-allocated result arrays returned to `BulkSplit` callbacks. Caps how many `BulkSplit` results can be in the delivery pipeline at once. |
+| `MAX_BATCH_SIZE` | `256` | Hard upper limit on items placed in a single batch slice. Batch size is calculated automatically from item count and worker count, but this constant prevents any single batch from growing larger than this value. |
+| `MAX_RESULT_ITEMS` | `1024` | The pre-allocated slot count of each result buffer. A `BulkSplit` job with more items than this value cannot use the pool and will allocate a temporary table instead. |
+
+!!! tip "Sizing the pools"
+    Pool sizes should be at least as large as the maximum number of concurrent jobs you
+    expect to have in flight simultaneously. For example, if your game can have up to 8
+    concurrent `BulkSplit` calls active at the same time, `BULK_ENTRY_POOL_SIZE` should be
+    at least `8`. Use `Twin.Report()` with telemetry enabled to observe peak pool usage and
+    tune accordingly.
+
+---
+
+### Telemetry
+
+Controls whether and how Twin samples its own internal state for health reporting.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `TELEMETRY_ENABLED` | Studio only | Master switch for all telemetry sampling. When `false`, no frame samples are taken, the ring buffer is not populated, and `Twin.Report()` returns `nil` immediately with no computation. Set to `true` in production if live health monitoring is needed. |
+| `TELEMETRY_FLUSH_INTERVAL` | `10` | Seconds between automatic telemetry window resets. After each reset, `Twin.Report()` reflects only samples taken since the last flush. |
+| `TELEMETRY_MAX_DEFER_SEC` | `30` | Maximum seconds the flush coroutine may wait before forcing a flush, regardless of activity. |
+| `TELEMETRY_RING_SIZE` | `600` | Number of Heartbeat frame samples held in the rolling buffer. At 60 fps, `600` represents a 10-second window. Increasing this value captures longer trends at the cost of more memory. |
+
+---
+
+### Job Manager
+
+Controls the in-game CPU utilization overlay.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `JOB_MANAGER_ENABLED` | `true` | Master switch for the Job Manager overlay. When `true`, Twin generates a `ScreenGui` at startup showing live main-thread and per-worker CPU utilization, updated every second. Set to `false` to suppress the overlay entirely. |
+
+---
+
+### Watchdog
+
+Controls the background scan that detects and recovers unresponsive workers.
+
+| Constant | Default | Description |
+| :--- | :--- | :--- |
+| `WATCHDOG_ENABLED` | `true` | Master switch for the watchdog recovery system. When `false`, hung workers are never detected and in-flight jobs will wait indefinitely. Only disable if you have confirmed the watchdog is interfering with intentionally long-running jobs. |
+| `WATCHDOG_TIMEOUT` | `5.0` | Seconds a worker may be continuously busy before being declared unresponsive. When the timeout is exceeded, the worker is freed, its generation tag is incremented (invalidating any late response), and the job is re-queued. |
+| `WATCHDOG_INTERVAL` | `1.0` | Seconds between watchdog scans. Each scan checks every worker and recovers any that have exceeded `WATCHDOG_TIMEOUT`. Lower values detect hangs faster but add a small recurring main-thread cost. |
+
+!!! tip "Setting the timeout"
+    `WATCHDOG_TIMEOUT` should be comfortably above the longest legitimate worker execution
+    time you expect. If your most expensive worker function takes up to 500ms, set
+    `WATCHDOG_TIMEOUT` to at least `2.0` seconds to avoid false recoveries. Use
+    `report.Workers.AvgExecTime` from `Twin.Report()` to measure observed execution times
+    before tuning this value.
+
+---
+
+### Health Status Thresholds
+
+These constants define the numeric boundaries that determine whether each telemetry metric
+is graded `"Healthy"`, `"Warm"`, or `"Overloaded"` in `Twin.Report()`. Crossing the `WARN`
+boundary produces `"Warm"`; crossing the `CRIT` boundary produces `"Overloaded"`.
+
+#### Pool Health
+
+Thresholds are expressed as a ratio of free slots to total pool capacity. A ratio of `0.20`
+means the pool is `"Overloaded"` when fewer than 20% of its slots are free.
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `POOL_WARN_RATIO` | `0.50` | A pool with fewer than 50% free slots is `"Warm"`. |
+| `POOL_CRIT_RATIO` | `0.20` | A pool with fewer than 20% free slots is `"Overloaded"`. |
+
+#### Queue Health
+
+Thresholds are expressed as absolute peak queue depth over the sample window.
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `QUEUE_WARN_DEPTH` | `10` | A queue that reached a peak depth of 10 or more is `"Warm"`. |
+| `QUEUE_CRIT_DEPTH` | `25` | A queue that reached a peak depth of 25 or more is `"Overloaded"`. |
+
+#### Worker Execution Time Health
+
+Thresholds are expressed in seconds of mean execution time per worker.
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `WORKER_WARN_EXEC` | `0.016` | A worker averaging 16ms or more per job is `"Warm"`. |
+| `WORKER_CRIT_EXEC` | `0.030` | A worker averaging 30ms or more per job is `"Overloaded"`. |
+
+#### Frame Governor Health
+
+Thresholds are expressed as a fraction of sampled frames that exceeded the dispatch budget.
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `OVER_BUDGET_RATE_WARN` | `0.05` | Budget exceeded in 5% or more of sampled frames → `"Warm"`. |
+| `OVER_BUDGET_RATE_CRIT` | `0.20` | Budget exceeded in 20% or more of sampled frames → `"Overloaded"`. |
+
+Peak concurrent bulk job count:
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `ACTIVE_BULK_WARN` | `1` | One or more concurrent bulk jobs in flight → `"Warm"`. |
+| `ACTIVE_BULK_CRIT` | `3` | Three or more concurrent bulk jobs in flight → `"Overloaded"`. |
+
+#### Starvation Health
+
+Thresholds are expressed as peak consecutive skip counts over the sample window.
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `BG_SKIP_WARN` | `20` | A background bulk job skipped 20 or more consecutive frames → `"Warm"`. |
+| `BG_SKIP_CRITICAL` | `45` | A background bulk job skipped 45 or more consecutive frames → `"Overloaded"`. |
+| `HEAVY_SKIP_WARN` | `5` | A heavy single job skipped 5 or more consecutive frames → `"Warm"`. |
+| `HEAVY_SKIP_CRITICAL` | `8` | A heavy single job skipped 8 or more consecutive frames → `"Overloaded"`. |
+
+#### Watchdog Intervention Health
+
+| Constant | Default | Meaning |
+| :--- | :--- | :--- |
+| `WATCHDOG_INTERVENTIONS_WARN` | `1` | One or more watchdog recoveries in the sample window → `"Warm"`. |
+| `WATCHDOG_INTERVENTIONS_CRITICAL` | `3` | Three or more watchdog recoveries in the sample window → `"Overloaded"`. |
