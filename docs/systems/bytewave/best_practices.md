@@ -2,11 +2,11 @@
 
 ---
 
-## 1. Use `PlayerAdded` Instead of `Players.PlayerAdded` for Initial Sends
+## 1. Use `Signals.PlayerAdded` Instead of `Players.PlayerAdded` for Initial Sends
 
-When you need to send data to a player the moment they join, reach for `ByteWave.PlayerAdded` rather than the standard Roblox `Players.PlayerAdded` event. `Players.PlayerAdded` fires the instant a player connects to the server — before ByteWave has completed its own handshake with the client. During that brief window, the client's string registry is empty, which means any named gateway or path you send will arrive as an unresolvable numeric ID and be silently ignored.
+When you need to send data to a player the moment they join, reach for `ByteWave.Signals.PlayerAdded:Connect` rather than the standard Roblox `Players.PlayerAdded` event. `Players.PlayerAdded` fires the instant a player connects to the server — before ByteWave has completed its own handshake with the client. During that brief window, the client's string registry is empty, which means any named gateway or path you send will arrive as an unresolvable numeric ID and be silently ignored.
 
-`ByteWave.PlayerAdded` fires only after the handshake is complete. By that point the client knows every interned name and is ready to receive data correctly.
+`ByteWave.Signals.PlayerAdded` fires only after the handshake is complete. By that point the client knows every interned name and is ready to receive data correctly.
 
 ### The Problem
 
@@ -27,8 +27,8 @@ end)
 ### The Solution
 
 ```luau
--- ByteWave.PlayerAdded fires only after the handshake — safe to send immediately.
-ByteWave.PlayerAdded(function(player)
+-- ByteWave.Signals.PlayerAdded fires only after the handshake — safe to send immediately.
+ByteWave.Signals.PlayerAdded:Connect(function(player)
     ByteWave.Send("Init", "WorldSeed", currentSeed, {
         ____TargetPlayer = player,
         ____InternString = true,
@@ -163,7 +163,7 @@ end)
 
 ```luau
 -- A new table is created for every player every time this fires.
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
     ByteWave.Send("Init", "WorldSeed", currentSeed, {
         ____TargetPlayer = player,
         ____InternString = true,
@@ -194,7 +194,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
 	}, POSITION_SEND_CONFIG)
 end)
 
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
 	INIT_SEND_CONFIG.____TargetPlayer = player
 	ByteWave.Send("Init", "WorldSeed", currentSeed, INIT_SEND_CONFIG)
 end)
@@ -292,6 +292,48 @@ This approach also means that if the chest needs additional owned resources — 
 
 ---
 
+### Scenario 3 — Auto-Disconnect Client Listeners with `____BindTo`
+
+The same ownership principle applies on the client. Listeners registered inside a UI element or a system that has a defined lifetime must be disconnected when that owner is gone. A stale listener left behind continues firing its callback against a destroyed context — at best wasting CPU, at worst throwing errors from nil-indexing destroyed descendants.
+
+`ByteWave.Listen` accepts a `____BindTo` field in its options table on both server and client. When the provided Instance is destroyed, ByteWave automatically removes the listener. No `DisconnectObject` needs to be stored and no `:Disconnect()` call needs to be written anywhere.
+
+#### The Problem
+
+```luau
+-- A listener is created when a shop UI frame opens.
+-- If the frame is destroyed (e.g. during a full UI teardown or map reset),
+-- the callback keeps firing and attempts to index destroyed descendants.
+local shopFrame = script.Parent.ShopFrame
+
+local conn = ByteWave.Listen("Shop", function(packet)
+    shopFrame.PriceLabel.Text = packet.Value.Price  -- errors if shopFrame is gone
+end)
+
+-- shopFrame gets destroyed. conn:Disconnect() was never called.
+-- The next Shop packet fires the callback and throws a nil-index error.
+```
+
+**Why this is wrong:** The listener has no awareness of the frame's lifetime. Forgetting to call `conn:Disconnect()` — which is easy in complex UI code — leaves the callback permanently registered.
+
+#### The Solution
+
+```luau
+-- ____BindTo ties this listener's lifetime directly to the ShopFrame.
+-- When the frame is destroyed, ByteWave removes the listener automatically.
+local shopFrame = script.Parent.ShopFrame
+
+ByteWave.Listen("Shop", function(packet)
+    shopFrame.PriceLabel.Text = packet.Value.Price
+end, {
+    ____BindTo = shopFrame
+})
+```
+
+**Why this works:** ByteWave internally connects to `shopFrame`'s `Destroying` event. The moment the frame leaves the game, the listener is removed and the callback will never fire again. No manual tracking, no stored reference, no cleanup code required.
+
+---
+
 ## 6. Use the Action Sub-System for Client-Initiated Commands, Not Bare Gateways
 
 When a client needs to trigger a specific server-side behavior — a button press, a player choice, a skill activation — the `ByteWave.Action` pair (`Action.Register` on the server, `Action.Send` on the client) provides a cleaner and safer structure than creating a raw gateway listener for each behavior.
@@ -330,3 +372,55 @@ ByteWave.Action.Send(Actions.PurchaseItem, {
 
 !!! warning "Action System Optimization"
     When you use the `Action` sub-system, by default ByteWave doesnt intern the strings here. This means that all actions logic ("Action" Gateway and developer defined ActionName) strings get to travel on the wire as full string bytes representation. To achieve optimization, send dummy payload in the server with the "Action" `Gateway` and a specified ActionName as `Path` with the string interning enabled.
+---
+
+## 7. Prefer Direct Payloads Over Single-Field Tables
+
+ByteWave routes every outbound packet through one of three serialization lanes depending on the payload's type. Understanding which lane a payload enters — and which do not benefit from binary packing or caching — is the single most impactful optimization available at the call site.
+
+**The three lanes, in order of efficiency:**
+
+The **Binary Lane** handles numbers, `Vector3`, `CFrame`, `Color3`, `BrickColor`, `Vector2`, `UDim2`, and every other native Roblox type. Payloads in this lane are written directly into a contiguous pre-allocated binary buffer. For numbers specifically, ByteWave classifies the value into the narrowest integer or float width that fits it (a small counter like `5` costs one byte; a large float costs eight), and caches the resulting serializer function keyed to that exact value. The next time the same numeric value is queued, ByteWave skips classification entirely and writes straight to the buffer using the cached function.
+
+The **String Lane** handles plain `string` payloads. These are written into a separate binary buffer with a two-byte length prefix — tight and fast.
+
+The **Complex Lane** handles everything else — including Lua tables. Tables cannot be described in a fixed binary layout because their structure is arbitrary. ByteWave borrows a recycled slot from its internal `TablePool` (to avoid GC pressure), places the table into the per-frame Complex array, and defers full serialization to the flush phase. There is no binary packing, no per-type caching, and no value-level short-circuit available on this path.
+
+The consequence for day-to-day code: wrapping a single scalar value in a table for no structural reason forces that value out of the binary lane and into the Complex lane, trading a sub-microsecond cached write for a full table serialization pass.
+
+### The Problem
+
+```luau
+-- Sending a health value wrapped in a single-field table.
+-- The table is routed to the Complex lane: no binary packing, no caching.
+-- ByteWave borrows a TablePool slot, defers serialization, and serializes
+-- the entire table structure (key name + value type + value) during flush.
+ByteWave.Send("Combat", "HP", { Value = 95 })
+
+-- Sending a position wrapped in a table instead of a Vector3.
+-- Same issue: the three numeric fields each carry their own key overhead.
+ByteWave.Send("World", "EnemyPos", { X = pos.X, Y = pos.Y, Z = pos.Z })
+```
+
+**Why this is wrong:** Both payloads contain data that could fit in a direct scalar or native type. Wrapping them in a table gains nothing structurally but removes them from the binary lane entirely.
+
+### The Solution
+
+```luau
+-- Direct number: goes to the Binary Lane.
+-- ByteWave classifies 95 as a UInt8 (1 byte), caches the writer, and
+-- on every subsequent send of the same value hits the cache and writes directly.
+ByteWave.Send("Combat", "HP", 95)
+
+-- Native Vector3: goes to the Binary Lane.
+-- ByteWave uses its pre-built fixed-width encoder — 12 bytes total, no key overhead.
+ByteWave.Send("World", "EnemyPos", pos)
+```
+
+**Why this works:** Direct scalars and native Roblox types enter the binary lane immediately. Numbers benefit from per-value serializer caching — repeatedly sending the same value (a health cap, a cooldown timer, a counter that stays at common integers) pays the classification cost only once. Native types like `Vector3` and `CFrame` use pre-built fixed-width encoders that require no runtime type inspection at all.
+
+!!! info "When a table is the right choice"
+    Tables are the correct payload when the data genuinely has multiple heterogeneous fields that must travel together — an item record, an action payload, a configuration snapshot. The rule is not to avoid tables entirely; it is to avoid tables that only exist to wrap a single value that could be sent directly.
+
+!!! warning "Pack for multiple numeric IDs"
+    If you need to send two or three small integer identifiers in the same packet, use `ByteWave.Pack` to compress them into a single number rather than wrapping them in a table. The packed number travels through the Binary Lane as a single numeric payload. The receiving side calls `ByteWave.Unpack` to recover the original values.

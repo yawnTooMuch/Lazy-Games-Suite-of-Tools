@@ -1,6 +1,7 @@
 # ByteWave
 
 **Type:** Framework  
+
 _A binary-batching networking framework for Roblox that replaces raw RemoteEvents with structured, high-throughput packet routing, scoped state replication, and built-in anti-spam protection._
 
 ---

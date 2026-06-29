@@ -340,7 +340,7 @@ end)
 
 ---
 
-### `PlayerAdded`
+### `Signals.PlayerAdded`
 
 Fires once per player after ByteWave's connection handshake completes. Use this instead of `Players.PlayerAdded` when you need to send data to a player immediately on join.
 
@@ -349,7 +349,7 @@ Fires once per player after ByteWave's connection handshake completes. Use this 
 ```luau
 local ByteWave = require(game.ServerScriptService.ByteWave)
 
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
     -- The client's string registry is synchronized at this point.
     -- Named paths are safe to use immediately.
     ByteWave.Send("Init", "WorldSeed", currentSeed, {
@@ -362,7 +362,7 @@ end)
 **Scenario B — Create a private state and send it to the joining player**
 
 ```luau
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
 	-- DataStore load may yield — that is fine here.
 	local profile = DataService.LoadProfile(player)
 	local playerState = ByteWave.State.CreateState(
@@ -380,40 +380,6 @@ end)
 ---
 
 ## ByteWave.State — Server
-
----
-
-### `SetSpatialRoot`
-
-Overrides the workspace scope used for all spatial overlap queries. After calling this, ByteWave restricts spatial discovery to descendants of the specified folder. Must be called before creating any spatial states.
-
-**Scenario A — Limit spatial queries to a specific map zone**
-
-```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
-
--- Spatial discovery only considers objects inside MapZone.
--- Objects elsewhere in the workspace are ignored entirely.
-local MapZone = workspace.CurrentMap
-
-ByteWave.State.SetSpatialRoot(MapZone)
-
--- All subsequent spatial states will be scoped to MapZone.
-ByteWave.State.CreateState("Pickup_01", { 
-	Type = "Ammo"
-}, "Spatial_Global", nil, MapZone.AmmoBox, 20)
-```
-
-**Scenario B — Switch the spatial root when the map changes**
-
-```luau
-local function onMapChanged(newMap)
-    ByteWave.State.SetSpatialRoot(newMap)
-end
-```
-
-!!! warning "Cleanup Before Re-Assign SpatialRoot"
-    Because `SetSpatialRoot` heavily tied with ByteWave's spatial system, calling SetSpatialRoot to assign a new folder will make the existing spatial states invisible to clients. Ensure previous states are cleaned up properly before assigning a new spatial root folder.
 
 ---
 
@@ -457,7 +423,7 @@ gameState:Increment("Players", 1)
 Only the named owner ever receives or observes this state. No other player is aware it exists.
 
 ```luau
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
 	local inventory = ByteWave.State.CreateState("Inv_" .. player.UserId, { 
 		Coins = 0, 
 		Items = {} 
@@ -520,7 +486,7 @@ The state only replicates when the owner player is within the anchor's radius. I
 
 ```luau
 -- A player's personal quest marker that only appears when they are near it.
-ByteWave.PlayerAdded(function(player)
+ByteWave.Signals.PlayerAdded:Connect(function(player)
 	local marker = workspace.QuestMarkers:FindFirstChild("Marker_" .. player.UserId)
 	if not marker then return end
 

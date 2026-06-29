@@ -60,6 +60,13 @@ Returned by `Listen`. Call `Disconnect()` to unregister the callback.
 |:---|:---|
 | `Disconnect` | `() -> ()` |
 
+#### `ReadOnlySignal<T...>`
+Returned by `Signals` namespace APIs. Exposes a single `:Connect()` method to register a callback and returns a `DisconnectObject`.
+
+| Method | Signature |
+|:---|:---|
+| `Connect` | `(self, Callback: (T...) -> ()) -> DisconnectObject` |
+
 ---
 
 ### Client-Side Types
@@ -69,7 +76,7 @@ Passed to gateway listeners on the client.
 
 | Field | Type | Description |
 |:---|:---|:---|
-| `Path` | `string` | The path within the gateway. |
+| `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 
 #### `SendConfig` *(client)*
@@ -142,10 +149,10 @@ Require this on the server. All public APIs are described below.
 | **[SetGatewayWhitelist](#setgatewaywhitelist)** | `void` | Restricts a gateway to a specific list of UserIds. |
 | **[SetRequestHandler](#setrequesthandler)** | `void` | Registers a server-side handler for client RPC requests on a named gateway. |
 | **[AttachMiddleware](#attachmiddleware)** | `void` | Attaches a custom function that intercepts every inbound packet before listeners receive it. |
-| **[PlayerAdded](#playeradded)** | `void` | Registers a callback that fires when a player completes the connection handshake. |
+| **[Signals.PlayerAdded](#signals-playeradded)** | `ReadOnlySignal<Player>` | A signal that fires when a player completes the connection handshake. |
 | **[Pack](#pack)** | `number` | Compresses up to three 16-bit integers into a single 64-bit numeric value. |
 | **[Unpack](#unpack)** | `number, number, number` | Decompresses a value created by `Pack` back into its three component integers. |
-| **[Inject](#inject-server)** | `void` | Injects an external library from the Lazy Games Suite of Tools into the ByteWave suite. |
+| **[Inject](#inject-server)** | `void` | Injects an external library from the Lazy Games Suite of Tools into the ByteWave framework. |
 
 ---
 
@@ -157,7 +164,7 @@ Queues a packet to be sent to a specific player or broadcast to all players on t
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway the packet is routed through. |
 | `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Options` | `SendConfig?` | (Optional) Controls target player, reliability, and string interning. |
@@ -202,7 +209,7 @@ Queues a packet for delivery to every player currently within the specified radi
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway the packet is routed through. |
 | `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Anchor` | `BasePart | Model | Attachment` | The world position to measure distance. |
@@ -229,7 +236,7 @@ Restricts access to a gateway so that only clients whose UserId appears in the l
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway to restrict inbound access on. |
 | `AllowedUserIds` | `{ number? }` | Array of UserIds permitted to send on this gateway. |
 
 **Returns:** `void`
@@ -247,7 +254,7 @@ Registers a handler function that is called when a client sends a request to the
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway to handle RPC requests on. |
 | `Callback` | `(Player, any) -> any` | Called with the requesting player and their query data. The return value is delivered to the client. |
 
 **Returns:** `void`
@@ -273,16 +280,18 @@ Attaches a function that is called for every inbound packet, before any gateway 
 **Returns:** `void`
 
 !!! info "Order of evaluation"
-    Middleware functions run in the order they were attached. ByteWave's built-in anti-spam protection is installed during the deferred initialization phase. Any middleware attached before that phase completes will run **before** the built-in layer; any middleware attached after will run after it. For guaranteed ordering relative to the defense layer, attach middleware inside `ByteWave.PlayerAdded` or after the first frame has elapsed.
+    Middleware functions run in the order they were attached. ByteWave's built-in anti-spam protection is installed during the deferred initialization phase. Any middleware attached before that phase completes will run **before** the built-in layer; any middleware attached after will run after it. For guaranteed ordering relative to the defense layer, attach middleware inside a `ByteWave.Signals.PlayerAdded:Connect` callback or after the first frame has elapsed.
 
 !!! warning "System packets are exempt"
     Packets on the `"System"` gateway (handshake, time sync, RPC responses) bypass all middleware, including the built-in anti-spam layer.
 
 ---
 
-<a id="playeradded"></a>
-#### `PlayerAdded`
-Registers a callback that fires once for each player after they have completed ByteWave's connection handshake.
+<a id="signals-playeradded"></a>
+#### `Signals.PlayerAdded`
+A read-only signal that fires once for each player after they have completed ByteWave's connection handshake. Use `:Connect()` to register a callback.
+
+##### `Signals.PlayerAdded:Connect`
 
 **Parameters:**
 
@@ -290,10 +299,10 @@ Registers a callback that fires once for each player after they have completed B
 |:---|:---|:---|
 | `Callback` | `(Player) -> ()` | Called once per player on handshake completion. |
 
-**Returns:** `void`
+**Returns:** `DisconnectObject` — call `:Disconnect()` to stop receiving events.
 
 !!! warning "Not equivalent to Players.PlayerAdded"
-    A player registered through `Players.PlayerAdded` has joined the server but has not yet completed ByteWave's handshake. Calling `Send` targeting that player before `PlayerAdded` fires may result in packets being queued before the client's string registry is synchronized.
+    A player registered through `Players.PlayerAdded` has joined the server but has not yet completed ByteWave's handshake. Calling `Send` targeting that player before `Signals.PlayerAdded` fires may result in packets being queued before the client's string registry is synchronized.
 
 ---
 
@@ -366,6 +375,8 @@ Require this in LocalScripts. The module yields until the connection handshake c
 | **[Listen](#listen-client)** | `DisconnectObject` | Registers a callback to receive all packets arriving on a named gateway from the server. |
 | **[Request](#request)** | `boolean, any` | Sends a request to the server and yields until a response arrives or the timeout elapses. |
 | **[GetServerTime](#getservertime)** | `number` | Returns the current server clock, estimated using round-trip time sampling. |
+| **[Pack](#pack-client)** | `number` | Compresses up to three 16-bit integers into a single 64-bit numeric value. |
+| **[Unpack](#unpack-client)** | `number, number, number` | Decompresses a value created by `Pack` back into its three component integers. |
 | **[Inject](#inject-client)** | `void` | Injects an external library into the ByteWave suite on the client. |
 
 ---
@@ -378,7 +389,7 @@ Queues a packet to be sent to the server on the next Heartbeat flush.
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway the packet is routed through. |
 | `Path` | `string | number` | The path within the gateway. |
 | `Value` | `any` | The payload to be broadcasted. |
 | `Options` | `SendConfig?` | (Optional) Control channel via `____IsReliable`. |
@@ -411,7 +422,7 @@ Sends a request to the server and yields the calling coroutine until the server 
 
 | Name | Type | Description |
 |:---|:---|:---|
-| `Gateway` | `string` | The gateway the packet arrived on. |
+| `Gateway` | `string` | The gateway the request is routed through. |
 | `Data` | `any?` | (Optional) Payload passed to the server handler. |
 | `Options` | `RequestConfig?` | (Optional) Set `____Timeout` to control how long to wait. |
 
@@ -438,6 +449,43 @@ Returns an estimate of the current server clock, adjusted for network latency us
 
 !!! info "Accuracy note"
     The estimate improves over time as more round-trip samples accumulate. During the first few seconds after joining the value may be slightly imprecise.
+
+---
+
+<a id="pack-client"></a>
+#### `Pack` *(client)*
+Compresses up to three 16-bit integers into a single 64-bit numeric value. Useful for grouping multiple small IDs into one payload to reduce buffer space. Identical in behavior to the server-side `Pack`.
+
+**Parameters:**
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `...` | `number` | Up to three 16-bit integer values (0–65,535) to compress. |
+
+**Returns:** `number` — the combined packed value.
+
+!!! warning "16-bit ceiling"
+    The first two arguments must be in the range 0–65,535. The third argument has a wider range. Passing values outside these bounds or decimal numbers logs a warning in Studio. Results for out-of-range inputs are undefined.
+
+!!! danger "Argument limit"
+    Passing more than three arguments raises an error in Studio.
+
+---
+
+<a id="unpack-client"></a>
+#### `Unpack` *(client)*
+Decompresses a value previously created by `Pack` back into its three original component integers. Identical in behavior to the server-side `Unpack`.
+
+**Parameters:**
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `PackedValue` | `number` | The packed numeric value previously generated by `Pack`. |
+
+**Returns:** `number, number, number` — the three extracted integers in their original order.
+
+!!! warning "Decimal inputs"
+    Passing a non-integer packed value logs a warning in Studio. Results may be imprecise if the input was not produced by `Pack`.
 
 ---
 
@@ -734,6 +782,9 @@ Subtracts `Amount` from the numeric value at `TargetKey`.
 
 **Returns:** `void`
 
+!!! danger "Throws"
+    In Studio, raises an error if the existing value at `TargetKey` is not a number.
+
 ---
 
 <a id="multiply"></a>
@@ -748,6 +799,9 @@ Multiplies the numeric value at `TargetKey` by `Amount`.
 | `Amount` | `number` | The multiplier. |
 
 **Returns:** `void`
+
+!!! danger "Throws"
+    In Studio, raises an error if the existing value at `TargetKey` is not a number.
 
 ---
 
@@ -765,7 +819,7 @@ Divides the numeric value at `TargetKey` by `Amount`.
 **Returns:** `void`
 
 !!! danger "Throws"
-    Raises an error in Studio if `Amount` is zero.
+    In Studio, raises an error if the existing value at `TargetKey` is not a number or if `Amount` is zero.
 
 ---
 
@@ -811,7 +865,7 @@ Cancels all active timers on this state, destroys all child states in hierarchy 
 | Name | Returns | Description |
 |:---|:---|:---|
 | **[GetState](#getstate-client)** | `StateObject?` | Waits up to a timeout for a state to arrive, then returns it. |
-| **[OnCreatedState](#oncreatedstate)** | `void` | Registers a callback that fires whenever a new state is received from the server. |
+| **[OnCreatedState](#oncreatedstate)** | `DisconnectObject` | Registers a callback that fires whenever a new state is received from the server. |
 
 ---
 
@@ -829,7 +883,7 @@ Returns the locally cached StateObject for the given ID. If the state has not ar
 **Returns:** `StateObject?` — the state controller, or `nil` if the timeout elapsed.
 
 !!! warning "Yields"
-    This method may suspend the calling coroutine for up to the configured timeout. Do not call it during game initialization code that must complete immediately.
+    This method may suspend the calling coroutine for up to the configured timeout. *Do not call* it during game initialization code or section that must complete immediately unless necessary. For most scenerio, it is still best to wrap the caller into a separate coroutine thread.
 
 ---
 
@@ -843,7 +897,7 @@ Registers a callback that fires whenever a new StateObject is received from the 
 |:---|:---|:---|
 | `Callback` | `(StateObject) -> ()` | Called with each new StateObject on creation. |
 
-**Returns:** `void`
+**Returns:** `DisconnectObject` — call `:Disconnect()` to unregister the callback.
 
 ---
 
