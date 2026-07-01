@@ -15,7 +15,7 @@ Injects an external library into the ByteWave suite before game logic starts. Tw
 **Scenario A — Inject the Assignment scheduler**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local Assignment = require(game.ServerScriptService.Assignment)
 
 -- Injecting Assignment will change ByteWave's native task scheduler to assignment scheduler
@@ -25,7 +25,7 @@ ByteWave.Inject("Assignment", Assignment)
 **Scenario B — Inject Twin to accelerate spatial state discovery**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local Twin = require(game.ServerScriptService.Twin)
 
 -- Twin replaces ByteWave's fixed-count native Actor pool.
@@ -39,7 +39,7 @@ ByteWave.Inject("Twin", Twin)
 **Scenario C — Inject both at initialization**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local Assignment = require(game.ServerScriptService.Assignment)
 local Twin = require(game.ServerScriptService.Twin)
 
@@ -60,7 +60,7 @@ Queues a packet for delivery to one player or all players. Defaults to reliable 
 **Scenario A — Broadcast a global event to all players**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 -- No ____TargetPlayer specified — the packet goes to every connected client.
 ByteWave.Send("GameEvents", "RoundStarted", { RoundNumber = 1, Duration = 120 })
@@ -102,7 +102,7 @@ Registers a callback for every inbound packet arriving on a named gateway. Retur
 **Scenario A — Path multiplexing inside a single gateway listener**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 -- One listener handles all Combat paths — no separate RemoteEvent per action.
 ByteWave.Listen("Combat", function(packet)
@@ -162,7 +162,7 @@ Delivers a packet only to players within a configured radius of a world anchor. 
 **Scenario A — Cylindrical radius (horizontal only, ignores vertical)**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local Explosion = workspace.ExplosionPart
 
 -- Only players within 100 horizontal studs receive this.
@@ -216,7 +216,7 @@ Restricts a gateway so only clients whose UserId is in the list can send packets
 **Scenario A — Admin-only command gateway**
 
 ```luau
-local ByteWave  = require(game.ServerScriptService.ByteWave)
+local ByteWave  = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local ADMIN_IDS = { 123456789, 987654321 }
 
 ByteWave.SetGatewayWhitelist("AdminCommands", ADMIN_IDS)
@@ -257,7 +257,7 @@ Registers a handler for client RPC calls. The handler's return value is automati
 **Scenario A — Inventory lookup**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 ByteWave.SetRequestHandler("Inventory", function(player, query)
     local item = InventoryService.GetItem(player, query.ItemId)
@@ -300,7 +300,7 @@ Attaches a function that intercepts every inbound packet before any listener rec
 **Scenario A — Block all traffic during a maintenance window**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 local maintenanceMode = false
 
 ByteWave.AttachMiddleware(function(packet)
@@ -347,7 +347,7 @@ Fires once per player after ByteWave's connection handshake completes. Use this 
 **Scenario A — Send initial world state the moment a player is ready**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 ByteWave.Signals.PlayerAdded:Connect(function(player)
     -- The client's string registry is synchronized at this point.
@@ -400,7 +400,7 @@ Creates, registers, and immediately replicates a server-owned data object to eli
 Every player currently connected receives the state immediately. Players who join later receive it automatically during their handshake full-sync.
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 local gameState = ByteWave.State.CreateState("GameState", {
     Phase = "Lobby",
@@ -595,7 +595,7 @@ Returns the registered `StateObject` for the given ID, or `nil` if no state with
 **Scenario A — Retrieve and mutate an existing state from another script**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 -- Get the state created from somewhere in the codebase
 local gameState = ByteWave.State.GetState("GameState")
@@ -633,7 +633,7 @@ Returns the complete dictionary of all currently registered states, keyed by the
 **Scenario A — Bulk update all states matching a naming pattern**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 local allStates = ByteWave.State.GetActiveStates()
 
@@ -1163,7 +1163,7 @@ Registers a named handler that fires when a client sends an action with the matc
 **Scenario A — Register an action with configuration metadata**
 
 ```luau
-local ByteWave = require(game.ServerScriptService.ByteWave)
+local ByteWave = require(game.ServerScriptService.ByteWave.ByteWave_Server.ByteWave_Server)
 
 ByteWave.Action.Register("PurchaseItem", {
 	MaxPerMinute  = 10,
@@ -1234,7 +1234,7 @@ Injects an external library within the Lazy Games Suite of Tools environment. Cu
 **Scenario A — Inject Assignment on the client**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 local Assignment = require(game.StarterPlayerScripts.Assignment)
 
 -- Inject at the top of the client bootstrap script, before any game logic.
@@ -1244,7 +1244,7 @@ ByteWave.Inject("Assignment", Assignment)
 **Scenario B — Conditional injection based on environment**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 -- Only inject in production where Assignment is available.
 local ok, Assignment = pcall(require, game.StarterPlayerScripts.Assignment)
@@ -1262,7 +1262,7 @@ Queues a packet to be delivered to the server on the next Heartbeat. Reliable by
 **Scenario A — Send a reliable user action**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 -- A button press that must not be lost in transit.
 ByteWave.Send("Combat", "DealDamage", { 
@@ -1294,7 +1294,7 @@ Registers a callback for packets arriving from the server on the named gateway. 
 **Scenario A — Handle multiple server events on a single gateway**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 ByteWave.Listen("GameEvents", function(packet)
     if packet.Path == "RoundStarted" then
@@ -1346,7 +1346,7 @@ Sends a request to the server and yields until a response arrives or the timeout
 **Scenario A — Fetch inventory data from the server**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 task.spawn(function()
     local success, data = ByteWave.Request("Inventory", { ItemId = "sword_01" }) -- Send a request/response cycle event. This is identical to how remote function mechanism
@@ -1400,7 +1400,7 @@ Returns an estimate of the current server clock, adjusted for round-trip latency
 **Scenario A — Stamp client-side events with server time**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 local function recordAction(actionName: string)
 	local serverStamp = ByteWave.GetServerTime()
@@ -1446,7 +1446,7 @@ Returns the locally cached `StateObject` for the given ID. Yields up to the conf
 **Scenario A — Wait for a state to arrive and then use it**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 task.spawn(function()
     -- Yields up to 5 seconds (default). Returns nil on timeout.
@@ -1486,7 +1486,7 @@ Registers a callback that fires whenever a new `StateObject` is received from th
 **Scenario A — React to spatial states entering the player's range**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 
 ByteWave.State.OnCreatedState(function(state)
     if string.find(state.UniqueID, "Chest_") then
@@ -1674,7 +1674,7 @@ Sends a named action to the server. The server-side handler registered under the
 **Scenario A — Trigger a server action from a button press**
 
 ```luau
-local ByteWave = require(game.StarterPlayerScripts.ByteWave)
+local ByteWave = require(game.StarterPlayerScripts.ByteWave.ByteWave_Client.ByteWave_Client)
 local button = script.Parent.PurchaseButton
 
 button.Activated:Connect(function()
