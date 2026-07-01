@@ -1,0 +1,4307 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../examples/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>APIs - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#assignment-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              APIs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Assignment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Assignment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawnisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpawnIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeferIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delayisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DelayIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#op" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Op
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Handle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Handle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-switchhandle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SwitchHandle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SwitchHandle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-opcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type: Opcode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-switchhandle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type: SwitchHandle
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#class-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Assignment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Assignment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawnisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SpawnIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeferIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delayisolated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DelayIsolated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repeat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cancel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cancel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#op" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Op
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: Handle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: Handle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-switchhandle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class: SwitchHandle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class: SwitchHandle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-opcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type: Opcode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-switchhandle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type: SwitchHandle
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="assignment-api-reference">Assignment API Reference</h1>
+<p>This page documents every public function, method, and type surface exposed by the <strong>Assignment</strong> library.</p>
+<hr />
+<h2 id="class-assignment">Class: Assignment</h2>
+<p>The top-level module table. All scheduling and pattern-matching functions are accessed directly on this table.</p>
+<h3 id="summary">Summary</h3>
+<p><strong>Pooled Family</strong> — protect the server. These functions recycle execution resources, throttle heavy workloads automatically, and gracefully discard cancelled work before it ever runs.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#spawn">Spawn</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Runs a function or thread immediately.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#defer">Defer</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Queues work to run on the next available frame. Large backlogs are spread across frames automatically to protect frame time.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#delay">Delay</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Schedules work to run after a set duration. Zero or negative durations queue on the next available frame.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Isolated Family</strong> — exert absolute control. These functions bypass all throttles, give you a cancellation token (<code>thread</code>) to stop work at any time, and force the engine to prioritise your logic immediately.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#spawnisolated">SpawnIsolated</a></strong></td>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">Runs a function or thread immediately at full engine priority. Use for long-yielding work.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#deferisolated">DeferIsolated</a></strong></td>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">Queues work for the next available frame at full engine priority, bypassing frame-spread throttling. Use for long-yielding deferred work.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#delayisolated">DelayIsolated</a></strong></td>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">Schedules work after a set duration at full engine priority. Use for long-yielding delayed work.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Shared</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#wait">Wait</a></strong></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Pauses the current thread for a duration and returns the real elapsed time.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#repeat">Repeat</a></strong></td>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">Calls a function repeatedly at a fixed interval, for a set number of iterations or indefinitely.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#cancel">Cancel</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Stops a scheduled <code>Handle</code>, a cancellation <code>thread</code>, or a suspended <code>thread</code> from executing.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#migrate">Migrate</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Hands all pending scheduled work to the engine's native scheduler. Server-only.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pattern Matching</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#switch">Switch</a></strong></td>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Fetches or creates a named pattern-matching decision tree.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#op">Op</a></strong></td>
+<td style="text-align: left;"><code>{ [string]: Opcode }</code></td>
+<td style="text-align: left;">A frozen enum dictionary of engine instructions for use with <code>SwitchHandle:Case</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="spawn">Spawn</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Runs a function or resumes a thread immediately.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume immediately.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition info">
+<p class="admonition-title">Best For Short, Quick Work</p>
+<p>The Pooled Family is designed for tasks that start and finish quickly, or yield only briefly. If your work will sleep for a long time — waiting on a DataStore, an HTTP request, or a multi-second loop — use <code>SpawnIsolated</code> instead. Long sleeps occupy the shared worker and force all other incoming short tasks to spin up their own resources rather than sharing the available one.</p>
+</div>
+<hr />
+<h4 id="spawnisolated">SpawnIsolated</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">SpawnIsolated</span><span class="p">(</span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">thread</span>
+</span></code></pre></div>
+<p>Runs a function or thread immediately at full engine priority, completely independent of the shared worker.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume immediately.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">The dedicated thread. Pass to <code>Assignment.Cancel</code> to stop it.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">The Isolated Family — Absolute Control</p>
+<p><code>SpawnIsolated</code>, <code>DeferIsolated</code>, and <code>DelayIsolated</code> all give work its own dedicated engine-managed thread. Think of it as hiring a specialist who operates entirely independently — your regular team is never occupied by this job, no matter how long it runs.</p>
+<p>Use any of them when work will yield for a meaningful amount of time. The Pooled Family shares one reusable worker: a long-sleeping task keeps that worker busy for the entire sleep, leaving short incoming tasks without a free worker to reuse. Isolated threads sidestep this — the shared worker stays free at all times, and the engine manages the dedicated thread on its own.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Isolated Threads Trade Safety for Control</p>
+<p>Isolated threads are not covered by Assignment's automatic throttling or cleanup. They run immediately at full engine priority, are never spread across frames, and are not automatically discarded if they go unused. Only use them when the work genuinely requires it.</p>
+</div>
+<hr />
+<h4 id="defer">Defer</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Defer</span><span class="p">(</span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Queues work to run on the next available frame.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">A cancellable handle. Call <code>Handle:Break()</code> or pass it to <code>Assignment.Cancel()</code> to discard the work before it runs.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Automatic Frame Spreading</p>
+<p>Unlike the engine's native defer, which processes everything queued in one frame all at once, Assignment meters deferred work across frames. Deferring a large batch of calls in one frame will not spike your frame time.</p>
+</div>
+<hr />
+<h4 id="deferisolated">DeferIsolated</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">DeferIsolated</span><span class="p">(</span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">thread</span>
+</span></code></pre></div>
+<p>Queues work to run on the next available frame at full engine priority.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">The dedicated thread. Pass to <code>Assignment.Cancel</code> to stop it.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">When to Use</p>
+<p>Use <code>DeferIsolated</code> when the work you want to run next frame will then sleep for a long time — for example, a batch of DataStore writes or a chain of HTTP calls. Queueing that kind of work through the standard <code>Defer</code> path would occupy the shared pool for the entire duration of those yields. See <code>SpawnIsolated</code> for the full explanation.</p>
+</div>
+<hr />
+<h4 id="delay">Delay</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="nv">Duration</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Schedules work to run after a set number of seconds.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Duration</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Seconds to wait before running.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">A cancellable handle. Call <code>Handle:Break()</code> or pass it to <code>Assignment.Cancel()</code> to discard the work before it runs.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Zero and Negative Durations</p>
+<p>Passing <code>0</code> or any negative number tells Assignment to run the work as soon as possible — on the next available frame, just like <code>Defer</code>. The returned <code>Handle</code> behaves identically regardless of which path was taken and is fully cancellable.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Timing Precision</p>
+<p>Assignment fires delayed work as close to the requested time as the current frame rate allows. Very short durations may fire on the frame after the one they were scheduled in. For precise, immediate execution without any timing constraint, use <code>DelayIsolated</code>.</p>
+</div>
+<hr />
+<h4 id="delayisolated">DelayIsolated</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">DelayIsolated</span><span class="p">(</span><span class="nv">Duration</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">thread</span>
+</span></code></pre></div>
+<p>Schedules work to run after a set number of seconds at full engine priority.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Duration</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Seconds to wait before running.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | thread</code></td>
+<td style="text-align: left;">The function to call or thread to resume.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Arguments forwarded to the function or thread.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>thread</code></td>
+<td style="text-align: left;">The dedicated thread. Pass to <code>Assignment.Cancel</code> to stop it.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">When to Use</p>
+<p>Use <code>DelayIsolated</code> when the work that fires after the delay will then sleep for a long time — for example, an async multi-step workflow. Running that through the standard <code>Delay</code> path would occupy the shared pool for the duration of those yields. See <code>SpawnIsolated</code> for the full explanation.</p>
+</div>
+<hr />
+<h4 id="wait">Wait</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="nv">Duration</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">number</span>
+</span></code></pre></div>
+<p>Pauses the current thread for approximately the requested duration and returns how long it actually waited.</p>
+<p>Passing zero, <code>nil</code>, or a negative value is valid: the thread pauses for the shortest possible time, resuming on the next frame.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Duration</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds to pause.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">The actual time elapsed since <code>Wait</code> was called, in seconds.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">This Function Yields</p>
+<p><code>Assignment.Wait</code> suspends the calling thread. Do not call it from a synchronous callback or any context that must return immediately, such as a signal handler.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">The Returned Time Is Real, Not Requested</p>
+<p>The return value reflects how long the thread actually slept, not the duration you asked for. Under heavy load the actual wait may exceed the requested duration. If you need precise elapsed time for animation or interpolation, measure with <code>os.clock()</code> directly.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Zero, Nil, and Negative Values — Next Frame Yield</p>
+<p>Passing <code>nil</code>, <code>0</code>, or any negative number is the lightest possible yield: the thread is paused for exactly one frame and then resumes. This is useful for letting other work run between steps of a long process without introducing a meaningful time delay.</p>
+</div>
+<hr />
+<h4 id="repeat">Repeat</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Repeat</span><span class="p">(</span><span class="nv">Count</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">Interval</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">Function</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nc">Handle</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">(),</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">Handle</span>
+</span></code></pre></div>
+<p>Calls a function repeatedly at a fixed interval for a set number of iterations, or indefinitely when <code>Count</code> is <code>-1</code>. Each iteration receives the current iteration number (starting at 1), the loop's <code>Handle</code>, and any extra arguments you forward.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Count</code></td>
+<td style="text-align: left;"><code>number</code></td>
+<td style="text-align: left;">Number of times to call <code>Function</code>. Pass <code>-1</code> to loop forever.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Interval</code></td>
+<td style="text-align: left;"><code>number?</code></td>
+<td style="text-align: left;">Seconds between calls.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Function</code></td>
+<td style="text-align: left;"><code>(number, Handle, ...any) -&gt; ()</code></td>
+<td style="text-align: left;">Called each iteration with the iteration number and the loop handle as the first two arguments.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">Extra arguments forwarded to <code>Function</code> after the iteration number and handle.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Handle</code></td>
+<td style="text-align: left;">A cancellable handle. Call <code>Handle:Break()</code> or pass it to <code>Assignment.Cancel()</code> to stop the loop before it starts or mid-run.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Yielding Inside the Callback Delays the Next Iteration</p>
+<p>The loop pauses between iterations. If your callback also yields — for example, by calling <code>Assignment.Wait</code> itself — the next iteration is delayed by the full length of that yield on top of the configured interval.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Cancellation Is Immediate After the Current Callback</p>
+<p><code>Handle:Break()</code> is checked both before the callback runs and immediately after it returns. If you call <code>Break</code> from inside the callback, the loop exits before the next wait period — it does not wait out the remaining interval.</p>
+</div>
+<hr />
+<h4 id="cancel">Cancel</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Cancel</span><span class="p">(</span><span class="nv">Target</span><span class="p">:</span><span class="w"> </span><span class="nc">Handle</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">thread</span><span class="p">):</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Stops a scheduled task from running. Accepts a <code>Handle</code> returned from any pooled call, a <code>thread</code> token returned from any isolated call, or a raw <code>thread</code> that is currently suspended inside <code>Assignment.Wait</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Target</code></td>
+<td style="text-align: left;"><code>Handle | thread</code></td>
+<td style="text-align: left;">The handle or thread to cancel. Passing <code>nil</code> is safe and does nothing.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">Cancel and Break Are Equivalent for Handles</p>
+<p><code>Assignment.Cancel(handle)</code> and <code>handle:Break()</code> do exactly the same thing when passed a <code>Handle</code>. Use <code>Cancel</code> when your code may hold either a <code>Handle</code> or a raw <code>thread</code> — it handles both uniformly, making it the right choice for generic cleanup systems.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Cancelling a Waiting Thread</p>
+<p>If you hold a reference to a thread that is currently suspended inside <code>Assignment.Wait</code>, you can pass it directly to <code>Assignment.Cancel</code>. Assignment will locate its associated control token and discard the pending work the same way it would for a <code>Handle</code>.</p>
+</div>
+<hr />
+<h4 id="migrate">Migrate</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Migrate</span><span class="p">():</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Signals Assignment to hand all pending scheduled work to the engine's native scheduler, preserving each task's remaining time. After migration, all Assignment functions continue to work as normal but route through the native scheduler.</p>
+<p>This is called automatically when the server closes and requires no code from you. It is exposed as a manual call for controlled shutdown sequences.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition note">
+<p class="admonition-title">Server Only</p>
+<p><code>Migrate</code> exists only on the server. The automatic shutdown binding is also server-only. Calling it on the client will error.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Cancellation Is No Longer Available After Migration</p>
+<p>Once migration completes, Assignment's cancellation system is no longer active. Tasks that were not yet cancelled will run at their scheduled times and cannot be stopped by <code>Handle:Break()</code> or <code>Assignment.Cancel</code>.</p>
+</div>
+<hr />
+<h4 id="switch">Switch</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="nv">SwitchID</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">SwitchHandle</span>
+</span></code></pre></div>
+<p>Fetches or creates a named pattern-matching decision tree. The first call with a given ID creates and stores the tree, every subsequent call with the same ID returns the exact same object from memory. This makes it safe to call <code>Assignment.Switch("MySwitch")</code> anywhere — including inside hot loops — without any allocation cost.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SwitchID</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">A unique name that identifies this decision tree across all scripts.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">The control handle for this switch tree. Use it to define rules (<code>:Case</code>, <code>:Execute</code>, <code>:Default</code>) during setup and evaluate them (<code>:Match</code>) at runtime.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Define Rules Once, Evaluate Anywhere</p>
+<p>Because each Switch is a global singleton identified by its string ID, you can define all the rules for <code>"MySwitch"</code> in one script and call <code>Assignment.Switch("MySwitch"):Match(...)</code> from any other script that needs the result. No reference passing required.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Two Phases: Setup and Execution</p>
+<p>A Switch has two distinct usage phases. During <strong>Setup</strong> (typically at game start or module load), you chain <code>:Case():Execute()</code> calls to compile rules into the decision tree. During <strong>Execution</strong> (typically each frame or on events), you call <code>:Match(...)</code> to evaluate the tree and get back the function that applies to the current state. These phases are intentionally separate — the rules are compiled once, not re-built on every match.</p>
+</div>
+<hr />
+<h4 id="op">Op</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">string</span><span class="p">]:</span><span class="w"> </span><span class="nc">Opcode</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<p>A frozen enum dictionary of engine instructions for use with <code>SwitchHandle:Case</code>. Each entry is an <code>Opcode</code> value that tells the pattern engine to apply a specific comparison rather than a direct equality check.</p>
+<p><strong>Opcodes:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Subjects Required</th>
+<th style="text-align: left;">Matches When...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.InRange</code></td>
+<td style="text-align: left;"><code>Min: number, Max: number</code></td>
+<td style="text-align: left;">The target number falls between <code>Min</code> and <code>Max</code>, inclusive.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.Type</code></td>
+<td style="text-align: left;"><code>typeName: string</code></td>
+<td style="text-align: left;"><code>typeof(target) == typeName</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.IsA</code></td>
+<td style="text-align: left;"><code>className: string</code></td>
+<td style="text-align: left;">The target is a Roblox Instance and <code>target:IsA(className)</code> is true. Safely skipped if the target is not an Instance.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.NotEqual</code></td>
+<td style="text-align: left;"><code>value: any</code></td>
+<td style="text-align: left;"><code>target ~= value</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.LessThan</code></td>
+<td style="text-align: left;"><code>value: number</code></td>
+<td style="text-align: left;"><code>target &lt; value</code>. Safely skipped if either side is not a number.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.GreaterThan</code></td>
+<td style="text-align: left;"><code>value: number</code></td>
+<td style="text-align: left;"><code>target &gt; value</code>. Safely skipped if either side is not a number.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.LessThanOrEqual</code></td>
+<td style="text-align: left;"><code>value: number</code></td>
+<td style="text-align: left;"><code>target &lt;= value</code>. Safely skipped if either side is not a number.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.GreaterThanOrEqual</code></td>
+<td style="text-align: left;"><code>value: number</code></td>
+<td style="text-align: left;"><code>target &gt;= value</code>. Safely skipped if either side is not a number.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.NoOp</code></td>
+<td style="text-align: left;"><em>(none)</em></td>
+<td style="text-align: left;">Used as a payload in <code>:Execute()</code> to mark a path as intentionally empty, suppressing the Default fallback.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Assignment.Op.AND</code></td>
+<td style="text-align: left;"><em>(none)</em></td>
+<td style="text-align: left;">A structural suffix token. When placed as the <strong>last argument</strong> in a <code>:Case()</code> call, causes the next <code>:Case()</code> call to distribute its conditions across all existing pending path endpoints rather than starting new root branches. Enables compound <code>(A OR B) AND C</code> patterns. Takes no subject and performs no comparison.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">The JIT Compilation Law: Setup vs. Runtime</p>
+<p><code>Assignment.Switch</code> physically separates rule creation from rule evaluation. The arguments you pass into <code>:Case()</code> are permanently compiled into a static memory graph at system startup. They are <strong>not</strong> evaluated dynamically per frame.</p>
+<ul>
+<li><strong>The "Snapshot" Misconception:</strong> If you pass a dynamic variable (e.g., <code>Player.Health</code>) as a subject in <code>:Case()</code>, the engine permanently bakes in that exact value at that specific microsecond. It does not live-update. You must pass your static rules into <code>:Case()</code>, and pass your dynamic variables into <code>:Match()</code>.</li>
+<li><strong>JIT Cache Bloat:</strong> Never call <code>:Case()</code> dynamically inside a Heartbeat or event loop. Attempting to continuously expand the memory tree with dynamic variables will quickly trigger a fatal <code>MAX_SWITCH_MATH_BRANCHES</code> JIT Cache Bloat error and crash your system to prevent memory leaks.</li>
+<li><strong>Strict Opcode Placement Rules:</strong> <ul>
+<li><strong>Structural &amp; Math Opcodes</strong> (e.g., <code>Op.AND</code>, <code>Op.LessThan</code>) are compiler instructions used strictly to shape the tree. They belong exclusively inside <code>:Case()</code> and will throw fatal errors if passed into <code>:Match()</code> or bound as payloads in <code>:Execute()</code>.</li>
+<li><strong>The Terminator Exception:</strong> The <em>only</em> exception is <code>Assignment.Op.NoOp</code>. This is a dedicated Execution Token. It cannot be used to shape the tree inside <code>:Case()</code>, and must strictly be bound as a payload inside <code>:Execute(Assignment.Op.NoOp)</code> to safely terminate a branch.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="admonition info">
+<p class="admonition-title">InRange Takes Two Subjects</p>
+<p><code>Op.InRange</code> is the only opcode that consumes two subjects instead of one: <code>:Case(Assignment.Op.InRange, Min, Max, ...)</code>. All other comparison opcodes consume exactly one subject: <code>:Case(Assignment.Op.LessThan, 100, ...)</code>.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">AND is a Structural Token, Not a Comparison</p>
+<p><code>Op.AND</code> is unique: it takes no values and performs no math. Instead, it acts as a bridge. By placing it at the very end of a <code>:Case()</code>, you are telling the engine: <em>"Take the branches I just built, and apply my next condition to all of them."</em> This natively enables <code>(A OR B) AND C</code> logic, allowing multiple OR branches to share a single, nested AND condition without repeating yourself.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">AND Placement Rules</p>
+<p>Misusing <code>Op.AND</code> throws a hard error at setup time, never at runtime. The rules are:</p>
+<ul>
+<li><code>Op.AND</code> must always be the <strong>last argument</strong> in a <code>:Case()</code> call. Placing it anywhere else in the argument sequence is a hard error.</li>
+<li><code>Op.AND</code> cannot be the <strong>sole argument</strong> in a <code>:Case()</code> call. A preceding condition is required.</li>
+<li><code>Op.AND</code> cannot be passed as a payload to <code>:Execute()</code>. This is a hard error.</li>
+<li>Calling <code>:Execute()</code> immediately after a <code>:Case()</code> that ended with <code>Op.AND</code> (a dangling AND) emits a <strong>warning</strong> and forcefully seals the state — the paths are still bound normally, but the trailing <code>Op.AND</code> should be removed.</li>
+</ul>
+</div>
+<hr />
+<h2 id="class-handle">Class: Handle</h2>
+<p>A cancellation token returned by <code>Defer</code>, <code>Delay</code>, and <code>Repeat</code>. Holds a single cancellation flag and exposes one method.</p>
+<h3 id="summary_1">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#break">Break</a></strong></td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Marks this handle as cancelled so its scheduled work is silently discarded.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="break">Break</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">Handle</span><span class="p">:</span><span class="nc">Break</span><span class="p">():</span><span class="w"> </span><span class="p">()</span>
+</span></code></pre></div>
+<p>Marks this handle as cancelled. When the scheduled time arrives, Assignment sees the cancellation flag and silently discards the associated work without running it. For <code>Repeat</code> loops, the flag is checked both before the callback runs and immediately after, so the loop exits as soon as you call <code>Break</code>.</p>
+<p><strong>Parameters:</strong> <code>void</code></p>
+<p><strong>Returns:</strong> <code>void</code></p>
+<div class="admonition tip">
+<p class="admonition-title">Safe to Call More Than Once</p>
+<p>Calling <code>Break</code> on an already-cancelled handle does nothing. There is no error and no state change — it is safe to call defensively without checking first.</p>
+</div>
+<hr />
+<h2 id="class-switchhandle">Class: SwitchHandle</h2>
+<p>The control object returned by <code>Assignment.Switch</code>. Used in two distinct phases: <strong>Setup</strong> (<code>:Case</code>, <code>:Execute</code>, <code>:Default</code>) to compile rules into the decision tree, and <strong>Execution</strong> (<code>:Match</code>) to evaluate the tree at runtime.</p>
+<p>All builder methods return <code>self</code> and can be chained.</p>
+<h3 id="summary_2">Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Returns</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="#case">Case</a></strong></td>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Compiles one condition path into the decision tree.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#execute">Execute</a></strong></td>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Binds a function (or a NoOp instruction) to all preceding unbound <code>:Case</code> paths.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#default">Default</a></strong></td>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Sets the fallback function returned when no path matches.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="#match">Match</a></strong></td>
+<td style="text-align: left;"><code>((...any) -&gt; ())?</code></td>
+<td style="text-align: left;">Evaluates the decision tree and returns the matching function pointer.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="case">Case</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">SwitchHandle</span><span class="p">:</span><span class="nc">Case</span><span class="p">(...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="nc">SwitchHandle</span>
+</span></code></pre></div>
+<p>Compiles a sequence of conditions into the decision tree. Arguments are evaluated left-to-right, each one narrowing the path. Call <code>:Execute()</code> after one or more <code>:Case()</code> calls to bind a handler to the compiled path(s).</p>
+<p>Each argument in the sequence is either a <strong>literal value</strong> (string, number, boolean) for an exact match, or an <strong>Opcode instruction</strong> followed by its subject(s).</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The condition sequence. Exact values are matched directly. Opcode values (from <code>Assignment.Op</code>) must be immediately followed by their required subject(s).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Returns <code>self</code> for chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Throws</p>
+<p>Throws an error if <code>Op.InRange</code> is not followed by two number subjects, or if any other Opcode is missing its subject. Also throws if the number of compiled branches for a single node exceeds the engine's internal limit. These errors exist to catch setup mistakes early — they will never fire if you use static constants.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">OR Gate — Chain Multiple Cases Before Execute</p>
+<p>Calling <code>:Case()</code> multiple times in a row without calling <code>:Execute()</code> in between queues all the resulting paths into a shared pending list. When you finally call <code>:Execute()</code>, the single handler is bound to every queued path simultaneously. This is the correct way to express "if A or B or C, do X":
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">MySwitch</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Ice&quot;</span><span class="p">)</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Lightning&quot;</span><span class="p">)</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleElementalAttack</span><span class="p">)</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="cm">--[[</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="cm">    Assignment Decision Tree Built:</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="cm">    _Trie = {</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="cm">       [&quot;Fire&quot;] = { </span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="cm">         __EXECUTE = handleElementalAttack </span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="cm">       },</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="cm">       [&quot;Ice&quot;] = { </span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="cm">         __EXECUTE = handleElementalAttack </span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="cm">       },</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="cm">       [&quot;Lightning&quot;] = {</span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="cm">         __EXECUTE = handleElementalAttack</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="cm">       }</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="cm">    }</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="cm">    ---------------------------------------------------------</span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="cm">    Native Equivalent:</span>
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a>
+</span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="cm">    if Element == &quot;Fire&quot; or Element == &quot;Ice&quot; or Element == &quot;Lightning&quot; then</span>
+</span><span id="__span-14-29"><a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="cm">        handleElementalAttack()</span>
+</span><span id="__span-14-30"><a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="cm">    end</span>
+</span><span id="__span-14-31"><a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="cm">]]</span>
+</span></code></pre></div></p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">AND Gate — Distribute a Shared Condition Across OR Branches</p>
+<p>Placing <code>Assignment.Op.AND</code> as the <strong>last argument</strong> in a <code>:Case()</code> call switches the engine into continuation mode. To distribute a shared condition across multiple OR branches, you leave the initial OR branches open and only apply <code>Op.AND</code> to the <strong>final</strong> branch of the OR group. </p>
+<p>The <em>next</em> <code>:Case()</code> call will then distribute its conditions mathematically across every currently pending path rather than adding new root branches. Combined with OR gates, this expresses "if (A or B) and C, do X" as a single binding — the shared condition is compiled only once:
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">MySwitch</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="c1">-- The OR Stream (Parallel Branches)</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span><span class="w"> </span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Ice&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span><span class="w">   </span><span class="c1">-- Seals the OR stream! Queue contains [Fire, Ice]</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="c1">-- The AND Stream (Multiplexed to both Fire and Ice)</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Strong&quot;</span><span class="p">)</span><span class="w">                   </span><span class="c1">-- Distributed to: (Fire-&gt;Strong) and (Ice-&gt;Strong)</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handlePowerfulElement</span><span class="p">)</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="cm">--[[</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="cm">    Assignment Decision Tree Built:</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="cm">    _Trie = {</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="cm">        [&quot;Fire&quot;] = {</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="cm">            [&quot;Strong&quot;] = { </span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="cm">                __EXECUTE = handlePowerfulElement </span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="cm">            }</span>
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="cm">        },</span>
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a>
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="cm">        [&quot;Ice&quot;] = {</span>
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="cm">            [&quot;Strong&quot;] = { </span>
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="cm">                __EXECUTE = handlePowerfulElement </span>
+</span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="cm">            }</span>
+</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="cm">        }</span>
+</span><span id="__span-15-26"><a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="cm">    }</span>
+</span><span id="__span-15-27"><a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a>
+</span><span id="__span-15-28"><a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="cm">    ---------------------------------------------------------</span>
+</span><span id="__span-15-29"><a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a><span class="cm">    Native Equivalent:</span>
+</span><span id="__span-15-30"><a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a>
+</span><span id="__span-15-31"><a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="cm">    if (Element == &quot;Fire&quot; or Element == &quot;Ice&quot;) and Modifier == &quot;Strong&quot; then</span>
+</span><span id="__span-15-32"><a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a><span class="cm">        handlePowerfulElement()</span>
+</span><span id="__span-15-33"><a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a><span class="cm">    end</span>
+</span><span id="__span-15-34"><a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a><span class="cm">]]</span>
+</span></code></pre></div></p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Prefix Sharing</p>
+<p>If two rules share a common prefix — for example, both start with <code>Op.LessThan, 50</code> — Assignment automatically merges their shared portion into one node rather than duplicating it. This means overlapping rules cost no extra memory or evaluation time.</p>
+</div>
+<hr />
+<h4 id="execute">Execute</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">SwitchHandle</span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">Payload</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">Opcode</span><span class="p">):</span><span class="w"> </span><span class="nc">SwitchHandle</span>
+</span></code></pre></div>
+<p>Binds a function to all paths queued by the preceding <code>:Case()</code> call(s). Clears the pending path queue so the next <code>:Case()</code> starts a fresh, independent rule.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Payload</code></td>
+<td style="text-align: left;"><code>((...any) -&gt; ()) | Opcode</code></td>
+<td style="text-align: left;">The function to run when this path matches, or <code>Assignment.Op.NoOp</code> to intentionally mark the path as "do nothing."</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Returns <code>self</code> for chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">NoOp — Intentional Silence</p>
+<p>Passing <code>Assignment.Op.NoOp</code> as the payload marks the path as an explicit no-op. When <code>:Match</code> reaches this path, it returns <code>nil</code> directly — it does <strong>not</strong> fall through to the Default function. This is the correct way to say "this state is known and should be ignored" as opposed to an unrecognised state that should invoke the fallback.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Dangling AND Emits a Warning</p>
+<p>If <code>:Execute()</code> is called immediately after a <code>:Case()</code> that ended with <code>Assignment.Op.AND</code>, the engine emits a warning and forcefully seals the continuation state. The pending paths are still bound to the payload normally. Remove the trailing <code>Op.AND</code> from the preceding <code>:Case()</code> call if no further <code>:Case()</code> continuation was intended.</p>
+</div>
+<hr />
+<h4 id="default">Default</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">SwitchHandle</span><span class="p">:</span><span class="nc">Default</span><span class="p">(</span><span class="nv">Payload</span><span class="p">:</span><span class="w"> </span><span class="p">(...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()):</span><span class="w"> </span><span class="nc">SwitchHandle</span>
+</span></code></pre></div>
+<p>Sets the fallback function returned by <code>:Match</code> whenever the provided arguments do not match any compiled path.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Payload</code></td>
+<td style="text-align: left;"><code>(...any) -&gt; ()</code></td>
+<td style="text-align: left;">The function to return when no path matches.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SwitchHandle</code></td>
+<td style="text-align: left;">Returns <code>self</code> for chaining.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">NoOp Bypasses Default</p>
+<p>If a path was compiled with <code>Assignment.Op.NoOp</code> as its payload, <code>:Match</code> returns <code>nil</code> for that path and never calls Default. Default is only invoked when no compiled path matches at all.</p>
+</div>
+<hr />
+<h4 id="match">Match</h4>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">SwitchHandle</span><span class="p">:</span><span class="nc">Match</span><span class="p">(...:</span><span class="w"> </span><span class="nc">any</span><span class="p">):</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="err">?</span>
+</span></code></pre></div>
+<p>Evaluates the compiled decision tree against the provided arguments from left to right and returns the matching function pointer. Returns <code>nil</code> if the matching path was bound with <code>Assignment.Op.NoOp</code>, or if no path matched and no Default was set.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>...</code></td>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The runtime values to evaluate. Must correspond to the sequence structure defined during <code>:Case()</code> setup.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>((...any) -&gt; ())?</code></td>
+<td style="text-align: left;">The function bound to the matching path, the Default function if no path matched, or <code>nil</code> for a NoOp path or an unhandled no-default miss.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Match Returns a Pointer — It Does Not Call the Function</p>
+<p><code>:Match</code> returns a function reference; it does not call it. You are responsible for calling the returned function with whatever arguments are appropriate. This design lets you inspect the result, pass it elsewhere, or discard it without it ever executing.
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">-- Correct usage</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">MySwitch</span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">currentState</span><span class="p">,</span><span class="w"> </span><span class="nv">currentValue</span><span class="p">)</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="kr">if</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="nf">handler</span><span class="p">(</span><span class="nv">target</span><span class="p">,</span><span class="w"> </span><span class="nv">context</span><span class="p">)</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="kr">end</span>
+</span></code></pre></div></p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Match Priority Order</p>
+<p>When evaluating each step, Assignment tries routes in this order:</p>
+<ol>
+<li><strong>Exact match</strong> — a direct lookup against compiled literal values. Fastest.</li>
+<li><strong>Range check</strong> — evaluated only if <code>Op.InRange</code> was used for this step and the target is a number.</li>
+<li><strong>Opcode checks</strong> — evaluated in the order the rules were compiled, stopping at the first match.</li>
+</ol>
+<p>If all three fail, the Default function is returned. Understanding this order lets you arrange rules so the most common cases hit the fastest path.</p>
+</div>
+<hr />
+<h2 id="type-opcode">Type: Opcode</h2>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">Opcode</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">    </span><span class="nc">IsAssignmentOpcode</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="p">,</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nc">Name</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>An engine instruction used with <code>SwitchHandle:Case</code> to perform non-equality comparisons. All valid <code>Opcode</code> values are pre-defined in <code>Assignment.Op</code>. You should never construct an <code>Opcode</code> table manually.</p>
+<hr />
+<h2 id="type-switchhandle">Type: SwitchHandle</h2>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kr">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">    </span><span class="nc">_IsContinuing</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="p">,</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">    </span><span class="nc">Case</span><span class="p">:</span><span class="w">    </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">    </span><span class="nc">Execute</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span><span class="w"> </span><span class="nc">Payload</span><span class="p">:</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nc">Opcode</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">    </span><span class="nc">Default</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span><span class="w"> </span><span class="nc">Payload</span><span class="p">:</span><span class="w"> </span><span class="p">(...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">    </span><span class="nc">Match</span><span class="p">:</span><span class="w">   </span><span class="p">(</span><span class="nc">self</span><span class="p">:</span><span class="w"> </span><span class="nc">SwitchHandle</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">((...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">())</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The public interface of a pattern-matching decision tree. See <a href="#class-switchhandle">Class: SwitchHandle</a> for full documentation of each method.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

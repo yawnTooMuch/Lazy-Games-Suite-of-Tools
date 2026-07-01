@@ -1,0 +1,3319 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="apis/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Overview - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#diary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../utilities/assignment/" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#session-lease-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Lease Protection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-server-data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Server Data Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#idle-aware-auto-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Idle-Aware Auto-Save
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-write-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid Write Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boot-sequence-buffering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boot Sequence Buffering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template-based-schema-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template-Based Schema Reconciliation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delta-roblox-type-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delta Roblox-Type Serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gdpr-ready-data-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GDPR-Ready Data Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#studio-safety-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Studio Safety Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-player-join-and-player-leave-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto Player Join and Player Leave Handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delta-updates-from-external-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delta Updates From External Sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-fail-safe-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Fail-Safe Mechanisms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed-queue-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed Queue Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#less-quota-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Less Quota Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heavy-data-compression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heavy Data Compression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-blocking-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Blocking Operation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-like-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redis-Like Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#folder-like-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Folder-Like Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/assignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/assignment/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/assignment/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/assignment/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../utilities/twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#session-lease-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Lease Protection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-server-data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Server Data Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#idle-aware-auto-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Idle-Aware Auto-Save
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-write-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid Write Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boot-sequence-buffering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boot Sequence Buffering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template-based-schema-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template-Based Schema Reconciliation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delta-roblox-type-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delta Roblox-Type Serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gdpr-ready-data-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GDPR-Ready Data Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#studio-safety-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Studio Safety Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-player-join-and-player-leave-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto Player Join and Player Leave Handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delta-updates-from-external-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delta Updates From External Sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-fail-safe-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Fail-Safe Mechanisms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed-queue-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed Queue Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#less-quota-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Less Quota Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heavy-data-compression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heavy Data Compression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-blocking-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Blocking Operation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-like-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redis-Like Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#folder-like-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Folder-Like Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="diary">Diary</h1>
+<p><strong>Type:</strong> Framework<br />
+<em>A server-side data persistence framework for Roblox that handles player data loading, caching, automatic saving, and safe cleanup across the full session lifecycle.</em></p>
+<p><a href="https://devforum.roblox.com/t/diary-data-saving-framework/4595950/17">Distribution:</a> <code>https://devforum.roblox.com/t/diary-data-saving-framework/4595950/17</code></p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>Diary is a complete data management layer for Roblox game servers. It replaces the need to manually wire together DataStore calls, MemoryStore caches, session handoff logic, and shutdown handlers — consolidating all of that responsibility into a single framework that operates from the moment a player's connection is detected until long after they have left.</p>
+<p>The framework is built around a straightforward contract: register a template that defines what a player's data looks like, and Diary handles everything from there. It loads data when players join (resolving any conflicts left by a previous server), caches it in fast MemoryStore storage throughout the session, periodically persists changes to DataStore in the background, and performs a final flush on player departure and server shutdown. Your game code interacts only with a clean in-memory copy of the data, never directly with storage APIs.</p>
+<p>Diary is designed for use on the server exclusively and integrates with the optional Assignment scheduling library from the Lazy Games Suite of Tools. It ships with Studio-mode awareness — data is kept entirely in memory during Studio testing so that live player records are never touched.</p>
+<div class="admonition tip">
+<p class="admonition-title">Bypass Studio Mode</p>
+<p>When your'e in studio but still want to work with real API usage, just add <code>Diary._inStudio = false</code> somewhere in your codebase. This is safe to be called elsewhere but recommended to put it after where Diary is required.</p>
+</div>
+<hr />
+<h2 id="external-dependencies">External Dependencies</h2>
+<ul>
+<li><strong>DataStore (sub-module)</strong> — Handles all DataStore read and write operations, including a write queue, debounce protection, and retry logic with exponential back-off.</li>
+<li><strong>MemoryStore (sub-module)</strong> — Handles MemoryStore HashMap, SortedMap, and Queue interactions, plus the session lease subsystem that prevents two servers writing the same player's data simultaneously.</li>
+<li><strong>DependentServices (sub-module)</strong> — Provides access to Roblox platform services, deep serialization and deserialization of Roblox-native types (Vector3, CFrame, Color3, etc.), and a cross-server messaging wrapper.</li>
+<li><strong>Assignment (optional injection)</strong> — A custom task scheduler from the Lazy Games Suite that replaces the default <code>task.*</code> primitives with smarter concurrency management. Inject via <code>Diary.Inject("Assignment", module)</code>.</li>
+</ul>
+<hr />
+<h2 id="key-features">Key Features</h2>
+<h3 id="session-lease-protection">Session Lease Protection</h3>
+<p>Think of a session lease as a hotel room key. When a player joins a server, that server immediately requests the key for their data. As long as the server holds the key, it has exclusive permission to overwrite the player's DataStore record directly. A server that does not hold the key — because the player's previous session is still being finalised elsewhere — writes only the <em>delta</em> of what changed rather than overwriting the whole record, so no data is lost during a server handoff.</p>
+<p>Leases are renewed in the background on a regular interval and automatically released when the player leaves. If renewal fails, the framework marks the player and quietly attempts to reacquire the lease rather than stopping the session.</p>
+<h3 id="cross-server-data-validation">Cross-Server Data Validation</h3>
+<p>When a player joins and their data shows signs of being actively owned by another server (a flag embedded in the stored record), Diary initiates a real-time handshake with that other server over MessagingService. The joining server waits for a reply: if the other server confirms the player is still connected there, the join is rejected cleanly; if the other server confirms the player has left, the join proceeds. This eliminates the window of vulnerability that occurs when a server shuts down just as the same player reconnects elsewhere.</p>
+<p>When MessagingService is unavailable (Studio, private servers, or outages), the framework falls back to a timestamp-based heuristic — if the record has not been touched for over an hour and no lease is held, the data is considered safe to load.</p>
+<h3 id="idle-aware-auto-save">Idle-Aware Auto-Save</h3>
+<p>Rather than hammering storage at a fixed rate regardless of activity, Diary tracks the last time each player meaningfully interacted. Players who have been idle for a configurable period have their MemoryStore entries refreshed less frequently and kept alive for longer, reducing unnecessary API consumption. Active players are written to MemoryStore at the standard interval. Both thresholds are configurable per data location via cache policies.</p>
+<p>Auto-saving only triggers when data has been explicitly marked as changed. Unmarked data is never written unnecessarily.</p>
+<div class="admonition info">
+<p class="admonition-title">DataStore writes are event-driven, not interval-driven</p>
+<p>The background auto-save cycle exclusively targets <strong>MemoryStore</strong> — it keeps the fast cache layer current so any server that needs a player's data next can load it immediately without touching DataStore. DataStore is written only in response to discrete events: a player leaving the server, the server shutting down, or an explicit <code>Diary.SaveData</code> call from your code. This separation is intentional. MemoryStore is the live, low-latency cache; DataStore is the durable record of last resort, and it is written only when a meaningful boundary in the session lifecycle is crossed — such as a trade completing, a purchase being confirmed, or a session ending. If you need a DataStore write to happen at a specific moment in your game's logic (for example, after a Robux transaction), call <code>Diary.SaveData</code> explicitly at that point rather than relying on the auto-save cycle.</p>
+</div>
+<h3 id="hybrid-write-strategy">Hybrid Write Strategy</h3>
+<p>Every write goes through a two-stage decision. The framework first attempts a direct, immediate DataStore write. If the current save rate is too high, if a write for that player is still in-flight, or if a previous write was too recent, it routes the work to a background write queue instead. The queue drains in small batches on a controlled schedule, ensuring the server never exhausts its DataStore budget even during heavy join/leave traffic.</p>
+<p>At server shutdown, the queue is flushed synchronously within the allowed close window, and all pending writes are forced through before the server exits.</p>
+<h3 id="boot-sequence-buffering">Boot Sequence Buffering</h3>
+<p>Diary needs a brief window at startup to initialise its cross-server messaging subscriptions and background workers. Players who join during this window are buffered internally and processed in order once the server is ready, rather than being kicked or having their load silently skipped. Players who disconnect during the boot window are removed from the buffer cleanly.</p>
+<h3 id="template-based-schema-reconciliation">Template-Based Schema Reconciliation</h3>
+<p>Each data location in your game is defined by a template — a default table that describes what a fresh player's data looks like. When a returning player's stored data is loaded, it is automatically reconciled against the current template: new keys added since the player last played are inserted with their default values, and keys that no longer exist in the template are removed. This makes iterating on your data schema safe without requiring migration scripts.</p>
+<p>If a template is registered or updated while players are already online, all cached data for those players is reconciled immediately and marked for saving.</p>
+<h3 id="delta-roblox-type-serialization">Delta Roblox-Type Serialization</h3>
+<p>DataStore only accepts JSON-compatible data. Diary transparently converts Roblox-native types — Vector3, CFrame, Color3, UDim2, Font, EnumItem, TweenInfo, and over a dozen more — into a portable format on the way out, and reconstructs them faithfully on the way back in. This happens automatically; your game code always sees real Roblox types.</p>
+<p>What makes this more than a simple conversion pass is the delta layer underneath it. The framework maintains a private copy of every player's data exactly as it appeared at the last serialization point. Before any subsequent save, it compares the current state field-by-field against that copy. Only fields that have actually changed since the last write are serialized and included in the outgoing payload — everything else is reused from the previously computed result. A player whose inventory changed but whose stats did not will produce a serialization output that touches only the inventory fields. This means serialization cost is proportional to the rate of change in the data, not to the total size of the data.</p>
+<h3 id="gdpr-ready-data-lifecycle">GDPR-Ready Data Lifecycle</h3>
+<p>Two APIs cover the full data lifecycle demanded by platform and legal requirements. <code>WipeData</code> permanently deletes all storage entries for a player, records a timestamped tombstone, bans the account from re-entering, and returns a full copy of the deleted data for audit purposes. <code>ExportData</code> produces a complete structured copy of all data across all memory locations, with a formatted audit record. Both work for online and offline players.</p>
+<h3 id="studio-safety-mode">Studio Safety Mode</h3>
+<p>When running inside Roblox Studio, Diary redirects all storage operations to an in-memory table instead of making real DataStore or MemoryStore API calls. Player data loads, saves, and reconciliation all behave identically to production — only the persistence target changes. A warning is printed at startup to make the distinction clear.</p>
+<h3 id="auto-player-join-and-player-leave-handler">Auto Player Join and Player Leave Handler</h3>
+<p>Diary wires up every step of the player data lifecycle automatically — you never write a single line of join or leave plumbing. When a player connects, the framework acquires their session lease, validates their record against any previously owning server, fetches their stored data, reconciles it against your templates, and places a clean copy into memory. When that player leaves, the framework saves every data location, releases the session lease, and clears all internal state for that player in the correct order. At server shutdown, the same process runs in parallel across all remaining players, respecting concurrency limits and flushing the write queue before the process exits.</p>
+<p>Your only responsibility is to tell the framework what the data looks like. Everything between "player joined" and "player's data is safely on disk" is handled without any code on your part.</p>
+<h3 id="delta-updates-from-external-sources">Delta Updates From External Sources</h3>
+<p>Not all writes to a player's data originate from the server they are currently on. Robux purchases processed through a web backend, gifts sent from another server, or administrative adjustments made via external tooling all need a path into the player's live record without overwriting what the current server has already changed. Diary handles this through delta merging: any write that arrives from a source that does not hold the player's session lease is applied as an arithmetic delta rather than a full replacement. Numeric fields are incremented by the difference between the incoming value and a known baseline, and structural changes are merged field-by-field. The result is that the current server's in-progress changes and the external update coexist cleanly in the final stored record, with neither source overwriting the other.</p>
+<h3 id="multiple-fail-safe-mechanisms">Multiple Fail-Safe Mechanisms</h3>
+<p>Diary does not rely on a single path to persist data safely. Instead it operates in layered phases, each serving as a fallback for the one before it. During a session, data is held in fast MemoryStore storage so that a reconnecting server can always load the most recent copy without touching DataStore. If a direct DataStore write fails, the write is retried with exponential back-off before being routed to a background queue. If the queue entry itself cannot be written before the retry limit, it is held for one final forced attempt at server shutdown. Session leases are renewed on a background loop, and if renewal fails the framework quietly attempts reacquisition rather than abandoning the session. At shutdown, a deadline-aware flush loop continues processing until either the queue is empty or the engine's allowed close window is fully consumed. At no point is a failure silently discarded while a retry path remains available.</p>
+<h3 id="fixed-queue-implementation">Fixed Queue Implementation</h3>
+<p>The background write queue is not unbounded. Its effective depth is kept proportional to the number of players currently tracked by the framework — specifically, the queue will not grow beyond a threshold tied to the active player count. This means that as players leave and their data is resolved, their queue slots are retired and the overall queue shrinks accordingly. A single player's writes can never accumulate indefinitely and crowd out writes for other players. The queue is a controlled, bounded resource that scales with the server's actual workload rather than growing freely under adverse conditions.</p>
+<h3 id="less-quota-usage">Less Quota Usage</h3>
+<p>In its default configuration, Diary operates at approximately 38–40% of both the DataStore and MemoryStore quota available to a Roblox server. This is a deliberate design target. The idle-aware save intervals, delta-only serialization, batch write scheduling, and fixed queue depth all contribute to keeping consumption well below the platform ceiling. The remaining 60% of quota is available for your game's own DataStore and MemoryStore usage — leaderboards, global event counters, auction systems, or anything else your game requires — without competing with Diary's operations.</p>
+<h3 id="heavy-data-compression">Heavy Data Compression</h3>
+<p>When non-primitive values are stored through Diary — such as Vector3 positions, CFrame orientations, Color3 values, or UDim2 layout descriptors — those values are not stored as verbose JSON objects. Instead, each value is packed into a binary buffer and encoded as a compact Base64 string before being written to storage. A Vector3, which would otherwise require three separate floating-point fields in a JSON structure, is packed into 12 bytes and represented as a 16-character string. A full CFrame — position plus rotation matrix — is packed into 48 bytes.</p>
+<div class="admonition info">
+<p class="admonition-title">How Diary compresses Roblox types</p>
+<p>Each supported Roblox type maps to a fixed-size binary buffer. The individual components of the value (X, Y, Z for a Vector3; the twelve matrix floats for a CFrame; R, G, B for a Color3, and so on) are written into the buffer as raw 32-bit floats or 16-bit integers using direct memory writes, with no separators or field names. That buffer is then Base64-encoded into a plain ASCII string. On read, the string is decoded back to the buffer and the components are read from their fixed byte offsets. The result is a stored representation that is significantly smaller than an equivalent JSON object, has no parsing ambiguity, and round-trips losslessly within 32-bit float precision.</p>
+</div>
+<h3 id="non-blocking-operation">Non-Blocking Operation</h3>
+<p>Diary is designed to stay out of your game's execution path. The overwhelming majority of its work — lease renewal, auto-save cycles, batch queue draining, cross-server validation, and housekeeping sweeps — runs entirely on background threads. Your scripts are never made to wait for these operations. Calling <code>MarkDirty</code> or <code>SaveData</code> from your game logic schedules work and returns immediately; the actual storage I/O happens asynchronously.</p>
+<div class="admonition warning">
+<p class="admonition-title">APIs that yield the calling thread</p>
+<p>A small number of APIs do suspend the caller while they wait for a result. These are:</p>
+<ul>
+<li><strong><code>FetchData</code></strong> — polls briefly until data is confirmed available. In practice returns immediately during an active session, but yields until confirmed.</li>
+<li><strong><code>WaitForValue</code></strong> — by design; polls a condition on a configurable interval until it resolves or times out.</li>
+<li><strong><code>ScanQueueEntry</code></strong> — waits for the MemoryStore queue read to complete, and optionally waits for entries to appear if <code>____WaitTimeout</code> is set.</li>
+<li><strong><code>ExportData</code></strong> — yields when fetching data for an offline player, as it must perform live storage reads.</li>
+<li><strong><code>FetchTombstones</code></strong> — may yield when the MemoryStore cache has expired and a DataStore fallback read is required.</li>
+<li><strong><code>LoadPlayerGhostCharacterModel</code></strong> <em>(FEATURES_ENABLED only)</em> — yields while fetching the appearance snapshot and applying the HumanoidDescription.</li>
+<li><strong><code>SaveHumanoidDescription</code></strong> <em>(FEATURES_ENABLED only)</em> — yields waiting for the character and humanoid to be present.</li>
+</ul>
+<p>All other public APIs return immediately without suspending the thread.</p>
+</div>
+<h3 id="redis-like-architecture">Redis-Like Architecture</h3>
+<p>Diary treats fast MemoryStore storage as a local cache layer in front of the persistent DataStore backend — the same principle used by Redis in traditional server architectures. The first time a player's data is needed, the framework checks MemoryStore before falling back to DataStore. Once loaded, the data lives in both the in-process memory table and the MemoryStore cache simultaneously. Every subsequent read within that session is served entirely from in-process memory — no network call, no storage API, no latency. Every write refreshes the MemoryStore entry so that any other server that needs the data next (such as after a server transfer) can load the most recent version from the cache rather than from the slower persistent store. DataStore is the source of long-term truth; MemoryStore is the fast, always-current layer that everything else reads from first.</p>
+<h3 id="folder-like-structure">Folder-Like Structure</h3>
+<p>Think of Diary's storage layout as a nested folder hierarchy. Diary itself is the root folder. Each memory location you register — <code>"PlayerStats"</code>, <code>"PlayerInventory"</code>, <code>"PlayerSettings"</code> — is a sub-folder inside that root. Within each sub-folder, every player's data is filed under their UserId as a distinct section. The result is a clean, navigable structure where every piece of data has an unambiguous address: <em>root → location → player</em>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Diary/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── PlayerStats/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── 12345678   ← player A&#39;s stats
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── 87654321   ← player B&#39;s stats
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── ...
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── PlayerInventory/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── 12345678   ← player A&#39;s inventory
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   └── ...
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└── PlayerSettings/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ├── 12345678   ← player A&#39;s settings
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    └── ...
+</span></code></pre></div>
+<p>When you call any API that takes a <code>memoryLocation</code> string, you are pointing Diary at the correct sub-folder. When you also supply a UserId, you are pointing it at the exact section within that sub-folder. This makes it immediately clear which slice of the database you are reading from, writing to, or saving — no ambiguity about where the data lives or which player it belongs to.</p>
+<hr />
+<h2 id="configuration-reference">Configuration Reference</h2>
+<p>The following constants at the top of the main module control framework-wide behaviour. No API call is needed to change them — edit the values directly before deployment.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Constant</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DEBUG_MODE</code></td>
+<td style="text-align: left;"><code>IsStudio()</code></td>
+<td style="text-align: left;">Enables verbose logging when true. Defaults to true in Studio.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FEATURES_ENABLED</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Enables the optional ghost-character and online-status APIs.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BASE_CACHE_INTERVAL</code></td>
+<td style="text-align: left;"><code>15</code></td>
+<td style="text-align: left;">Seconds between auto-save cycles for active players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ACTIVE_TTL</code></td>
+<td style="text-align: left;"><code>43200</code></td>
+<td style="text-align: left;">MemoryStore entry lifetime (seconds) for active players (12 hours).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IDLE_TTL</code></td>
+<td style="text-align: left;"><code>54000</code></td>
+<td style="text-align: left;">MemoryStore entry lifetime (seconds) for idle players (15 hours).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IDLE_THRESHOLD</code></td>
+<td style="text-align: left;"><code>30</code></td>
+<td style="text-align: left;">Seconds of inactivity before a player is considered idle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IDLE_INTERVAL_MULTIPLIER</code></td>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">Factor applied to the base save interval for idle players.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LEASE_TTL</code></td>
+<td style="text-align: left;"><code>90</code></td>
+<td style="text-align: left;">Session lease lifetime in seconds before it must be renewed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LEASE_RENEW_INTERVAL</code></td>
+<td style="text-align: left;"><code>60</code></td>
+<td style="text-align: left;">Seconds between background lease renewal attempts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MAX_CONCURRENT_SAVES</code></td>
+<td style="text-align: left;"><code>50</code></td>
+<td style="text-align: left;">Maximum parallel save threads during server shutdown.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>JANITOR_INTERVAL</code></td>
+<td style="text-align: left;"><code>30</code></td>
+<td style="text-align: left;">Seconds between background housekeeping sweeps.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NORMAL_JOIN_OPERATION</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">Seconds before the join validation batch is dispatched.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BULK_JOIN_OPERATION</code></td>
+<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">Extra seconds added to the batch window during a join surge.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BULK_JOIN_THRESHOLD</code></td>
+<td style="text-align: left;"><code>10</code></td>
+<td style="text-align: left;">Concurrent joining players required to trigger the surge extension.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

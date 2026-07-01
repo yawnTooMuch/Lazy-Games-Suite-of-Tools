@@ -1,0 +1,4285 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Lazy Games Suite of Tools distribution.">
+      
+      
+      
+      
+        <link rel="prev" href="../examples/">
+      
+      
+        <link rel="next" href="../../reaper/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/LazyGamesIcon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Best Practices - Lazy Games Suite of Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="dark-yellow" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#assignment-best-practices" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-header__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lazy Games Suite of Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Best Practices
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../systems/diary/" class="md-tabs__link">
+          
+  
+  
+  Systems
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Utilities
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../plugins/coming_soon/" class="md-tabs__link">
+          
+  
+  
+  Plugins
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Lazy Games Suite of Tools" class="md-nav__button md-logo" aria-label="Lazy Games Suite of Tools" data-md-component="logo">
+      
+  <img src="../../../assets/images/LazyGamesIcon.png" alt="logo">
+
+    </a>
+    Lazy Games Suite of Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systems
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Systems
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diary Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Diary Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/diary/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bytewave Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Bytewave Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/bytewave/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigator Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigator Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/navigator/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlowMotion Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    FlowMotion Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/flowmotion/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1_5" id="__nav_2_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Soundora Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Soundora Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../systems/soundora/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_1" id="__nav_3_1_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignment Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignment Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-always-store-handles-when-cancellation-is-possible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Always Store Handles When Cancellation Is Possible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Always Store Handles When Cancellation Is Possible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-avoid-using-the-native-task-library-inside-assignment-managed-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Avoid Using the Native task Library Inside Assignment-Managed Code
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Avoid Using the Native task Library Inside Assignment-Managed Code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-use-isolated-variants-for-long-yielding-work-not-as-a-general-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Use Isolated Variants for Long-Yielding Work — Not as a General Default
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Use Isolated Variants for Long-Yielding Work — Not as a General Default">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-long-work-through-the-shared-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem — Long Work Through the Shared Pool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-isolated-variants-for-long-yielding-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — Isolated Variants for Long-Yielding Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pass-arguments-directly-avoid-wrapping-them-in-a-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pass Arguments Directly — Avoid Wrapping Them in a Closure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Pass Arguments Directly — Avoid Wrapping Them in a Closure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-pair-infinite-repeat-loops-with-explicit-break-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Pair Infinite Repeat Loops With Explicit Break Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Pair Infinite Repeat Loops With Explicit Break Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cancel-handles-on-disconnect-and-validate-ephemeral-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Cancel Handles on Disconnect and Validate Ephemeral Instances
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Cancel Handles on Disconnect and Validate Ephemeral Instances">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-a-handle-tracking-for-players-long-timers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy A: Handle Tracking (For Players &amp; Long Timers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-b-validation-guards-for-ephemeral-vfx-short-timers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy B: Validation Guards (For Ephemeral VFX &amp; Short Timers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-compile-switch-rules-at-startup-never-inside-loops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Compile Switch Rules at Startup — Never Inside Loops
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Compile Switch Rules at Startup — Never Inside Loops">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-use-the-or-gate-for-shared-handlers-keep-source-code-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Use the OR Gate for Shared Handlers — Keep Source Code Clean
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Use the OR Gate for Shared Handlers — Keep Source Code Clean">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-handling-do-nothing-states-traditional-workarounds-vs-opnoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Handling "Do Nothing" States: Traditional Workarounds vs. Op.NoOp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Handling &#34;Do Nothing&#34; States: Traditional Workarounds vs. Op.NoOp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-use-opand-to-distribute-shared-conditions-dont-hardcode-duplicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Use Op.AND to Distribute Shared Conditions — Don't Hardcode Duplicates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Use Op.AND to Distribute Shared Conditions — Don&#39;t Hardcode Duplicates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-scope-switches-by-scenario-and-pass-maximum-expected-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Scope Switches by Scenario and Pass Maximum Expected Arguments
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Scope Switches by Scenario and Pass Maximum Expected Arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-avoid-compacting-arguments-preserve-type-checking-and-auto-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-order-dynamic-rules-by-specificity-narrowest-to-broadest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Order Dynamic Rules by Specificity — Narrowest to Broadest
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Order Dynamic Rules by Specificity — Narrowest to Broadest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaper Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reaper Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reaper/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_3" id="__nav_3_1_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relay Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Relay Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../relay/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_4" id="__nav_3_1_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stamp Library
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Stamp Library
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stamp/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_5" id="__nav_3_1_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twin Framework
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Twin Framework
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/apis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../twin/best_practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    _
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    _
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plugins/coming_soon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming Soon!
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-always-store-handles-when-cancellation-is-possible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Always Store Handles When Cancellation Is Possible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Always Store Handles When Cancellation Is Possible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-avoid-using-the-native-task-library-inside-assignment-managed-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Avoid Using the Native task Library Inside Assignment-Managed Code
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Avoid Using the Native task Library Inside Assignment-Managed Code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-use-isolated-variants-for-long-yielding-work-not-as-a-general-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Use Isolated Variants for Long-Yielding Work — Not as a General Default
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Use Isolated Variants for Long-Yielding Work — Not as a General Default">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-long-work-through-the-shared-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem — Long Work Through the Shared Pool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-isolated-variants-for-long-yielding-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution — Isolated Variants for Long-Yielding Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pass-arguments-directly-avoid-wrapping-them-in-a-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pass Arguments Directly — Avoid Wrapping Them in a Closure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Pass Arguments Directly — Avoid Wrapping Them in a Closure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-pair-infinite-repeat-loops-with-explicit-break-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Pair Infinite Repeat Loops With Explicit Break Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Pair Infinite Repeat Loops With Explicit Break Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cancel-handles-on-disconnect-and-validate-ephemeral-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Cancel Handles on Disconnect and Validate Ephemeral Instances
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Cancel Handles on Disconnect and Validate Ephemeral Instances">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-a-handle-tracking-for-players-long-timers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy A: Handle Tracking (For Players &amp; Long Timers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-b-validation-guards-for-ephemeral-vfx-short-timers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy B: Validation Guards (For Ephemeral VFX &amp; Short Timers)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-compile-switch-rules-at-startup-never-inside-loops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Compile Switch Rules at Startup — Never Inside Loops
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Compile Switch Rules at Startup — Never Inside Loops">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-use-the-or-gate-for-shared-handlers-keep-source-code-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Use the OR Gate for Shared Handlers — Keep Source Code Clean
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Use the OR Gate for Shared Handlers — Keep Source Code Clean">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-handling-do-nothing-states-traditional-workarounds-vs-opnoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Handling "Do Nothing" States: Traditional Workarounds vs. Op.NoOp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Handling &#34;Do Nothing&#34; States: Traditional Workarounds vs. Op.NoOp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-use-opand-to-distribute-shared-conditions-dont-hardcode-duplicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Use Op.AND to Distribute Shared Conditions — Don't Hardcode Duplicates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Use Op.AND to Distribute Shared Conditions — Don&#39;t Hardcode Duplicates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-scope-switches-by-scenario-and-pass-maximum-expected-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Scope Switches by Scenario and Pass Maximum Expected Arguments
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Scope Switches by Scenario and Pass Maximum Expected Arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-avoid-compacting-arguments-preserve-type-checking-and-auto-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-order-dynamic-rules-by-specificity-narrowest-to-broadest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Order Dynamic Rules by Specificity — Narrowest to Broadest
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Order Dynamic Rules by Specificity — Narrowest to Broadest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="assignment-best-practices">Assignment Best Practices</h1>
+<hr />
+<h2 id="1-always-store-handles-when-cancellation-is-possible">1. Always Store Handles When Cancellation Is Possible</h2>
+<p>Any scheduled call that might need to be stopped requires you to keep its <code>Handle</code>. Once you discard it, there is no way to cancel the work — Assignment has no lookup by function reference.</p>
+<h3 id="the-problem">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- Handle is thrown away immediately; the callback has no off switch</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nf">destroyTower</span><span class="p">(</span><span class="nv">tower</span><span class="p">)</span><span class="w"> </span><span class="c1">-- fires even if the tower is already gone</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nv">tower</span><span class="p">.</span><span class="nv">Destroying</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1">-- Nothing to cancel here — destroyTower will run against a dead object</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> With no handle in scope, there is nothing to call <code>Break</code> on. The scheduled work runs unconditionally when its time comes, regardless of whether the target still exists.</p>
+<h3 id="the-solution">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">destroyHandle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nf">destroyTower</span><span class="p">(</span><span class="nv">tower</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nv">tower</span><span class="p">.</span><span class="nv">Destroying</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nv">destroyHandle</span><span class="p">:</span><span class="nc">Break</span><span class="p">()</span><span class="w"> </span><span class="c1">-- tells Assignment to silently skip this when the time comes</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>Handle:Break()</code> marks the work as cancelled. When the scheduled time arrives, Assignment sees the flag and discards the task without running it. Calling <code>Break</code> early costs nothing and is always safe.</p>
+<hr />
+<h2 id="2-avoid-using-the-native-task-library-inside-assignment-managed-code">2. Avoid Using the Native <code>task</code> Library Inside Assignment-Managed Code</h2>
+<p>Assignment tracks all of the work it schedules so it can cancel it, throttle it, and migrate it on shutdown. When you call <code>task.*</code> functions directly from inside an Assignment-managed thread, that work steps outside Assignment's awareness entirely. The two schedulers end up sharing the same thread without either having the complete picture, which produces subtle bugs that are hard to reproduce.</p>
+<h3 id="the-problem_1">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nv">task</span><span class="p">.</span><span class="nf">wait</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="w">           </span><span class="c1">-- Assignment loses track of this thread for 2 seconds;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">                           </span><span class="c1">-- cancellation and shutdown migration won&#39;t reach it here</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nf">doWork</span><span class="p">()</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nv">task</span><span class="p">.</span><span class="nf">spawn</span><span class="p">(</span><span class="nv">doMoreWork</span><span class="p">)</span><span class="w"> </span><span class="c1">-- this new thread is invisible to Assignment;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">                           </span><span class="c1">-- it won&#39;t be throttled, cancelled, or migrated</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> When <code>task.wait</code> is called inside a thread Assignment spawned, the engine takes ownership of that thread for the duration of the wait. During that window, <code>Assignment.Cancel</code> cannot reach it — it simply finds nothing to cancel. When the thread wakes up it continues on the engine's terms, not Assignment's. Any work spawned with <code>task.spawn</code> inside an Assignment thread is similarly invisible: it bypasses throttling, will not be cancelled when its parent handle is broken, and will not be handed off safely on server shutdown.</p>
+<h3 id="the-solution_1">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="w">       </span><span class="c1">-- Assignment keeps full track of this thread</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nf">doWork</span><span class="p">()</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="nv">doMoreWork</span><span class="p">)</span><span class="w"> </span><span class="c1">-- runs through Assignment; tracked, throttled, cancellable</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>Assignment.Wait</code> keeps the thread fully within Assignment's scheduling. When the wait is over, Assignment wakes it up correctly with the real elapsed time. Any new work dispatched via <code>Assignment.Spawn</code> stays inside Assignment's awareness, so cancellation and shutdown work as expected.</p>
+<div class="admonition info">
+<p class="admonition-title"><code>Assignment.Wait</code> Is Always the Right Yield</p>
+<p><code>Assignment.Wait</code> is context-aware — it does the right thing whether you are inside a pooled thread or an isolated thread. You never need to think about which one to use. Just call <code>Assignment.Wait</code> everywhere inside Assignment-managed code.</p>
+</div>
+<hr />
+<h2 id="3-use-isolated-variants-for-long-yielding-work-not-as-a-general-default">3. Use Isolated Variants for Long-Yielding Work — Not as a General Default</h2>
+<p>The Isolated Family (<code>SpawnIsolated</code>, <code>DeferIsolated</code>, <code>DelayIsolated</code>) is designed for <strong>absolute control</strong>: it bypasses all of Assignment's throttles, gives you a cancellation token to stop work at any moment, and forces the engine to prioritise your logic immediately. These are powerful properties — but they come with trade-offs that make isolated variants the wrong default for most scheduling work.</p>
+<h3 id="why-this-matters">Why This Matters</h3>
+<p>Think of the Pooled Family as sharing a single diligent worker among all your short tasks. That worker picks up a job, finishes it, and immediately takes the next one. Everything flows smoothly because jobs are short.</p>
+<p>Now imagine a job that makes the worker sleep for 30 seconds — waiting on a DataStore call, an HTTP response, or a loop body with a long interval. While that worker sleeps, every other job that comes in has to bring in its own independent resource to get done. If several long-sleeping jobs run at the same time, you end up with a crowd of independent resources all active simultaneously: each one costs memory, and as the crowd grows the engine has to do progressively more work to manage them all, which eventually shows up as CPU pressure and frame drops.</p>
+<p>Isolated variants sidestep this entirely. Because they bypass the shared worker and run in their own dedicated engine-managed thread, the regular worker stays free at all times and short jobs are handled efficiently. The long-sleeping work runs independently without affecting anything else.</p>
+<h3 id="the-problem-long-work-through-the-shared-pool">The Problem — Long Work Through the Shared Pool</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">-- A 30-second loop keeps the shared worker occupied for the entire sleep.</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">-- Every Spawn or Delay call during those 30 seconds has to spin up a</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">-- temporary thread instead of reusing the shared one.</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="nv">active</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">        </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="mf">30</span><span class="p">)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="nf">syncRemoteData</span><span class="p">()</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1">-- A DataStore load can take several seconds — same problem.</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DataService</span><span class="p">:</span><span class="nc">Load</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nf">applyData</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">data</span><span class="p">)</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> Every second the shared worker spends sleeping on a long yield, incoming short work — UI updates, cooldown resets, status effects — has to bring in its own independent resource rather than using the available shared one. Under concurrent load this compounds: independent resources pile up, memory climbs, and the engine's housekeeping work intensifies to keep up.</p>
+<h3 id="the-solution-isolated-variants-for-long-yielding-tasks">The Solution — Isolated Variants for Long-Yielding Tasks</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">-- The 30-second loop is isolated. The engine manages it independently.</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1">-- The shared worker is never touched by this task.</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">SpawnIsolated</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="nv">active</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">        </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="mf">30</span><span class="p">)</span><span class="w"> </span><span class="c1">-- works correctly in isolated threads too</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="nf">syncRemoteData</span><span class="p">()</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1">-- The DataStore load runs in its own thread, keeping the pool free.</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">SpawnIsolated</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">DataService</span><span class="p">:</span><span class="nc">Load</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="c1">-- yield one frame before continuing; lets other work run</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="nf">applyData</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="nv">data</span><span class="p">)</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="c1">-- Short work still belongs on the standard pool.</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Spawn</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">    </span><span class="nf">applyStatusEffect</span><span class="p">(</span><span class="nv">player</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Stunned&quot;</span><span class="p">)</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> The long-sleeping threads are owned by the engine from the moment of creation. The shared worker is never involved with them. Short work always finds the shared worker free and ready, so no additional independent resources are created and memory stays stable.</p>
+<div class="admonition warning">
+<p class="admonition-title">Isolated Calls Return a Cancellation Token, Not a Handle</p>
+<p>Isolated calls return a raw <code>thread</code> token instead of a <code>Handle</code>. You cancel them with <code>Assignment.Cancel(thread)</code>. There is no <code>Handle:Break()</code> equivalent. If you need to cancel work before it runs by holding a <code>Handle</code>, use a pooled variant instead.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">How to Decide</p>
+<p>A useful rule of thumb: if the work calls into a slow external system (DataStore, HTTP, Messaging Service) or sleeps for more than a second, reach for an isolated variant. If the work is brief — a short calculation, a quick delay, a few frames of waiting — the Pooled Family handles it cleanly with less overhead and full cancellation via <code>Handle</code>.</p>
+</div>
+<hr />
+<h2 id="4-pass-arguments-directly-avoid-wrapping-them-in-a-closure">4. Pass Arguments Directly — Avoid Wrapping Them in a Closure</h2>
+<p>When you schedule a call with <code>Delay</code>, <code>Defer</code>, or <code>Spawn</code>, you can pass arguments directly after the function. Assignment stores those values alongside the scheduled job and hands them back when the time comes. Wrapping them in a closure instead creates a new allocation every time you schedule work, which adds up under high call volume.</p>
+<h3 id="the-problem_2">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">-- A new anonymous function is allocated for every scheduled call</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nf">applyDamage</span><span class="p">(</span><span class="nv">playerId</span><span class="p">,</span><span class="w"> </span><span class="nv">damage</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> At high call volume — hundreds of projectile impacts per second, for example — each closure is a small allocation. Those allocations accumulate and drive the garbage collector to run more often, showing up as periodic CPU spikes.</p>
+<h3 id="the-solution_2">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">-- Arguments are stored directly alongside the job — no extra allocation</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nv">applyDamage</span><span class="p">,</span><span class="w"> </span><span class="nv">playerId</span><span class="p">,</span><span class="w"> </span><span class="nv">damage</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> Assignment stores the arguments directly as part of the scheduled job entry and passes them straight to your function when it fires. No intermediate table or closure is created. For calls with more than four arguments, Assignment still handles it efficiently using a pooled scratch table that is recycled after each call rather than allocated fresh.</p>
+<hr />
+<h2 id="5-pair-infinite-repeat-loops-with-explicit-break-logic">5. Pair Infinite <code>Repeat</code> Loops With Explicit Break Logic</h2>
+<p><code>Repeat</code> with a count of <code>-1</code> runs forever. The only way to stop it is to call <code>Handle:Break()</code> or <code>Assignment.Cancel</code>. If no code path ever does that, the loop runs until the server shuts down — even if it is doing nothing useful.</p>
+<h3 id="the-problem_3">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">-- This loop has no exit path — it will run for the lifetime of the server</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Repeat</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">i</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">roundActive</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="nf">updateScoreboard</span><span class="p">(</span><span class="nv">i</span><span class="p">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="c1">-- When roundActive is false this does nothing, but keeps looping regardless</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> An idle loop that never stops still consumes scheduler time every iteration — it wakes up, runs, waits, and wakes up again indefinitely. Over a long session these costs accumulate quietly.</p>
+<h3 id="the-solution_3">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">scoreHandle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Repeat</span><span class="p">(</span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">not</span><span class="w"> </span><span class="nv">roundActive</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="nv">handle</span><span class="p">:</span><span class="nc">Break</span><span class="p">()</span><span class="w"> </span><span class="c1">-- stops the loop after this iteration</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">        </span><span class="kr">return</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="nf">updateScoreboard</span><span class="p">()</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1">-- Also stop it from outside when the game mode ends</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="nv">onGameModeEnd</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="nv">scoreHandle</span><span class="p">:</span><span class="nc">Break</span><span class="p">()</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>Break</code> is checked both before the callback runs and immediately after it returns. Calling it inside the callback stops the loop before the next wait period — no partial interval is observed after cancellation.</p>
+<hr />
+<h2 id="6-cancel-handles-on-disconnect-and-validate-ephemeral-instances">6. Cancel Handles on Disconnect and Validate Ephemeral Instances</h2>
+<p>Any work scheduled against a specific Roblox instance (like a <code>Player</code>, <code>BasePart</code>, or <code>Model</code>) must account for the reality that the object might be destroyed before the timer finishes. If you do not clean up your handles or validate your instances, the scheduled work will fire against a dead object and throw engine errors.</p>
+<h3 id="the-problem_4">The Problem</h3>
+<ul>
+<li>Trusting the Timer Blindly</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">-- Scenario A: Player leaves early</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">Players</span><span class="p">.</span><span class="nv">PlayerAdded</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">300</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">        </span><span class="nf">grantDailyBonus</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Error if the player left at second 150!</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1">-- Scenario B: Part destroyed early by another script</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="nv">Color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Color3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="c1">-- Error if the part was already destroyed!</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> The scheduling engine blindly respects the timers you set. It has no magical way of knowing that the Roblox instance captured in your closure has been destroyed.</p>
+<h3 id="the-solution_4">The Solution</h3>
+<ul>
+<li>Tracking vs. Guarding</li>
+</ul>
+<p>Depending on the lifespan of the object, you should either strictly track the handle, or implement a validation guard.</p>
+<h4 id="strategy-a-handle-tracking-for-players-long-timers">Strategy A: Handle Tracking (For Players &amp; Long Timers)</h4>
+<p>For persistent objects like Players with long-running tasks, rigorously track and break the handles when they disconnect to save CPU cycles.</p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">playerHandles</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="nc">Player</span><span class="p">]:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nc">Assignment</span><span class="p">.</span><span class="nc">Handle</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nv">Players</span><span class="p">.</span><span class="nv">PlayerAdded</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">bonusHandle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">300</span><span class="p">,</span><span class="w"> </span><span class="nv">grantDailyBonus</span><span class="p">,</span><span class="w"> </span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nv">playerHandles</span><span class="p">[</span><span class="nv">player</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">playerHandles</span><span class="p">[</span><span class="nv">player</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nb">table</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">playerHandles</span><span class="p">[</span><span class="nv">player</span><span class="p">],</span><span class="w"> </span><span class="nv">bonusHandle</span><span class="p">)</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="nv">Players</span><span class="p">.</span><span class="nv">PlayerRemoving</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">handles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">playerHandles</span><span class="p">[</span><span class="nv">player</span><span class="p">]</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">handles</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">        </span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">handle</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nv">handles</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">            </span><span class="nv">handle</span><span class="p">:</span><span class="nc">Break</span><span class="p">()</span><span class="w"> </span><span class="c1">-- The 300-second timer is aborted completely</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">        </span><span class="nv">playerHandles</span><span class="p">[</span><span class="nv">player</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">nil</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="strategy-b-validation-guards-for-ephemeral-vfx-short-timers">Strategy B: Validation Guards (For Ephemeral VFX &amp; Short Timers)</h4>
+<p>For highly temporary objects like VFX parts or projectiles, it is often overkill to manually track every single handle in a table. Instead, place a strict validation guard at the top of your delayed callback.</p>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="c1">-- The Guard: If the instance is dead, just silently abort.</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">not</span><span class="w"> </span><span class="nv">part</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nv">not</span><span class="w"> </span><span class="nv">part</span><span class="p">.</span><span class="nv">Parent</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nv">part</span><span class="p">.</span><span class="nv">Color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Color3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> Both solutions protect the engine from evaluating dead memory. Strategy A stops the work from even attempting to execute, making it highly optimal for long-running Player timers. Strategy B lets the short timer execute but safely aborts, making it perfect for chaotic, short-lived instances where strict handle tracking would unnecessarily bloat your source code.</p>
+<hr />
+<h2 id="7-compile-switch-rules-at-startup-never-inside-loops">7. Compile Switch Rules at Startup — Never Inside Loops</h2>
+<p><code>Assignment.Switch</code> compiles rules into a permanent in-memory decision tree the first time each <code>:Case():Execute()</code> chain is evaluated. Calling these builder methods inside a heartbeat loop or a frequently-fired event does not re-route existing rules — it attempts to extend the tree on every call, which corrupts the structure and triggers errors.</p>
+<h3 id="the-problem_5">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">-- This runs every frame — the builder is never meant to run this way</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nv">RunService</span><span class="p">.</span><span class="nv">Heartbeat</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">        </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">        </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span><span class="w"> </span><span class="c1">-- tries to add a rule every frame</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">        </span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">currentDamageType</span><span class="p">)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">        </span><span class="nf">handler</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span><span class="w"> </span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> Builder methods are designed to be called a fixed number of times at setup. Running them inside a loop means the engine is continuously re-processing rule definitions it has already compiled, growing the tree and eventually hitting structural limits.</p>
+<h3 id="the-solution_5">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">-- Once at startup or module load: compile all the rules</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">local</span><span class="w"> </span><span class="nv">DamageRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="nv">DamageRouter</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">        </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">        </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">        </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Ice&quot;</span><span class="p">)</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">        </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyFrostEffect</span><span class="p">)</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">        </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Lightning&quot;</span><span class="p">)</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">        </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyStunEffect</span><span class="p">)</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">        </span><span class="p">:</span><span class="nc">Default</span><span class="p">(</span><span class="nv">applyPhysicalDamage</span><span class="p">)</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="c1">-- Every frame: fetch and match only — zero allocation, zero compilation</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="nv">RunService</span><span class="p">.</span><span class="nv">Heartbeat</span><span class="p">:</span><span class="nc">Connect</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">        </span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">currentDamageType</span><span class="p">)</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">handler</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">        </span><span class="nf">handler</span><span class="p">(</span><span class="nv">player</span><span class="p">)</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> Fetching an existing switch by its ID is a single dictionary lookup — it costs nothing and returns the already-compiled tree instantly. All the expensive rule-building happened exactly once, at startup, and the result is reused for the lifetime of the system.</p>
+<hr />
+<h2 id="8-use-the-or-gate-for-shared-handlers-keep-source-code-clean">8. Use the OR Gate for Shared Handlers — Keep Source Code Clean</h2>
+<p>When multiple conditions should trigger the exact same function, chain the <code>:Case()</code> calls together before a single <code>:Execute()</code>. Calling <code>:Execute()</code> after every individual <code>:Case()</code> achieves the same mechanical result in the engine, but it severely bloats your source code and makes maintenance a headache.</p>
+<h3 id="the-problem_6">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Router</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;ElementRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1">-- Three separate Execute calls for the same function</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nv">Router</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Plasma&quot;</span><span class="p">)</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Explosion&quot;</span><span class="p">)</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> While the engine handles this fine, it bloats your script file and violates the DRY (Don't Repeat Yourself) principle. If you ever need to swap out <code>applyBurnEffect</code> for a new function, you are forced to manually track down and update three separate lines of code.</p>
+<h3 id="the-solution_6">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Router</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;ElementRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1">-- One Execute call covers all three cases — the native OR gate</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="nv">Router</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Plasma&quot;</span><span class="p">)</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Explosion&quot;</span><span class="p">)</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">applyBurnEffect</span><span class="p">)</span><span class="w"> </span><span class="c1">-- A single, centralized binding</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> By chaining <code>:Case()</code> calls without an intervening <code>:Execute()</code>, you visually group related logic together. The source code is significantly shorter, highly readable, and perfectly organized. When you need to update the handler for this entire group of elements, you only have to change a single line of code!</p>
+<hr />
+<h2 id="9-handling-do-nothing-states-traditional-workarounds-vs-opnoop">9. Handling "Do Nothing" States: Traditional Workarounds vs. Op.NoOp</h2>
+<p>When your switch utilizes a strict <code>:Default()</code> fallback to catch errors, you will inevitably encounter valid states that simply require <em>no action</em> (e.g., an "Idle" state). You must prevent these valid states from triggering the error fallback. </p>
+<p>Without engine support, developers are forced to use unoptimized workarounds to silence the router. <code>Assignment</code> provides <code>Op.NoOp</code> to solve this natively at the compiler level.</p>
+<h3 id="the-problem_7">The Problem</h3>
+<ul>
+<li>Traditional Workarounds</li>
+</ul>
+<p><strong>Workaround 1: The Empty Closure (Memory Waste)</strong>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">StateRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;PlayerStateRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="c1">-- Allocates a useless function in memory just to silence the engine</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nv">StateRouter</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Idle&quot;</span><span class="p">)</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="kr">end</span><span class="p">)</span><span class="w"> </span>
+</span></code></pre></div>
+<strong>Why this is wrong:</strong> You are forcing the Luau VM to allocate a closure in memory, which eventually has to be garbage-collected, just to tell the engine to do nothing. </p>
+<p><strong>Workaround 2: The Default Bypass (Logic Leaking)</strong>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nv">StateRouter</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">    </span><span class="p">:</span><span class="nc">Default</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">state</span><span class="p">)</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">        </span><span class="c1">-- Leaking routing logic into the fallback handler!</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Idle&quot;</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nv">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;Stunned&quot;</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">        </span><span class="nf">warn</span><span class="p">(</span><span class="s2">&quot;Critical: Unknown player state:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">state</span><span class="p">)</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<strong>Why this is wrong:</strong> You are completely defeating the purpose of a State Machine. Routing logic (<code>if state == "Idle"</code>) belongs in the tree, not hardcoded inside your execution payloads. This makes the code incredibly difficult to maintain.</p>
+<h3 id="the-solution_7">The Solution</h3>
+<ul>
+<li>Native Op.NoOp</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">StateRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;PlayerStateRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="nv">StateRouter</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">)</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">playRunAnimation</span><span class="p">)</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1">-- Explicitly tell the compiler this path intentionally does nothing.</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Idle&quot;</span><span class="p">)</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">NoOp</span><span class="p">)</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Default</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="nv">state</span><span class="p">)</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">        </span><span class="nf">warn</span><span class="p">(</span><span class="s2">&quot;Critical: Unknown player state:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">state</span><span class="p">)</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">    </span><span class="kr">end</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> <code>Assignment.Op.NoOp</code> is a static, compile-time token, it is not a function. When the <code>:Match()</code> method hits a <code>NoOp</code> token, it safely returns <code>nil</code> and explicitly aborts the <code>:Default()</code> fallback. </p>
+<ul>
+<li><strong>Zero memory allocation</strong> (no useless closures are created).</li>
+<li><strong>Perfect logic isolation</strong> (your Default fallback stays clean).</li>
+<li><strong>Clear developer intent</strong> (anyone reading your code knows you intentionally ignored this state).</li>
+</ul>
+<hr />
+<h2 id="10-use-opand-to-distribute-shared-conditions-dont-hardcode-duplicates">10. Use <code>Op.AND</code> to Distribute Shared Conditions — Don't Hardcode Duplicates</h2>
+<p>When multiple branches (an OR pool) all require the exact same follow-up condition, <code>Op.AND</code> allows you to mathematically distribute that shared condition across the entire pool in a single pass. Hardcoding the paths separately forces the JIT compiler to parse redundant chains and scatters your logic across multiple bindings.</p>
+<h3 id="the-problem_8">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">AbilityRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;AbilityRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="c1">-- The &quot;Empowered&quot; requirement is manually built for every element</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="nv">AbilityRouter</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleEmpoweredElement</span><span class="p">)</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Ice&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleEmpoweredElement</span><span class="p">)</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Lightning&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span>
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleEmpoweredElement</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> While this creates the correct memory tree, it bloats your source code and forces you to bind the <code>handleEmpoweredElement</code> execution pointer three separate times. If you ever want to add <code>"Earth"</code> or change the handler, you must manually update multiple isolated blocks of code. </p>
+<h3 id="the-solution_8">The Solution</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">AbilityRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;AbilityRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1">-- Collect the elements into an OR pool, seal it, and distribute the condition.</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="nv">AbilityRouter</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">)</span><span class="w">                           </span><span class="c1">-- Open (Added to pending queue)</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Ice&quot;</span><span class="p">)</span><span class="w">                            </span><span class="c1">-- Open (Added to pending queue)</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Lightning&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span><span class="w">   </span><span class="c1">-- Sealed! Wraps the entire pending queue.</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span><span class="w">                      </span><span class="c1">-- Distributed to all three simultaneously</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleEmpoweredElement</span><span class="p">)</span><span class="w">        </span><span class="c1">-- ONE binding shared across all three paths</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> By leaving Fire and Ice open, they collect in a pending queue. Placing <code>Op.AND</code> on Lightning seals that queue. When the engine reads <code>:Case("Empowered")</code>, it natively distributes that requirement to the end of all three branches at once. </p>
+<p><strong>The Technical Reality:</strong> To maintain <code>O(1)</code> dictionary lookup speeds, the compiler still physically generates an <code>"Empowered"</code> node under each element in the RAM tree. However, it only binds the <code>__EXECUTE</code> pointer <em>once</em>, perfectly sharing your handler across the entire matrix. You get infinite logic scaling from a single block of highly readable code.</p>
+<div class="admonition info">
+<p class="admonition-title">AND Does Not Replace OR for Independent Handlers</p>
+<p><code>Op.AND</code> is for deepening branches that already exist, not for grouping branches that have different handlers. If "Fire" and "Ice" each need their own specific handler <em>without</em> a required second condition, use a pure OR gate (chain them together without <code>Op.AND</code>).</p>
+</div>
+<hr />
+<h2 id="11-scope-switches-by-scenario-and-pass-maximum-expected-arguments">11. Scope Switches by Scenario and Pass Maximum Expected Arguments</h2>
+<p>Instead of building a single, monolithic router for your entire codebase, you should scope your switches to specific gameplay scenarios (e.g., a <code>SpellRouter</code>, a <code>MeleeRouter</code>, or an <code>InteractionRouter</code>). Once scoped, do not manually filter the context you pass to them. <strong>Throw the absolute maximum number of expected arguments for that scenario into a single <code>:Match()</code> call.</strong> Because the engine utilizes an Early Exit Cache, it will evaluate as deeply as it can, safely execute the highest-priority payload, and gracefully ignore any excess data.</p>
+<h3 id="the-problem_9">The Problem</h3>
+<ul>
+<li>Pre-Filtering Arguments</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;SpellRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="c1">-- A 1-step rule</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="nv">SpellRouter</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Earth&quot;</span><span class="p">)</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">castBasicEarth</span><span class="p">)</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="c1">-- A 3-step rule</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Staff&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span>
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">castMeteor</span><span class="p">)</span>
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="c1">-- The Developer tries to &quot;protect&quot; the router by checking args manually</span>
+</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">TryCastSpell</span><span class="p">(</span><span class="nv">element</span><span class="p">,</span><span class="w"> </span><span class="nv">weapon</span><span class="p">,</span><span class="w"> </span><span class="nv">buff</span><span class="p">)</span>
+</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">buff</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">element</span><span class="p">,</span><span class="w"> </span><span class="nv">weapon</span><span class="p">,</span><span class="w"> </span><span class="nv">buff</span><span class="p">)</span>
+</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>
+</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a><span class="w">    </span><span class="kr">elseif</span><span class="w"> </span><span class="nv">weapon</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">element</span><span class="p">,</span><span class="w"> </span><span class="nv">weapon</span><span class="p">)</span>
+</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>
+</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="w">    </span><span class="kr">else</span>
+</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">element</span><span class="p">)</span>
+</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> You are wasting CPU cycles doing the engine's job for it. The developer is assuming that passing 3 arguments into a 1-step <code>"Earth"</code> rule will cause a crash or a default fallback. It won't! This manual <code>if/elseif</code> wrapper is completely unnecessary.</p>
+<h3 id="the-solution_9">The Solution</h3>
+<ul>
+<li>The Universal Cast</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;SpellRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1">-- Tier 3: Requires 3 arguments</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="nv">SpellRouter</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Fire&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Staff&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Empowered&quot;</span><span class="p">)</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">castMeteor</span><span class="p">)</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="c1">-- Tier 2: Requires 2 arguments</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Water&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Staff&quot;</span><span class="p">)</span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">castTidalWave</span><span class="p">)</span>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="c1">-- Tier 1: Requires 1 argument</span>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Earth&quot;</span><span class="p">)</span>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">castBasicEarth</span><span class="p">)</span>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a>
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="cm">--[[</span>
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a><span class="cm">    The Universal Cast:</span>
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a><span class="cm">    Blindly pass the absolute maximum expected arguments.</span>
+</span><span id="__span-23-23"><a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a><span class="cm">    The router naturally degrades to the deepest valid execution it can find.</span>
+</span><span id="__span-23-24"><a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a><span class="cm">]]</span>
+</span><span id="__span-23-25"><a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="kd">local</span><span class="w"> </span><span class="nv">Action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">SpellRouter</span><span class="p">:</span><span class="nc">Match</span><span class="p">(</span><span class="nv">currentElement</span><span class="p">,</span><span class="w"> </span><span class="nv">currentWeapon</span><span class="p">,</span><span class="w"> </span><span class="nv">currentBuff</span><span class="p">)</span>
+</span><span id="__span-23-26"><a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a>
+</span><span id="__span-23-27"><a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a><span class="kr">if</span><span class="w"> </span><span class="nv">Action</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span>
+</span><span id="__span-23-28"><a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a><span class="w">    </span><span class="nf">Action</span><span class="p">()</span><span class="w"> </span>
+</span><span id="__span-23-29"><a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> It creates a modular, incredibly clean Developer Experience (DX). By scoping the switch strictly to "Spells", you know exactly what variables matter. You can pass all 3 variables blindly every single time:</p>
+<ul>
+<li>
+<p>If you pass <code>("Fire", "Staff", "Empowered")</code>, it matches all 3 and casts Meteor.</p>
+</li>
+<li>
+<p>If you pass <code>("Water", "Staff", "Empowered")</code>, it matches the first 2, caches the TidalWave payload, hits a dead end on <code>"Empowered"</code>, <strong>breaks safely</strong>, and executes TidalWave! It gracefully ignores the 3rd argument.</p>
+</li>
+<li>
+<p>If you pass <code>("Earth", "Staff", "Empowered")</code>, it matches Earth, caches the payload, breaks on <code>"Staff"</code>, and cleanly executes BasicEarth.</p>
+</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">The Golden Rule of Routing</p>
+<p>Isolate your routers by scenario, and always pass the maximum available context state into <code>:Match()</code>. As long as you correctly terminated your deep paths with <code>:Execute()</code>, the engine will mathematically guarantee the correct action is returned.</p>
+</div>
+<hr />
+<h2 id="12-avoid-compacting-arguments-preserve-type-checking-and-auto-complete">12. Avoid Compacting Arguments — Preserve Type-Checking and Auto-Complete</h2>
+<p>While the <code>Assignment</code> engine mechanically allows you to pass multiple arguments into a single <code>:Case()</code> call to act as a shorthand AND gate, you should strictly avoid doing this. Compacting arguments breaks Luau’s type-checking and disables auto-complete. To leverage strict typing and intellisense, always use one condition per <code>:Case()</code> call.</p>
+<h3 id="the-problem_10">The Problem</h3>
+<ul>
+<li>Compacting Arguments</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ItemRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;ItemRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="c1">-- Compacting multiple conditions into a single method call</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="nv">ItemRouter</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Weapon&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Sword&quot;</span><span class="p">)</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">equipSword</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> While the engine will compile this correctly, Luau’s type solver struggles with variadic generic arguments inside chained methods. By compacting <code>"Weapon"</code> and <code>"Sword"</code> into a single call, the type-checker goes blind. You lose your strict autocomplete suggestions, making typos much more likely and debugging much harder.</p>
+<h3 id="the-solution_10">The Solution</h3>
+<ul>
+<li>One Condition Per Call</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">ItemRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;ItemRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1">-- Explicit chaining using Op.AND</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="nv">ItemRouter</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Weapon&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Sword&quot;</span><span class="p">)</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">equipSword</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> By strictly passing one condition per <code>:Case()</code>, you allow Luau's type solver to evaluate the chain step-by-step. The IDE can perfectly track the generic types being passed down the tree, keeping your auto-complete active, your type-checking strict, and your development speed high.</p>
+<div class="admonition tip">
+<p class="admonition-title">Design for the IDE, Not Just the Engine</p>
+<p>Always remember that other developers will be reading and extending your routers. Writing verbose, clearly chained logic <code>(:Case(A, Op.AND):Case(B))</code> is vastly superior to shorthand tricks <code>(:Case(A, B))</code> when it preserves the power of the script editor.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Two Ways to Build AND Logic (IDE Compatibility)</p>
+<p>The engine mechanically supports two different ways to write AND conditions, but they drastically affect your Developer Experience (DX) in strict Luau environments:</p>
+<ul>
+<li>
+<p><strong>The Shorthand (Avoid):</strong> Passing multiple arguments like <code>:Case("Weapon", "Sword")</code> acts as a native AND gate in the engine. However, compressing them into a single variadic call causes the Luau type-solver to go blind, breaking your auto-complete and type-checking.</p>
+</li>
+<li>
+<p><strong>The Explicit Chain (Recommended):</strong> Chaining your conditions like <code>:Case("Weapon", Assignment.Op.AND):Case("Sword")</code> achieves the exact same routing, but evaluates step-by-step. This preserves the IDE's ability to track generic types, keeping your intellisense active and your code fully type-safe.</p>
+</li>
+</ul>
+</div>
+<hr />
+<h2 id="13-order-dynamic-rules-by-specificity-narrowest-to-broadest">13. Order Dynamic Rules by Specificity — Narrowest to Broadest</h2>
+<p>While exact string and number matches are evaluated instantly via an <code>O(1)</code> dictionary (meaning their order doesn't matter), <strong>Mathematical Opcodes (<code>Op.GreaterThan</code>, <code>Op.Type</code>, etc.) are evaluated sequentially in the exact order they were compiled.</strong> Because the engine exits on the first valid match it finds, you must always compile your highly specific, narrow rules before your broad, catch-all rules.</p>
+<h3 id="the-problem_11">The Problem</h3>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">DamageRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1">-- A broad catch-all rule (Any number less than 100)</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="nv">DamageRouter</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">LessThan</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleLightDamage</span><span class="p">)</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="c1">-- A highly specific compound rule (Exactly between 15 and 25, AND Poisoned)</span>
+</span><span id="__span-26-9"><a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">InRange</span><span class="p">,</span><span class="w"> </span><span class="mf">15</span><span class="p">,</span><span class="w"> </span><span class="mf">25</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-26-10"><a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Poisoned&quot;</span><span class="p">)</span>
+</span><span id="__span-26-11"><a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleToxicCritical</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this is wrong:</strong> If you call <code>:Match(20, "Poisoned")</code>, you expect it to trigger <code>handleToxicCritical</code>. However, because <code>&lt; 100</code> was compiled first, the engine sees that <code>20</code> is less than <code>100</code>, says <em>"Match found!"</em>, and executes <code>handleLightDamage</code>. The engine safely ignores the second argument and completely skips your highly specific rule!</p>
+<h3 id="the-solution_11">The Solution</h3>
+<ul>
+<li>Narrow Rules First</li>
+</ul>
+<div class="language-luau highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">DamageRouter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="s2">&quot;DamageRouter&quot;</span><span class="p">)</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="c1">-- The Highly Specific Rule (Evaluated First)</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="nv">DamageRouter</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">InRange</span><span class="p">,</span><span class="w"> </span><span class="mf">15</span><span class="p">,</span><span class="w"> </span><span class="mf">25</span><span class="p">,</span><span class="w"> </span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">AND</span><span class="p">)</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="s2">&quot;Poisoned&quot;</span><span class="p">)</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleToxicCritical</span><span class="p">)</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="c1">-- The Broad Catch-All Rule (Evaluated Last)</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">    </span><span class="p">:</span><span class="nc">Case</span><span class="p">(</span><span class="nv">Assignment</span><span class="p">.</span><span class="nv">Op</span><span class="p">.</span><span class="nv">LessThan</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">)</span>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">    </span><span class="p">:</span><span class="nc">Execute</span><span class="p">(</span><span class="nv">handleLightDamage</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Why this works:</strong> By placing your most complex and narrow logic at the top of your opcode chains, you guarantee the engine checks for those rare, specific scenarios first. Broad operators like <code>Op.Type</code>, <code>Op.IsA</code>, or massive numerical ranges should always be pushed to the very bottom of your script, acting as a final safety net right before your <code>:Default()</code> fallback.</p>
+<div class="admonition tip">
+<p class="admonition-title">The Opcode Waterfall</p>
+<p>Remember the engine's internal priority: </p>
+<ol>
+<li><strong>Exact Matches</strong> are checked instantly, regardless of order.</li>
+<li><strong>Opcodes</strong> are checked sequentially, from top to bottom. </li>
+</ol>
+<p>Always build your Opcode lists like a funnel. "Narrow at the top, wide at the bottom."</p>
+</div>
+<hr />
+<div class="admonition success">
+<p class="admonition-title">Pro Tip — Use <code>Assignment.Cancel</code> in Generic Cleanup Systems</p>
+<p><code>handle:Break()</code> and <code>Assignment.Cancel(handle)</code> do the same thing for a <code>Handle</code>. The advantage of <code>Assignment.Cancel</code> is that it also accepts a raw <code>thread</code> returned from isolated calls — or any thread currently suspended inside <code>Assignment.Wait</code> — stopping it cleanly in either case. If you are building a general-purpose cleanup registry that might hold any of these types, <code>Assignment.Cancel</code> is the single call that handles all of them.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "navigation.instant", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
