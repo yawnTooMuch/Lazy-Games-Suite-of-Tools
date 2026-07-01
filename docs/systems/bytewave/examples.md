@@ -1066,6 +1066,61 @@ playerState:SetTemporary("ZoneAccess", true, 30, false)
 
 ---
 
+### `SetRadius`
+
+Updates the discovery radius of a Spatial-scoped state. Clients that fall outside the new radius on the next spatial discovery tick receive a destroy signal; clients that newly fall inside receive a full-sync.
+
+**Scenario A — Expand a chest's discovery radius when it is unlocked**
+
+```luau
+-- The chest was originally discoverable from 30 studs away.
+-- Once unlocked, a larger glow effect warrants a wider radius so more players can see it.
+local chestState = ByteWave.State.GetState("Chest_01")
+
+if chestState then
+    chestState:SetRadius(80)
+end
+```
+
+**Scenario B — Shrink a zone state's radius as a round progresses**
+
+```luau
+-- Simulate a shrinking safe zone by reducing the radius every 30 seconds.
+local safeZone = ByteWave.State.CreateState("SafeZone", { Radius = 500 }, "Spatial_Global", nil, workspace.ZoneAnchor, 500)
+
+local currentRadius = 500
+
+task.spawn(function()
+    while currentRadius > 50 do
+        task.wait(30)
+        currentRadius = math.max(currentRadius - 50, 50)
+        safeZone:Set("Radius", currentRadius) -- replicate the new boundary value to clients
+        safeZone:SetRadius(currentRadius)     -- update ByteWave's spatial discovery radius
+    end
+end)
+```
+
+**Scenario C — Temporarily widen radius during an alert, then restore it**
+
+```luau
+-- An enemy NPC enters combat — expand its state visibility briefly so distant players are notified.
+local npcState = ByteWave.State.GetState("NPC_Boss")
+
+if npcState then
+    npcState:SetRadius(200)
+
+    task.delay(10, function()
+        -- Combat alert expired; shrink back to normal patrol radius.
+        npcState:SetRadius(60)
+    end)
+end
+```
+
+!!! info "Tick-deferred visibility"
+    Clients already observing the state are not immediately affected. Players who newly fall inside or outside the updated radius are resolved on the next spatial discovery tick (every ~300ms). For instant enforcement, call `Destroy` and recreate the state with the new radius instead.
+
+---
+
 ### `Destroy` *(server StateObject)*
 
 Cancels all active timers on this state, destroys all child states (deepest-first), sends a destroy signal to all eligible clients, and unregisters the state from the active registry.

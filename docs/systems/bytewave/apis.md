@@ -596,6 +596,7 @@ All methods below are called on a StateObject handle returned by `CreateState` o
 | **[Multiply](#multiply)** | `void` | Multiplies the value at a key by an amount. |
 | **[Divide](#divide)** | `void` | Divides the value at a key by an amount. |
 | **[SetTemporary](#settemporary)** | `void` | Sets a key to a value for a fixed duration, then reverts or clears it. |
+| **[SetRadius](#setradius)** | `void` | Updates the discovery radius of a Spatial-scoped state. Takes effect on the next spatial discovery tick. |
 | **[Destroy](#destroy-server)** | `void` | Removes the state, cancels all timers, destroys all children, and notifies clients. |
 
 ---
@@ -840,6 +841,29 @@ Sets a key to a value for `Duration` seconds. When the duration expires the valu
 
 !!! info "Stacking SetTemporary calls"
     Calling `SetTemporary` on the same key while a previous call's timer is still running cancels the old timer before applying the new one. Only the most recent call's duration and behavior take effect.
+
+---
+
+<a id="setradius"></a>
+#### `SetRadius`
+Updates the discovery radius of a Spatial-scoped state. The new value takes effect on the next spatial discovery tick — players who fall outside the updated radius will receive a destroy signal, and players who newly fall inside will receive a full-sync.
+
+**Parameters:**
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `NewRadius` | `number` | The new discovery radius in studs. Must be a positive number. |
+
+**Returns:** `void`
+
+!!! warning "Spatial scopes only"
+    Calling `SetRadius` on a non-Spatial state (`"Global"`, `"Private"`, `"Filtered"`) has no effect. A warning is logged in Studio.
+
+!!! info "Not immediate"
+    Visibility changes driven by the new radius are applied on the next spatial discovery tick, not the moment `SetRadius` is called. Players currently in range under the old radius but outside the new one will continue to hold the state until the tick completes.
+
+!!! danger "Throws"
+    In Studio, raises an error if `NewRadius` is not a positive number.
 
 ---
 
