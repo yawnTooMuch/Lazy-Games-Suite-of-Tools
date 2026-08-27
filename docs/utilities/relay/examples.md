@@ -111,6 +111,33 @@ Relay.Create("DungeonSystem_Ready"):Once(onDungeonReady)
 
 ---
 
+### Relay.GetDiagnostics
+
+Returns a snapshot of the whole registry: total signal count, total connection count, and a per-signal breakdown. Useful for monitoring system health and catching signals that were created but never destroyed.
+
+**Scenario A — Logging registry health periodically**
+```luau
+task.spawn(function()
+    while true do
+        local stats = Relay.GetDiagnostics()
+        print(("Relay: %d signals, %d total connections"):format(stats.ActiveSignals, stats.TotalConnections))
+        task.wait(60)
+    end
+end)
+```
+
+**Scenario B — Detecting a specific leaked signal**
+```luau
+local stats = Relay.GetDiagnostics()
+
+-- Check whether a signal expected to be short-lived is still registered.
+if stats.SignalDetails["MiniGame_Round_42"] then
+    warn("MiniGame_Round_42 is still in the registry — it was probably never :Destroy()ed.")
+end
+```
+
+---
+
 ## SignalObject Methods
 
 ### Connect
@@ -363,9 +390,10 @@ matchSignal:Connect(onMatchEvent)
 
 -- Match ends. Fully remove the signal and release all associated resources.
 matchSignal:Destroy()
--- "Match_1_Event" is no longer in the registry.
+-- OnAbandoned fires one last time, so anything still listening for abandonment gets a final signal.
 -- Any coroutines waiting on this signal are resumed immediately with nil arguments.
--- The OnAbandoned companion is also destroyed.
+-- "Match_1_Event" is no longer in the registry, and the OnAbandoned companion is destroyed
+-- right after it fires.
 
 -- A fresh signal can be created for the next match:
 local newMatchSignal = Relay.Create("Match_2_Event")
@@ -544,4 +572,48 @@ Relay.Create("Minigame_Timer").Signals.OnAbandoned:Once(function()
     -- The Once connection then removes itself automatically.
     cleanupMinigameState()
 end)
+```
+
+**Scenario C — OnAbandoned also fires when the parent is destroyed**
+```luau
+local sessionSignal = Relay.Create("Session_Events")
+
+sessionSignal.Signals.OnAbandoned:Once(function()
+    -- Fires whether the last listener disconnected, DisconnectAll() ran,
+    -- OR the signal itself was just destroyed — as it is below.
+    print("Session_Events has no listeners left.")
+end)
+
+sessionSignal:Connect(logSessionEvent)
+sessionSignal:Destroy()
+-- OnAbandoned fires once (printing the message above), then the companion
+-- signal itself is destroyed right after.
+```
+
+---
+
+### ListenerSignal<T...>
+
+A type-level restriction, not a runtime object — use it to expose a signal for listening only, without granting `:Fire()`, `:Destroy()`, or `:DisconnectAll()` to the caller.
+
+**Scenario A — Exposing a read-only accessor**
+```luau
+local Relay = require(path.to.Relay)
+
+local combatSignal = Relay.Create("Combat_PlayerDamaged")
+
+local CombatSystem = {}
+
+-- The return type restricts callers to Connect / Once / Wait only.
+function CombatSystem.GetDamagedSignal(): Relay.ListenerSignal<Player, number>
+    return combatSignal :: any
+end
+
+-- Elsewhere:
+local listener = CombatSystem.GetDamagedSignal()
+listener:Connect(function(player, damage)
+    updateHealthBar(player, damage)
+end)
+
+-- listener:Fire(...) -- Type error: Fire is not part of ListenerSignal<T...>
 ```

@@ -3,8 +3,6 @@
 **Type:** Library  
 _A purely Luau-based signal and event library that replaces `BindableEvent` with a global, decoupled, memory-safe communication backbone._
 
-[Distribution:](https://devforum.roblox.com/t/relay-cross-script-signal-communication/4586113) `https://devforum.roblox.com/t/relay-cross-script-signal-communication/4586113`
-
 ---
 
 ## Overview
@@ -43,11 +41,15 @@ By injecting the Reaper module, any `SignalObject` or `ConnectionObject` can be 
 
 ### The `OnAbandoned` Sub-Signal
 
-Every `SignalObject` automatically carries a `.Signals.OnAbandoned` companion signal. This companion fires whenever the parent signal's listener count drops to exactly zero, whether through individual disconnections or a full `DisconnectAll()` call. It does not fire when `Destroy()` is called — destruction takes a separate cleanup path. `OnAbandoned` is the intended mechanism for pausing expensive background processes (AI loops, radar sweeps, timer systems) when no listeners remain, avoiding wasted CPU time in unpopulated areas or idle game phases.
+Every `SignalObject` automatically carries a `.Signals.OnAbandoned` companion signal. This companion fires whenever the parent signal's listener count drops to exactly zero — through individual disconnections, a full `DisconnectAll()` call, or the parent signal itself being destroyed via `Destroy()`. In the destruction case, `OnAbandoned` fires first, giving any remaining listeners one last chance to react, and the companion signal is cleaned up immediately afterward. `OnAbandoned` is the intended mechanism for pausing expensive background processes (AI loops, radar sweeps, timer systems) when no listeners remain, avoiding wasted CPU time in unpopulated areas or idle game phases.
 
-### Global Weak Registry
+### Global Signal Registry
 
-Any script can retrieve a signal by its string identifier without importing any other module — both the emitter and the listener call `Relay.Create()` with the same ID and receive the same `SignalObject`. Signals that have no remaining external references outside the registry are eligible for automatic garbage collection by the Luau VM, so abandoned signals do not accumulate permanently in memory. Because of this, a signal may be collected between an `Exists()` check and a subsequent `Create()` call in low-reference scenarios. Do not rely on `Exists()` as a pre-creation guard.
+Any script can retrieve a signal by its string identifier without importing any other module — both the emitter and the listener call `Relay.Create()` with the same ID and receive the same `SignalObject`. The registry holds a strong reference to every signal it creates, so a signal is never garbage-collected while it remains registered — it stays resident in memory, along with every connection and callback attached to it, until something explicitly calls `:Destroy()` on it. This makes `Exists()` a dependable readiness check with no race against automatic cleanup, but it also means an abandoned signal is a genuine, permanent memory leak if nothing ever destroys it.
+
+### Registry Diagnostics
+
+`Relay.GetDiagnostics()` returns a snapshot of the entire registry in one call: how many signals currently exist, how many live connections exist across all of them combined, and a per-signal breakdown of connection counts keyed by signal ID. Because the registry never cleans up on its own, this is the primary tool for spotting signals that were created but never destroyed — a steadily growing signal count over a play session is a reliable early warning sign of a missed `:Destroy()` call somewhere in the codebase.
 
 ### Drop-In Roblox API Compatibility
 
@@ -55,4 +57,4 @@ Relay's public method names — `Connect`, `Once`, `Wait`, `Fire` — are intent
 
 ### Studio-Only Strict Validation
 
-Relay includes a parameter validation layer that is active only inside Roblox Studio and automatically disabled on live servers. In Studio, common mistakes — passing a non-function to `Connect`, calling `Fire` on a destroyed signal, or using `:BindTo()` without Reaper injected — throw descriptive errors with full tracebacks. In production these checks are skipped entirely, adding zero validation overhead at runtime.
+Relay includes a parameter validation layer that is active only inside Roblox Studio and automatically disabled on live servers. In Studio, common mistakes — passing a non-function to `Connect`, an invalid ID to `Create` or `Exists`, malformed arguments to `Inject`, calling `Fire` on a destroyed signal, or using `:BindTo()` without Reaper injected — throw descriptive errors with full tracebacks. In production these checks are skipped entirely, adding zero validation overhead at runtime.

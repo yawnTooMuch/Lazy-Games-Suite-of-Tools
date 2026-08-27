@@ -169,7 +169,7 @@ Relay.Create("WeatherSystem_ConditionsChanged"):Connect(applyWeather)
 
 ## 5. Destroy Signals When Their Parent System Shuts Down
 
-The automatic garbage collection path handles abandoned signals eventually, but "eventually" is not "immediately." If a game phase ends and you want instant memory reclamation and connection cleanup, call `:Destroy()` explicitly.
+The registry never cleans up on its own. A signal created via `Relay.Create()` stays registered — along with every connection and callback closure attached to it — for the entire lifetime of the system, unless something explicitly calls `:Destroy()` on it. If a game phase ends and the signal that represented it is never destroyed, that memory is gone for good, not just delayed.
 
 ### The Problem
 
@@ -179,11 +179,11 @@ local roundSignal = Relay.Create("MiniGame_Round_" .. roundId)
 roundSignal:Connect(onRoundEvent)
 
 -- Round ends. Nothing is cleaned up.
--- The signal stays in the registry until the VM decides to collect it.
--- Coroutines yielded on this signal stay suspended indefinitely.
+-- The signal, its connection, and the onRoundEvent closure all stay in the registry forever.
+-- Every subsequent round adds one more permanently-resident signal to the registry.
 ```
 
-**Why this is wrong:** Coroutines that called `:Wait()` on this signal hold a strong reference to it, preventing automatic collection. Even without active waiters, connected callbacks keep their closures alive. Memory from a "finished" round persists until the VM's garbage collector decides to act — which may be many rounds later.
+**Why this is wrong:** The registry holds a strong reference to every signal it creates, so nothing about a normal Luau garbage collection pass will ever remove it. Over a long server session with many rounds, each abandoned round signal — plus its connections and captured closures — accumulates permanently. This is a straightforward, unbounded memory leak, not a delayed cleanup.
 
 ### The Solution
 
@@ -194,11 +194,18 @@ roundSignal:Connect(onRoundEvent)
 -- Round ends:
 roundSignal:Destroy()
 -- All connections are cancelled, all waiting coroutines are resumed immediately
--- (receiving no return values), and the signal is removed from the registry.
+-- (receiving no return values), OnAbandoned fires once for any last-moment listeners,
+-- and the signal is removed from the registry entirely.
 -- Memory from this round is released as soon as all local references are dropped.
+
+-- A fresh signal can be created for the next round under the same or a new ID:
+local nextRoundSignal = Relay.Create("MiniGame_Round_" .. (roundId + 1))
 ```
 
-**Why this works:** `:Destroy()` does not wait for the garbage collector. It immediately cancels every connection, resumes every suspended coroutine (so they are no longer blocking cleanup), and removes the signal from the registry. Once the last local variable pointing to `roundSignal` goes out of scope, the entire signal and its associated memory is freed.
+**Why this works:** `:Destroy()` is the only way a signal leaves the registry. It immediately cancels every connection, resumes every suspended coroutine so nothing is left blocking cleanup, and removes the signal's entry from the registry so the Luau garbage collector can reclaim it once local references go out of scope. None of this happens automatically — if `:Destroy()` is never called, none of this cleanup ever runs.
+
+!!! tip "Catching Missed Destroys"
+    `Relay.GetDiagnostics().ActiveSignals` reports exactly how many signals are currently registered. If that number climbs steadily over a play session instead of staying roughly flat, it's a strong sign that some code path — often per-round, per-player, or per-instance — is creating signals without ever destroying them.
 
 ---
 

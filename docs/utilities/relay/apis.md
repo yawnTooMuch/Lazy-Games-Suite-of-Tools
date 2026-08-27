@@ -4,6 +4,25 @@ This section covers all available APIs, methods, and sub-objects within the **Re
 
 ---
 
+## Types
+
+### `ListenerSignal<T...>`
+
+A read-only view of a signal, exposing only `Connect`, `Once`, and `Wait`. Use this type when writing a function signature that hands a signal out to external code but should not grant permission to `Fire()`, `Destroy()`, `DisconnectAll()`, or otherwise administer it.
+
+```luau
+export type ListenerSignal<T...> = {
+	Connect: (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Once: (self: ListenerSignal<T...>, Callback: (T...) -> ()) -> ConnectionObject,
+	Wait: (self: ListenerSignal<T...>) -> T...,
+}
+```
+
+!!! tip "Read-Only by Convention, Not Enforcement"
+    A `SignalObject` returned from `Relay.Create()` is not automatically narrowed to a `ListenerSignal`. To actually restrict a caller, annotate the parameter or return type of your own function as `ListenerSignal<T...>` — the Luau type checker will then reject any attempt to call `:Fire()`, `:Destroy()`, `:DisconnectAll()`, or `:GetConnectionCount()` through that reference, even though the underlying table still has those methods at runtime.
+
+---
+
 ## Class: Relay
 
 The main module table returned by `require()`-ing the Relay `ModuleScript`. Used to create, query, and configure signals globally.
@@ -15,6 +34,7 @@ The main module table returned by `require()`-ing the Relay `ModuleScript`. Used
 | **[Create](#create)** | `SignalObject` | Creates a new signal for the given ID, or returns the existing signal if one is already registered under that ID. |
 | **[Exists](#exists)** | `boolean` | Returns whether a signal with the given ID currently exists in the active registry. |
 | **[Inject](#inject)** | `void` | Registers an external Lazy Games Suite library into Relay, enabling features that depend on it. |
+| **[GetDiagnostics](#getdiagnostics)** | `table` | Returns a snapshot of the active signal registry: total signal count, total connection count, and a per-signal connection breakdown. |
 
 ---
 
@@ -61,8 +81,11 @@ Returns whether a signal with the given ID currently exists in the active regist
 | :--- | :--- |
 | `boolean` | `true` if a live signal is registered under this ID, `false` otherwise. |
 
-!!! tip "Garbage Collection Awareness"
-    Because the registry holds signals with weak references, a signal with no external references may be collected between an `Exists()` check and a subsequent `Create()` call. Do not rely on `Exists()` as a pre-creation guard in hot paths.
+!!! note "Studio Only"
+    Passing a non-string or an empty string will throw a descriptive error in Studio. On live servers, this validation is skipped.
+
+!!! tip "Signals Never Disappear on Their Own"
+    The registry does not garbage-collect unused signals — a signal created via `Relay.Create()` stays registered until something explicitly calls `:Destroy()` on it. This makes `Exists()` a reliable check with no race against automatic cleanup: it cannot flip from `true` to `false` between calls unless `:Destroy()` runs in between. The flip side is that a signal you create and never destroy will remain in memory for the lifetime of the system — see the Best Practices guide's advice on destroying signals explicitly.
 
 ---
 
@@ -81,8 +104,30 @@ Injects an external library within the Lazy Games Suite of Tools environment. Cu
 
 **Returns:** `void`
 
+!!! note "Studio Only"
+    Passing a non-string or empty `ModuleName`, or a `ModuleTableObject` that is not a table, will throw a descriptive error in Studio. On live servers, this validation is skipped.
+
 !!! tip "What Each Injection Does"
     Injecting `"Reaper"` enables the `:BindTo()` method on both `SignalObject` and `ConnectionObject`. Injecting `"Assignment"` replaces Relay's internal scheduler with the methods provided by the custom module, allowing fine-grained control over coroutine timing and priority. For `"Assignment"`, any scheduler method not present in the provided table falls back to the equivalent native `task` function automatically.
+
+---
+
+#### **GetDiagnostics**
+```luau
+Relay.GetDiagnostics(): { ActiveSignals: number, TotalConnections: number, SignalDetails: { [string]: number } }
+```
+Returns a summary of the current signal registry state.
+
+**Parameters:** `void`
+
+**Returns:**
+
+| Type | Description |
+| :--- | :--- |
+| `table` | A dictionary with `ActiveSignals` (`number`), `TotalConnections` (`number`), and `SignalDetails` (`{[string]: number}`). |
+
+!!! tip "Use for Debugging and Leak Detection"
+    Because the registry never removes a signal automatically, a steadily climbing `ActiveSignals` count over a play session is a reliable early sign that something is creating signals without ever calling `:Destroy()` on them. Calling this periodically — from an admin command, a scheduled log, or a debug HUD — is a cheap way to catch that early.
 
 ---
 
@@ -253,6 +298,9 @@ Permanently destroys the signal, cancels all connections, resumes any yielded Wa
 !!! danger "Irreversible"
     Once destroyed, a signal cannot be reconnected or fired. Any subsequent method call on a destroyed `SignalObject` will either silently no-op (in production) or throw a descriptive error (in Studio). Calling `:Destroy()` more than once is safe — subsequent calls are silently ignored. A new signal with the same ID can be created via `Relay.Create()`.
 
+!!! note "OnAbandoned Still Fires"
+    `:Destroy()` fires `SignalObject.Signals.OnAbandoned` once, immediately, before tearing anything else down — giving any listener a final chance to react — and then destroys the `OnAbandoned` companion itself right after. See [SignalObject.Signals.OnAbandoned](#signalobjectsignalsonabandoned) below.
+
 ---
 
 #### **BindTo (Signal)**
@@ -274,7 +322,7 @@ Binds this signal's lifetime to a Reaper-tracked target, destroying the signal a
 | `SignalObject` | Returns `self` to allow method chaining. |
 
 !!! danger "Strict Dependency: Reaper"
-    `Relay.Inject("Reaper", ...)` must be called before using `:BindTo()`. In Studio, calling this without Reaper injected, or passing `nil` as the target, will throw a descriptive error. Calling `:BindTo()` on an already-destroyed signal silently returns `self` with no effect.
+    `Relay.Inject("Reaper", ...)` must be called before using `:BindTo()`. In Studio, calling this without Reaper injected, or passing `nil` as the target, throws a descriptive error — and this check runs first, even on an already-destroyed signal. Only once Reaper is injected and a non-nil target is supplied does the already-destroyed short-circuit apply: calling `:BindTo()` on an already-destroyed signal then silently returns `self` with no effect.
 
 ---
 
@@ -344,7 +392,7 @@ Binds this connection's lifetime to a Reaper-tracked target, disconnecting it au
 | `ConnectionObject` | Returns `self` to allow method chaining. |
 
 !!! danger "Strict Dependency: Reaper"
-    `Relay.Inject("Reaper", ...)` must be called before using `:BindTo()`. In Studio, calling this without Reaper injected, or passing `nil` as the target, will throw a descriptive error. Calling `:BindTo()` on an already-disconnected connection silently returns `self` with no effect.
+    `Relay.Inject("Reaper", ...)` must be called before using `:BindTo()`. In Studio, calling this without Reaper injected, or passing `nil` as the target, throws a descriptive error — and this check runs first, even on an already-disconnected connection. Only once Reaper is injected and a non-nil target is supplied does the already-disconnected short-circuit apply: calling `:BindTo()` on an already-disconnected connection then silently returns `self` with no effect.
 
 ---
 
@@ -356,7 +404,7 @@ SignalObject.Signals.OnAbandoned:Connect(Callback: () -> ())
 ```
 A built-in companion signal that fires automatically whenever the parent signal's live connection count drops to exactly zero.
 
-This fires in two scenarios: when the last connection individually calls `:Disconnect()` or is cancelled, and when `:DisconnectAll()` is called explicitly. It does not fire when `:Destroy()` is called — destruction takes a separate cleanup path that destroys the `OnAbandoned` companion along with the parent.
+This fires in three scenarios: when the last connection individually calls `:Disconnect()` or is cancelled, when `:DisconnectAll()` is called explicitly, and when the parent signal itself is destroyed via `:Destroy()`. In the destruction case, `OnAbandoned` fires first — giving any remaining listeners one last chance to react — and the companion signal is then destroyed immediately afterward.
 
 !!! tip "Primary Use Case"
     Use `OnAbandoned` to pause expensive background loops (AI calculations, radar sweeps, frame-rate-dependent updates) when no scripts are actively listening, avoiding wasted CPU cycles in unpopulated areas or inactive game phases.
