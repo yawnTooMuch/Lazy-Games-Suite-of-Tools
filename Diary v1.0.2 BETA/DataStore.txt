@@ -396,14 +396,13 @@ local function safeUpdateAsync(DataStore: GlobalDataStore, Key: string, Value: a
 
 				if not ModuleScriptTable["Diary"]._players[tonumber(Key)] or ModuleScriptTable["Diary"]._serverShuttingDown then -- If player is currently in the game, mark this data as active (stale)
 					DeserializedCurrent.__isUpdated = true
-					print("Shutting Down")
 					
 				else
 					DeserializedCurrent.__isUpdated = false
 				end
 
 				local NumericKey = tonumber(Key)
-				local UserIds    = NumericKey and { NumericKey } or {}
+				local UserIds = NumericKey and { NumericKey } or {}
 
 				return DependentServices.DeepSerialize(DeserializedCurrent), UserIds -- Save the updated data back to the database
 			end)

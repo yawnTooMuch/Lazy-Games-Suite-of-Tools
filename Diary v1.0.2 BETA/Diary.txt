@@ -10,7 +10,7 @@
 	000 Roblox DevForum Account: https://devforum.roblox.com/u/yawntoomuch/summary    					 000
 	000 Roblox Resource DevForum Page: https://devforum.roblox.com/t/diary-data-saving-framework/4595950 000
 	000 Github Repo: https://github.com/yawnTooMuch/Diary/tree/Diary_ReadOnly 							 000
-	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/system/diary/ 			 000
+	000 Documentation: https://yawntoomuch.github.io/Lazy-Games-Suite-of-Tools/systems/diary/ 			 000
 	00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 ]]
 
@@ -39,6 +39,7 @@ local JANITOR_INTERVAL         = 30        -- seconds between Heartbeat janitor 
 local NORMAL_JOIN_OPERATION    = 1         -- base wait time for normal joins (seconds)
 local BULK_JOIN_OPERATION      = 4         -- extension time for bulk joins (total = 5s)
 local BULK_JOIN_THRESHOLD      = 10        -- players required to trigger extension
+local SERVER_STARTUP_DELAY	   = 20		   -- delay for server startup in seconds before processing any data
 
 -- Batching settings in Diary's background lease worker
 local RENEWAL_BATCH_SIZE 	= 15	-- Max number of leases to renew concurrently before yielding
@@ -202,7 +203,7 @@ export type DiaryType = {
 	ThreadCount  : () -> number,
 
 	-- Public APIs/Methods
-	Inject               : (moduleName: string, moduleTableObject: any) -> (), -- asdasdas
+	Inject               : (moduleName: string, moduleTableObject: any) -> (),
 	RegisterTemplate     : <Schema>(memoryLocation: string, template: Schema, policy: CachePolicy?) -> DataDefinition<Schema>,
 	RegisterPolicy       : (memoryLocation: string, policy: CachePolicy) -> (),
 	FetchData            : <Schema>(playerUserID: number, structureDefinition: DataDefinition<Schema>) -> Schema?,
@@ -397,6 +398,7 @@ Diary._serverShuttingDown = false
 Diary._keyLock = {} :: { [number]: { [string]: number } }
 Diary._dataStoreTable = nil :: ({ [string]: { [string]: DataTable } })?
 Diary._inStudio = Diary.DependentServices.Run:IsStudio()
+Diary._systemGateway = "DiaryValidationGateway_BedQuest"	-- The name of the framework's validation system gateway
 
 -- Studio mode mock datastore
 if Diary._inStudio then
@@ -1085,10 +1087,10 @@ local function startLeaseWorker(): ()
 			-- Filtering players by their session status so that we know who are still active from those who already left
 			for userId, leaseData in OwnedLeases do
 				if leaseData.alive and Diary._players[userId] then
-					table.insert(leasesToRenew, userId) -- Needs to be renewed
+					leasesToRenew[#leasesToRenew + 1] = userId -- Needs to be renewed
 
 				elseif not leaseData.alive then
-					table.insert(leasesToCleanup, userId) -- To be cleaned up
+					leasesToCleanup[#leasesToCleanup + 1] = userId -- To be cleaned up
 				end
 			end
 
@@ -1131,10 +1133,10 @@ local function startLeaseWorker(): ()
 				]]
 				for userId in PlayersMissingLease do
 					if Diary._players[userId] then -- Local cache lookup
-						table.insert(playersToAcquire, userId)
+						playersToAcquire[#playersToAcquire + 1] = userId
 
 					elseif Diary.DependentServices.Players:GetPlayerByUserId(userId) then -- Players service lookup
-						table.insert(playersToAcquire, userId)
+						playersToAcquire[#playersToAcquire + 1] = userId
 
 					else
 						-- Player left during the recovery window, cleanup instead
@@ -1251,8 +1253,7 @@ local function flushValidationBatch(): ()
 	-- Group pending validations by their LastWriterServerID
 	for UserId, LastWriterServerID in PendingValidations do
 		ServerTargetGroups[LastWriterServerID] = ServerTargetGroups[LastWriterServerID] or {}
-
-		table.insert(ServerTargetGroups[LastWriterServerID], UserId)
+		ServerTargetGroups[LastWriterServerID][#ServerTargetGroups[LastWriterServerID] + 1] = UserId
 	end
 
 	local MessagingService = Diary.DependentServices.Messaging
@@ -1260,7 +1261,7 @@ local function flushValidationBatch(): ()
 	-- Send validation requests to the appropriate target servers
 	if MessagingService then
 		for TargetServerID, UserIds in ServerTargetGroups do
-			MessagingService.RelayStream("SystemValidation", "SessionRequest", {
+			MessagingService.RelayStream(Diary._systemGateway, "SessionRequest", {
 				PlayerUserIDs = UserIds,
 				CallerServerID = Diary._serverId,
 				LastWriterServerID = TargetServerID,
@@ -1386,16 +1387,16 @@ local function checkMessage(Message: any): ()
 	-- Filtering logic
 	for _, TargetId in ipairs(Packet.Data.PlayerUserIDs) do
 		if (Diary._players[TargetId] or EvictingPlayers[TargetId]) and Packet.Data.LastWriterServerID == Diary._serverId then
-			table.insert(TerminateIds, TargetId) -- This server still has a presence reference to the player, reply back with negative response (Terminate)
+			TerminateIds[#TerminateIds + 1] = TargetId -- This server still has a presence reference to the player, reply back with negative response (Terminate)
 
 		elseif not Diary._players[TargetId] and not EvictingPlayers[TargetId] and Packet.Data.LastWriterServerID == Diary._serverId then
-			table.insert(SecureIds, TargetId) -- This server has no presence reference to the player, reply back with positive response (Secure)
+			SecureIds[#SecureIds + 1] = TargetId -- This server has no presence reference to the player, reply back with positive response (Secure)
 		end
 	end
 
 	-- Terminate message dispatcher back to the requesting server
 	if #TerminateIds > 0 then
-		MessagingService.RelayStream("SystemValidation", "SessionResponse", {
+		MessagingService.RelayStream(Diary._systemGateway, "SessionResponse", {
 			Code = "Terminate", -- Signal to kick the player
 			CallerServerID = Packet.Data.CallerServerID,
 			PlayerUserIDs = TerminateIds,
@@ -1404,7 +1405,7 @@ local function checkMessage(Message: any): ()
 
 	-- Secure message dispatcher back to the requesting server
 	if #SecureIds > 0 then
-		MessagingService.RelayStream("SystemValidation", "SessionResponse", {
+		MessagingService.RelayStream(Diary._systemGateway, "SessionResponse", {
 			Code = "Secure", -- Signal to allow the player to enter
 			CallerServerID = Packet.Data.CallerServerID,
 			PlayerUserIDs = SecureIds,
@@ -1886,7 +1887,7 @@ local function lastMinuteCall(): ()
 		local PlayerList: { number } = {} -- This will be used to know when the exact time the main thread should wake up
 
 		for Player in Diary._players do
-			table.insert(PlayerList, Player)
+			PlayerList[#PlayerList + 1] = Player
 		end
 
 		local TotalSaves = #PlayerList
@@ -1929,7 +1930,7 @@ local function lastMinuteCall(): ()
 					ActiveSaveThreads -= 1
 					SavesDone += 1
 
-					table.insert(CompletedPlayers, Player)
+					CompletedPlayers[#CompletedPlayers + 1] = Player
 
 					if SavesDone == TotalSaves then
 						Scheduler.Defer(MainThread) -- When the last save is done, resume the main thread
@@ -2130,7 +2131,7 @@ end
 -- Buffers players who join during the boot sequence.
 local function onPlayerAddedProxy(PlayerInstance: Player): ()
 	if BootCatchQueue then
-		table.insert(BootCatchQueue, PlayerInstance) -- Players to be loaded once Diary is fully initialized
+		BootCatchQueue[#BootCatchQueue + 1] = PlayerInstance -- Players to be loaded once Diary is fully initialized
 		log("Server booting... Caught player: " .. PlayerInstance.Name)
 	end
 end
@@ -2180,7 +2181,7 @@ if Diary.DependentServices.Messaging then
 	local MessagingService = Diary.DependentServices.Messaging :: MessagingInterface -- MessagingService wrapper inside DependentServices module
 
 	-- Single Gateway Subscription with Path-based routing
-	ValidationCheck = MessagingService.ListenStream("SystemValidation", function(Message: any)
+	ValidationCheck = MessagingService.ListenStream(Diary._systemGateway, function(Message: any)
 		local Packet = Message :: CrossServerPacket
 
 		if Packet.Path == "SessionRequest" then
@@ -2207,7 +2208,7 @@ end
 
 -- Diary boot sequence on server first initialization
 Scheduler.Spawn(function()
-	Scheduler.Wait(10) -- Give time for the server to fully initialize and other server side scripts to register data structure (via RegisterTemplate)
+	Scheduler.Wait(SERVER_STARTUP_DELAY) -- Give time for the server to fully initialize and other server side scripts to register data structure (via RegisterTemplate)
 	log("Boot sequence finished. Server open for data processing...")
 
 	if BootAddedConnection then
@@ -2433,7 +2434,7 @@ Diary.Signals.OnLoadStarted = {
 			errorLog("[OnLoadStarted] Expected a function callback.")
 		end
 
-		table.insert(OnLoadStartedCallbacks, Callback) -- Store the callback
+		OnLoadStartedCallbacks[#OnLoadStartedCallbacks + 1] = Callback -- Store the callback
 
 		-- Fire the callback for existing players
 		for UserId in PlayerDataCache do
@@ -2510,7 +2511,7 @@ Diary.Signals.OnLoadCompleted = {
 			errorLog("[OnLoadCompleted] Expected a function callback.")
 		end
 
-		table.insert(OnLoadCompletedCallbacks, Callback) -- Store the callback
+		OnLoadCompletedCallbacks[#OnLoadCompletedCallbacks + 1] = Callback -- Store the callback
 
 		for UserId in PlayerDataCache do
 			local PlayerInstance = Diary.DependentServices.Players:GetPlayerByUserId(UserId)
@@ -3533,5 +3534,25 @@ else
 end
 
 ----------------------------------------------------------
-return Diary :: DiaryType -- Diary Main module version 2.3.12
+return Diary :: DiaryType -- Diary Main module version 2.3.14
 ----------------------------------------------------------
+
+
+
+--[[
+	Version 1.0.2 Beta
+	
+	[DependentServices Module]
+		- [General] Periodic Update: Bug fixes and optimizations.
+		
+	[Diary Module]
+		- [Fixes] Session Validation: Resolved an issue where players with stale data (_isUpdated = false) would get stuck in an infinite loading state instead of being properly kicked or processed. This was caused by the background janitor system prematurely cancelling their active threads.
+		- [Fixes] Stale Flag: Resolved an issue where the background DataStore throtlling mechanism would race against the event during player leaving or server shutting down when it gets activated perfect timing with the event (playerCleanup or lastMinuteCall) causing permanent outdated data and a permanent kick loop.
+		- [Fixes] MessagingService: Resolved an issue where the main Diary validation system is not using the priority lane on DependentServices ("SystemValidation" -> Diary._systemGateway).
+		
+	[MemoryStore Module]
+		- [General] Periodic Update: Bug fixes and optimizations.
+		
+	[DataStore Module]
+		- [General] Periodic Update: Bug fixes and optimizations.
+]]

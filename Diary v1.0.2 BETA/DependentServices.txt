@@ -18,7 +18,6 @@ local IGNORED_KEYS: { [string]: boolean } = {
 
 local POOL_SIZE: number = 1000                                                               	-- maximum number of recycled tables held in the pool
 local BASE64_CHARS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" -- Base64 character table
-local SYSTEM_GATEWAY: string = "DiaryValidationGateway_BedQuest"								-- The name of the framework's validation system gateway
 local MULTIPLEX_GATEWAY: string = "SpecialDeliveryDiaryGateway_BedQuest"						-- The name of the framework's multiplexing system (specifically the mixed gateways package) gateway
 local DISPATCH_INTERVAL: number = 0.75															-- The number of frames before the MessagingService dispatcher dispatches exactly 1 package
 
@@ -365,7 +364,7 @@ local function releaseTableToPool(Target: DataTable): ()
 
 	if #PooledTables < POOL_SIZE then
 		table.clear(Target)
-		table.insert(PooledTables, Target)
+		PooledTables[#PooledTables + 1] = Target
 	end
 end
 
@@ -564,25 +563,27 @@ local function encodeBufferToBase64(BufferData: buffer): string
 		local C2 = bit32.rshift(Combined, 12) % 64 + 1 -- Character 2
 
 		-- The first two Base64 characters are always guaranteed to exist if there is at least 1 byte (there are actually data present)
-		table.insert(ResultChunks, string.sub(BASE64_CHARS, C1, C1))
-		table.insert(ResultChunks, string.sub(BASE64_CHARS, C2, C2))
+		ResultChunks[#ResultChunks + 1] = string.sub(BASE64_CHARS, C1, C1)
+		ResultChunks[#ResultChunks + 1] = string.sub(BASE64_CHARS, C2, C2)
 
 		-- Determine the 3rd character: Requires the 2nd source byte to actually exist
 		if ByteIndex + 1 < BufferLength then
 			local C3 = bit32.rshift(Combined, 6) % 64 + 1 -- Character 3
 
-			table.insert(ResultChunks, string.sub(BASE64_CHARS, C3, C3))
+			ResultChunks[#ResultChunks + 1] = string.sub(BASE64_CHARS, C3, C3)
+			
 		else -- The chunk fell short (only 1 byte provided), pad the 3rd slot
-			table.insert(ResultChunks, "=")
+			ResultChunks[#ResultChunks + 1] = "="
 		end
 
 		-- Determine the 4th character: Requires the 3rd source byte to actually exist
 		if ByteIndex + 2 < BufferLength then
 			local C4 = Combined % 64 + 1 -- Character 4
 
-			table.insert(ResultChunks, string.sub(BASE64_CHARS, C4, C4))
+			ResultChunks[#ResultChunks + 1] = string.sub(BASE64_CHARS, C4, C4)
+			
 		else -- The chunk fell short (only 1 or 2 bytes provided), pad the 4th slot
-			table.insert(ResultChunks, "=")
+			ResultChunks[#ResultChunks + 1] = "="
 		end
 	end
 
@@ -762,7 +763,7 @@ local function findInstancesByNames(InstanceNames: { string }): { Instance }
 		local FoundInstance = WorkspaceInstance or StorageInstance
 
 		if FoundInstance then
-			table.insert(Found, FoundInstance)
+			Found[#Found + 1] = FoundInstance
 		end
 	end
 
@@ -803,7 +804,7 @@ local function getTaggedInstancesFallback(): { Instance }
 
 	for _, Tag in ipairs(TagPriority) do
 		for _, TaggedInstance in ipairs(CollectionService:GetTagged(Tag)) do
-			table.insert(Tagged, TaggedInstance)
+			Tagged[#Tagged + 1] = TaggedInstance
 		end
 	end
 
@@ -917,7 +918,7 @@ local function onMessageDispatcher(DeltaTime: number): ()
 			  immediately if the DISPATCH_INTERVAL threshold has not yet been crossed,
 			  making the function nearly free on the vast majority of frames.
 			* Three-Phase Priority: Evaluates shipping candidates in strict order:
-			  (1) SYSTEM_GATEWAY VIP queue is always checked first, guaranteeing that
+			  (1) Diary._systemGateway VIP queue is always checked first, guaranteeing that
 			  session-validation traffic is never delayed by user-defined gateway backlog.
 			  (2) Custom gateways are served next via a ring-buffer pointer, providing
 			  aggressive drain round-robin fairness across all registered user gateways.
@@ -946,14 +947,14 @@ local function onMessageDispatcher(DeltaTime: number): ()
 	local PublishedThisTick = false 
 
 	-- Phase 1: The Absolute System Check (VIP Override)
-	local SystemQueue = FinalizedPackages[SYSTEM_GATEWAY]
+	local SystemQueue = FinalizedPackages[ModuleScriptTable["Diary"]._systemGateway]
 
 	if SystemQueue and #SystemQueue > 0 then
 		-- Remove from index 1 to guarantee chronological message order
 		local PackageToShip = table.remove(SystemQueue, 1) 
 
 		local Success, Err = pcall(function()
-			MessagingService:PublishAsync(SYSTEM_GATEWAY, PackageToShip)
+			MessagingService:PublishAsync(ModuleScriptTable["Diary"]._systemGateway, PackageToShip)
 		end)
 
 		if not Success then
@@ -1016,12 +1017,12 @@ local function onMessageDispatcher(DeltaTime: number): ()
 
 	local MasterHasData = false -- Flag to verify the MasterBox actually contains payloads before publishing
 	local CurrentSize = 0
-	local SweepOrder = { SYSTEM_GATEWAY } -- Set the special system gateway as the priority first entry for active package collection
+	local SweepOrder = { ModuleScriptTable["Diary"]._systemGateway } -- Set the special system gateway as the priority first entry for active package collection
 
 	for i = 1, CustomCount do
 		local Index = ((CurrentTargetIndex + i - 2) % CustomCount) + 1
 
-		table.insert(SweepOrder, CustomGatewaysArray[Index])
+		SweepOrder[#SweepOrder + 1] = CustomGatewaysArray[Index]
 	end
 
 	for _, Gateway in ipairs(SweepOrder) do
@@ -1037,7 +1038,7 @@ local function onMessageDispatcher(DeltaTime: number): ()
 
 				-- If the gateway doesn't have an interned ID yet, queue it for the background worker
 				if not table.find(IDsToQuery, Gateway) then
-					table.insert(IDsToQuery, Gateway)
+					IDsToQuery[#IDsToQuery + 1] = Gateway
 				end
 			end
 
@@ -1057,13 +1058,13 @@ local function onMessageDispatcher(DeltaTime: number): ()
 				-- Transform into a minified single package tuple
 				local MinifiedTuple = { GatewayKey, PathKey, PayloadTuple[2] } 
 
-				table.insert(MasterBox.Payloads, MinifiedTuple)
-
+				MasterBox.Payloads[#MasterBox.Payloads + 1] = MinifiedTuple
 				CurrentSize = #DependentServices.Http:JSONEncode(MasterBox)
 
 				-- 1KB Strict Size Enforcement
 				if CurrentSize > 1024 then
 					table.remove(MasterBox.Payloads, #MasterBox.Payloads)
+					
 					break -- The absolute limit is reached, stop adding to this MasterBox
 
 				else
@@ -1224,10 +1225,10 @@ local Serializers: { [string]: (DataValue: any) -> any } = {
 		local SerializedKeypoints = {}
 
 		for _, Keypoint in ipairs(DataValue.Keypoints :: { ColorSequenceKeypoint }) do
-			table.insert(SerializedKeypoints, { 
+			SerializedKeypoints[#SerializedKeypoints + 1] = {
 				Time = Keypoint.Time, 
 				Value = { Keypoint.Value.R, Keypoint.Value.G, Keypoint.Value.B } 
-			})
+			}
 		end
 
 		return { 
@@ -1240,11 +1241,11 @@ local Serializers: { [string]: (DataValue: any) -> any } = {
 		local SerializedKeypoints = {}
 
 		for _, Keypoint in ipairs(DataValue.Keypoints :: { NumberSequenceKeypoint }) do
-			table.insert(SerializedKeypoints, { 
+			SerializedKeypoints[#SerializedKeypoints + 1] = {
 				Time = Keypoint.Time, 
 				Value = Keypoint.Value, 
 				Envelope = Keypoint.Envelope 
-			})
+			}
 		end
 
 		return { 
@@ -1277,7 +1278,7 @@ local Serializers: { [string]: (DataValue: any) -> any } = {
 		local InstanceNames = {}
 
 		for _, Instance_ in ipairs(DataValue.FilterDescendantsInstances or {}) do
-			table.insert(InstanceNames, Instance_.Name)
+			InstanceNames[#InstanceNames + 1] = Instance_.Name
 		end
 
 		return {
@@ -1293,7 +1294,7 @@ local Serializers: { [string]: (DataValue: any) -> any } = {
 		local InstanceNames = {}
 
 		for _, Instance_ in ipairs(DataValue.FilterDescendantsInstances or {}) do
-			table.insert(InstanceNames, Instance_.Name)
+			InstanceNames[#InstanceNames + 1] = Instance_.Name
 		end
 
 		return {
@@ -1431,7 +1432,7 @@ local Deserializers: { [string]: (InputData: any) -> any } = {
 		local Keypoints = {}
 
 		for _, Keypoint in ipairs(Input.Keypoints) do
-			table.insert(Keypoints, ColorSequenceKeypoint.new(Keypoint.Time, Color3.new(Keypoint.Value[1], Keypoint.Value[2], Keypoint.Value[3])))
+			Keypoints[#Keypoints + 1] = ColorSequenceKeypoint.new(Keypoint.Time, Color3.new(Keypoint.Value[1], Keypoint.Value[2], Keypoint.Value[3]))
 		end
 
 		return ColorSequence.new(Keypoints)
@@ -1441,7 +1442,7 @@ local Deserializers: { [string]: (InputData: any) -> any } = {
 		local Keypoints = {}
 
 		for _, Keypoint in ipairs(Input.Keypoints) do
-			table.insert(Keypoints, NumberSequenceKeypoint.new(Keypoint.Time, Keypoint.Value, Keypoint.Envelope))
+			Keypoints[#Keypoints + 1] = NumberSequenceKeypoint.new(Keypoint.Time, Keypoint.Value, Keypoint.Envelope)
 		end
 
 		return NumberSequence.new(Keypoints)
@@ -1617,7 +1618,7 @@ local function runBackgroundIDWorker(): ()
 			local QueuedString = table.remove(IDsToQuery, 1) :: string
 
 			if not StringsToIDs[QueuedString] then
-				table.insert(StringsToProcess, QueuedString)
+				StringsToProcess[#StringsToProcess + 1] = QueuedString
 			end
 		end
 
@@ -2052,10 +2053,10 @@ DependentServices.Messaging = {
 			ActivePackages[Gateway] = Active
 
 			-- Register custom user-defined gateways into the Round-Robin dispatcher queue
-			if Gateway ~= SYSTEM_GATEWAY and Gateway ~= MULTIPLEX_GATEWAY then
+			if Gateway ~= ModuleScriptTable["Diary"]._systemGateway and Gateway ~= MULTIPLEX_GATEWAY then
 				if not CustomGatewaysLookup[Gateway] then
 					CustomGatewaysLookup[Gateway] = true
-					table.insert(CustomGatewaysArray, Gateway)
+					CustomGatewaysArray[#CustomGatewaysArray + 1] = Gateway
 				end
 			end
 		end
@@ -2086,14 +2087,14 @@ DependentServices.Messaging = {
 
 			-- If the path is unrecognized, queue it so the background worker can map an ID for future use
 			if not table.find(IDsToQuery, Path) then
-				table.insert(IDsToQuery, Path)
+				IDsToQuery[#IDsToQuery + 1] = Path
 			end
 		end
 
 		-- Stage the minified tuple into the open box
 		local NewTuple = { PathKey, SerializedPayload }
 
-		table.insert(Active.Payloads, NewTuple)
+		Active.Payloads[#Active.Payloads + 1] = NewTuple
 
 		-- Measure the physical byte size of the entire box
 		local Success, EncodedString = pcall(function()
@@ -2121,7 +2122,7 @@ DependentServices.Messaging = {
 			]]
 			if #Active.Payloads > 0 then
 				FinalizedPackages[Gateway] = FinalizedPackages[Gateway] or {}
-				table.insert(FinalizedPackages[Gateway], Active)
+				FinalizedPackages[Gateway][#FinalizedPackages[Gateway] + 1] = Active
 			end
 
 			-- Open a brand new box specifically for the payload that caused the overflow
@@ -2206,7 +2207,7 @@ DependentServices.Messaging = {
 		end
 
 		-- Add this specific script's callback to the local mailing list for this gateway
-		table.insert(GatewayReceivers[Gateway], CallbackFunction)
+		GatewayReceivers[Gateway][#GatewayReceivers[Gateway] + 1] = CallbackFunction
 
 		-- Inbound Network Listener (Opens ONLY for the first listener on this gateway)
 		if IsFirstListener then
@@ -2280,5 +2281,5 @@ DependentServices.Messaging = {
 } :: MessagingInterface
 
 ----------------------------------------------------------
-return DependentServices -- DependentServices module version 1.3.24
+return DependentServices -- DependentServices module version 1.3.25
 ----------------------------------------------------------
